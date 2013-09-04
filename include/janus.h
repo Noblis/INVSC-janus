@@ -42,6 +42,11 @@
 extern "C" {
 #endif
 
+/*!
+ * \mainpage
+ * IARPA Janus Program API
+ */
+
 JANUS_EXPORT void janus_initialize();
 
 #ifdef __cplusplus
