@@ -24,6 +24,8 @@
 #ifndef JANUS_H
 #define JANUS_H
 
+// Standard idiom for exporting symbols, define JANUS_LIBRARY when compiling a
+// Janus compliant shared library.
 #if defined JANUS_LIBRARY
 #  if defined _WIN32 || defined __CYGWIN__
 #    define JANUS_EXPORT __declspec(dllexport)
@@ -41,6 +43,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// Janus version
+#define JANUS_VERSION_MAJOR 0
+#define JANUS_VERSION_MINOR 1
+#define JANUS_VERSION_PATCH 0
 
 /*!
  * \mainpage

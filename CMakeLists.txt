@@ -1,8 +1,21 @@
 project(janus)
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.6)
+
+# Version info also defined in janus.h
+set(JANUS_NAME "Janus")
+set(JANUS_DESCRIPTION "IARPA Janus Program API")
+set(JANUS_VERSION_MAJOR 0)
+set(JANUS_VERSION_MINOR 1)
+set(JANUS_VERSION_PATCH 0)
+set(JANUS_VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH})
 
 add_subdirectory(src)
 add_subdirectory(doxygen)
 
 install(FILES LICENSE.txt DESTINATION .)
 install(DIRECTORY include DESTINATION .)
+
+set(CPACK_PACKAGE_VERSION_MAJOR ${JANUS_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${JANUS_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${JANUS_VERSION_PATCH})
+include(CPack)
