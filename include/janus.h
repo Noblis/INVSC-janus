@@ -44,7 +44,6 @@
 extern "C" {
 #endif
 
-// Janus version
 #define JANUS_VERSION_MAJOR 0
 #define JANUS_VERSION_MINOR 1
 #define JANUS_VERSION_PATCH 0
@@ -53,6 +52,43 @@ extern "C" {
  * \mainpage
  * IARPA Janus Program API
  */
+
+/*!
+ * \brief Common representation for images and videos.
+ *
+ * An \a image is a janus_media with #frames = 1.
+ * A \a video is a janus_media with #frames > 1.
+ * This API generally does not distinguish between images and videos, and refers
+ * to both collectively as \a media.
+ *
+ * \section element_access Element Access
+ * Element layout in the #data buffer with respect to decreasing spatial
+ * locality is \a channel, \a column, \a row, \a frame.
+ * Thus an element at channel \c c, column \c x, row \c y, and frame \c t can be
+ * retrieved like:
+ *
+ * \code
+ * janus_media m = foo();
+ * int columnStep = m.channels;
+ * int rowStep = m.channels * columnStep;
+ * int frameStep = m.rows * rowStep;
+ * int index = t*frameStep + y*rowStep + x*columnStep + c;
+ * unsigned char intensity = m.data[index];
+ * \endcode
+ *
+ * \section channel_order Channel Order
+ * Valid #channels values are 1 or 3.
+ * #channels = 1 indicates grayscale.
+ * #channels = 3 indicates \c BGR color.
+ */
+struct janus_media
+{
+    unsigned char *data;  /**< \brief Data buffer */
+    int channels; /**< \brief Channel count, see \ref channel_order. */
+    int columns; /**< \brief Column count */
+    int rows; /**< \brief Row count */
+    int frames; /**< \brief Frame count */
+};
 
 JANUS_EXPORT void janus_initialize();
 
