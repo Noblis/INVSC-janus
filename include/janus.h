@@ -24,6 +24,8 @@
 #ifndef JANUS_H
 #define JANUS_H
 
+#include <inttypes.h>
+
 // Standard idiom for exporting symbols, define JANUS_LIBRARY when compiling a
 // Janus compliant shared library.
 #if defined JANUS_LIBRARY
@@ -44,14 +46,66 @@
 extern "C" {
 #endif
 
+/*!
+ * \defgroup janus_api Janus API
+ * \brief C API for the IARPA Janus program
+ *
+ * \code #include <janus.h> \endcode
+ */
+
+/*!
+ * \addtogroup janus_api
+ *  @{
+ */
+
+///@{
+/*!
+ * \anchor version
+ * \name Version
+ * Janus uses the <a href="http://semver.org/">Semantic Versioning</a>
+ * convention for assigning and incrementing version numbers.
+ */
 #define JANUS_VERSION_MAJOR 0
 #define JANUS_VERSION_MINOR 1
 #define JANUS_VERSION_PATCH 0
+///@}
+
+/*!
+ * \anchor error_type
+ * \brief Return type for functions that indicate error status.
+ * \see \ref error_codes "Error Codes"
+ */
+typedef int32_t janus_error;
+
+///@{
+/*!
+ * \anchor error_codes
+ * \name Error Codes
+ * All error values are negative, with the exception of \c JANUS_SUCCESS which
+ * indicates no errors.
+ * Values in the inclusive interval \f$\left[-2^{16},-2^{31}\right]\f$ are
+ * reserved for performer use.
+ * \see \ref error_type "Error Type"
+ */
+#define JANUS_SUCCESS 0
+#define JANUS_ERROR -1
+#define JANUS_INVALID_SDK_PATH -2
+///@}
 
 /*!
  * \mainpage
  * IARPA Janus Program API
  */
+
+/*!
+ * \brief Data buffer type.
+ */
+typedef uint8_t janus_data;
+
+/*!
+ * \brief Data size type.
+ */
+typedef uint32_t janus_size;
 
 /*!
  * \brief Common representation for images and videos.
@@ -83,14 +137,22 @@ extern "C" {
  */
 struct janus_media
 {
-    unsigned char *data;  /**< \brief Data buffer */
-    int channels; /**< \brief Channel count, see \ref channel_order. */
-    int columns; /**< \brief Column count */
-    int rows; /**< \brief Row count */
-    int frames; /**< \brief Frame count */
+    janus_data *data;  /**< \brief Data buffer */
+    janus_size channels; /**< \brief Channel count, see \ref channel_order. */
+    janus_size columns; /**< \brief Column count */
+    janus_size rows; /**< \brief Row count */
+    janus_size frames; /**< \brief Frame count */
 };
 
-JANUS_EXPORT void janus_initialize();
+/*!
+ * \brief Call once before making other API calls.
+ *
+ * \param sdk_path Path to the root of the janus-compliant SDK.
+ *
+ */
+JANUS_EXPORT janus_error janus_initialize(const char *sdk_path);
+
+/*! @}*/
 
 #ifdef __cplusplus
 }

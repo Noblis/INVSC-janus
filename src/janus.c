@@ -1,6 +1,7 @@
 #include "janus.h"
 
-void janus_initialize()
+int janus_initialize(const char *sdk_path)
 {
-
+    (void) sdk_path;
+    return JANUS_SUCCESS;
 }
