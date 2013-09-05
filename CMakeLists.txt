@@ -5,16 +5,15 @@ set(JANUS_NAME "Janus")
 set(JANUS_DESCRIPTION "IARPA Janus Program API")
 
 # Extract version info from header file
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/janus.h JANUS_VERSION_MAJOR
-     REGEX "#define[ ]+JANUS_VERSION_MAJOR[ ]+[0-9]+")
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/janus.h JANUS_VERSION_MINOR
-     REGEX "#define[ ]+JANUS_VERSION_MINOR[ ]+[0-9]+")
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/janus.h JANUS_VERSION_PATCH
-     REGEX "#define[ ]+JANUS_VERSION_PATCH[ ]+[0-9]+")
-string(REGEX MATCH "[0-9]+" JANUS_VERSION_MAJOR ${JANUS_VERSION_MAJOR})
-string(REGEX MATCH "[0-9]+" JANUS_VERSION_MINOR ${JANUS_VERSION_MINOR})
-string(REGEX MATCH "[0-9]+" JANUS_VERSION_PATCH ${JANUS_VERSION_PATCH})
-configure_file(include/janus.h ${CMAKE_CURRENT_BINARY_DIR}/version.stamp)
+macro(janus_get_version VAR)
+  file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/janus.h LINE
+       REGEX "#define[ ]+${VAR}[ ]+[0-9]+")
+  string(REGEX MATCH "[0-9]+" ${VAR} ${LINE})
+endmacro(janus_get_version)
+janus_get_version(JANUS_VERSION_MAJOR)
+janus_get_version(JANUS_VERSION_MINOR)
+janus_get_version(JANUS_VERSION_PATCH)
+configure_file(include/janus.h ${CMAKE_CURRENT_BINARY_DIR}/refreshes_version_when_changed)
 set(JANUS_VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH})
 
 add_subdirectory(src)
