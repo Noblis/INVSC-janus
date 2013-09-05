@@ -121,14 +121,14 @@ typedef uint32_t janus_size;
  * Thus an element at channel \c c, column \c x, row \c y, and frame \c t can be
  * retrieved like:
  *
- * \code
- * janus_media m = foo();
- * int columnStep = m.channels;
- * int rowStep = m.channels * columnStep;
- * int frameStep = m.rows * rowStep;
- * int index = t*frameStep + y*rowStep + x*columnStep + c;
- * unsigned char intensity = m.data[index];
- * \endcode
+\code
+janus_media m = foo();
+janus_size columnStep = m.channels;
+janus_size rowStep = m.channels * columnStep;
+janus_size frameStep = m.rows * rowStep;
+janus_size index = t*frameStep + y*rowStep + x*columnStep + c;
+janus_data intensity = m.data[index];
+\endcode
  *
  * \section channel_order Channel Order
  * Valid #channels values are 1 or 3.
