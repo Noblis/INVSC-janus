@@ -26,8 +26,46 @@
 
 #include <inttypes.h>
 
-// Standard idiom for exporting symbols, define JANUS_LIBRARY when compiling a
-// Janus compliant shared library.
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*!
+ * \mainpage
+ * - \ref janus "API Specification"
+ * - <a href="http://www.iarpa.gov/Programs/sc/Janus/janus.html">Program
+ *   Homepage</a>
+ */
+
+/*!
+ * \defgroup janus Janus
+ * \brief \c C API for the IARPA Janus program.
+ * \author Joshua C. Klontz (Joshua.Klontz@noblis.org) - Current Maintainer
+ *
+ * \section license License
+ * The API is provided under a <a href="LICENSE.txt">BSD-like license</a> and is
+ * free for academic and commercial use.
+ *
+ * \section header Header
+ * \code #include <janus.h> \endcode
+ *
+ * \section thread_safety Thread Safety
+ * All functions are thread-safe unless noted otherwise.
+ *
+ * \section function_attributes Function Attributes
+ * API functions may be marked with the following attributes which indicate
+ * restrictions on their usage.
+ * \subsection not_thread-safe Not Thread-Safe
+ * This function can not be called from multiple threads at the same time.
+ * \subsection single-shot Single-Shot
+ * Calling this function more than once will result in undefined behaviour.
+ * This attribute implies \ref not_thread-safe.
+ *
+ * \section note_to_implementers Note to Implementers
+ * When implementing the Janus API, the standard idiom to export symbols is to
+ * define \c JANUS_LIBRARY during shared library compilation.
+ * We encourage compilation of Unix SDKs with \c \-fvisibility=hidden.
+ */
 #if defined JANUS_LIBRARY
 #  if defined _WIN32 || defined __CYGWIN__
 #    define JANUS_EXPORT __declspec(dllexport)
@@ -42,19 +80,8 @@
 #  endif
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*!
- * \defgroup janus_api Janus API
- * \brief C API for the IARPA Janus program
- *
- * \code #include <janus.h> \endcode
- */
-
-/*!
- * \addtogroup janus_api
+ * \addtogroup janus
  *  @{
  */
 
@@ -84,18 +111,13 @@ typedef int32_t janus_error;
  * All error values are negative, with the exception of \c JANUS_SUCCESS which
  * indicates no errors.
  * Values in the inclusive interval \f$\left[-2^{16},-2^{31}\right]\f$ are
- * reserved for performer use.
+ * reserved for implementer use.
  * \see \ref error_type "Error Type"
  */
 #define JANUS_SUCCESS 0
 #define JANUS_ERROR -1
 #define JANUS_INVALID_SDK_PATH -2
 ///@}
-
-/*!
- * \mainpage
- * IARPA Janus Program API
- */
 
 /*!
  * \brief Data buffer type.
@@ -137,20 +159,32 @@ janus_data intensity = m.data[index];
  */
 struct janus_media
 {
-    janus_data *data;  /**< \brief Data buffer */
-    janus_size channels; /**< \brief Channel count, see \ref channel_order. */
-    janus_size columns; /**< \brief Column count */
-    janus_size rows; /**< \brief Row count */
-    janus_size frames; /**< \brief Frame count */
+    janus_data *data;  /**< \brief Data buffer. */
+    janus_size channels; /**< \brief Channel count. \see \ref channel_order. */
+    janus_size columns; /**< \brief Column count. */
+    janus_size rows; /**< \brief Row count. */
+    janus_size frames; /**< \brief Frame count. */
 };
 
 /*!
- * \brief Call once before making other API calls.
+ * \brief Call once at the start of the application, before making any other
+ * calls to the API.
  *
  * \param sdk_path Path to the root of the janus-compliant SDK.
- *
+ * \returns \c JANUS_SUCCESS, \c JANUS_INVALID_SDK_PATH, or another \ref
+ *          error_codes "error code".
+ * \note \ref single-shot
+ * \see janus_finalize
  */
 JANUS_EXPORT janus_error janus_initialize(const char *sdk_path);
+
+/*!
+ * \brief Call once at the end of the application, after making all other calls
+ * to the API.
+ * \note \ref single-shot
+ * \see janus_initialize
+ */
+JANUS_EXPORT void janus_finalize();
 
 /*! @}*/
 

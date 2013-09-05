@@ -16,6 +16,11 @@ janus_get_version(JANUS_VERSION_PATCH)
 configure_file(include/janus.h ${CMAKE_CURRENT_BINARY_DIR}/refreshes_version_when_changed)
 set(JANUS_VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH})
 
+if(UNIX)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+endif()
+
 add_subdirectory(src)
 add_subdirectory(doxygen)
 
