@@ -1,6 +1,10 @@
 # Build HTML documentation if Doxygen is found
 find_package(Doxygen)
+set(DOXYGEN_EXPECTED_VERSION "1.8.5")
 if(${DOXYGEN_FOUND})
+  if(NOT ${DOXYGEN_VERSION} STREQUAL ${DOXYGEN_EXPECTED_VERSION})
+    message(WARNING "Found Doxygen version ${DOXYGEN_VERSION}, expected version ${DOXYGEN_EXPECTED_VERSION}. Will attempt to build documentation regardless.")
+  endif()
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in Doxyfile)
   add_custom_target(doc ALL ${DOXYGEN_EXECUTABLE} Doxyfile)
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION .)
