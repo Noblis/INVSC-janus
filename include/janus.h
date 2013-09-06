@@ -59,12 +59,15 @@ extern "C" {
  * This function can not be called from multiple threads at the same time.
  * \subsection single-shot Single-Shot
  * Calling this function more than once will result in undefined behaviour.
- * This attribute implies \ref not_thread-safe.
+ * Implies \ref not_thread-safe.
  *
- * \section note_to_implementers Note to Implementers
- * When implementing the Janus API, the standard idiom to export symbols is to
- * define \c JANUS_LIBRARY during shared library compilation.
- * We encourage compilation of Unix SDKs with \c \-fvisibility=hidden.
+ * \section suggestions_for_implementers Suggestions for Implementers
+ * The following are considered "best practices" for Janus implementations:
+ * - Compile a Unix implementation with \c \-fvisibility=hidden.
+ * - Define \c JANUS_LIBRARY during compilation to export Janus symbols.
+ * - Follow the <a href="http://www.pathname.com/fhs/">Filesystem Hierarchy
+ *   Standard</a> by organizing the implementation into \c bin, \c include,
+ *   \c lib, \c share and \c src sub-folders.
  */
 #if defined JANUS_LIBRARY
 #  if defined _WIN32 || defined __CYGWIN__
@@ -165,7 +168,8 @@ struct janus_media
  * \brief Call once at the start of the application, before making any other
  * calls to the API.
  *
- * \param sdk_path Path to the root of the janus-compliant SDK.
+ * \param sdk_path Path to the \em read-only directory containing the
+ *                 janus-compliant SDK as provided by the implementer.
  * \returns \c JANUS_SUCCESS, \c JANUS_INVALID_SDK_PATH, or another \ref
  *          error_codes "error code".
  * \note \ref single-shot
