@@ -34,7 +34,7 @@ extern "C" {
  * \mainpage
  * - \ref janus "API Specification"
  * - <a href="http://www.iarpa.gov/Programs/sc/Janus/janus.html">Program
- *   Homepage</a>
+ *   Homepage</a> [iarpa.gov]
  */
 
 /*!
@@ -165,6 +165,13 @@ struct janus_media
 };
 
 /*!
+ * \brief Contains the extracted representation of a subject.
+ *
+ * Computed during enrollment and used for comparison.
+ */
+typedef void *janus_template;
+
+/*!
  * \brief Call once at the start of the application, before making any other
  * calls to the API.
  *
@@ -191,4 +198,4 @@ JANUS_EXPORT void janus_finalize();
 }
 #endif
 
-#endif // JANUS_H
+#endif /* JANUS_H */
