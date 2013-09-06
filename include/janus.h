@@ -80,11 +80,6 @@ extern "C" {
 #  endif
 #endif
 
-/*!
- * \addtogroup janus
- *  @{
- */
-
 ///@{
 /*!
  * \anchor version
