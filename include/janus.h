@@ -63,8 +63,8 @@ extern "C" {
  *
  * \section suggestions_for_implementers Suggestions for Implementers
  * The following are considered "best practices" for Janus implementations:
- * - Compile a Unix implementation with \c \-fvisibility=hidden.
- * - Define \c JANUS_LIBRARY during compilation to export Janus symbols.
+ * - Define \c JANUS_LIBRARY during compilation to export Janus symbols and
+ *   compile a Unix implementation with \c \-fvisibility=hidden.
  * - Follow the <a href="http://www.pathname.com/fhs/">Filesystem Hierarchy
  *   Standard</a> by organizing the implementation into \c bin, \c include,
  *   \c lib, \c share and \c src sub-folders.
@@ -96,26 +96,20 @@ extern "C" {
 ///@}
 
 /*!
- * \anchor error_type
- * \brief Return type for functions that indicate error status.
- * \see \ref error_codes "Error Codes"
- */
-typedef int32_t janus_error;
-
-///@{
-/*!
- * \anchor error_codes
- * \name Error Codes
- * All error values are negative, with the exception of \c JANUS_SUCCESS which
- * indicates no errors.
- * Values in the inclusive interval \f$\left[-2^{16},-2^{31}\right]\f$ are
+ * \brief Return type for functions that indicate an error status.
+ *
+ * All error values are positive integers, with the exception of #janus_success
+ * = 0 which indicates no error.
+ * Values in the inclusive interval \f$\left[2^{16},2^{32}-1\right]\f$ are
  * reserved for implementer use.
- * \see \ref error_type "Error Type"
  */
-#define JANUS_SUCCESS 0
-#define JANUS_ERROR -1
-#define JANUS_INVALID_SDK_PATH -2
-///@}
+typedef enum janus_error
+{
+    janus_success          = 0, /*!< No error */
+    janus_unknown_error    = 1, /*!< Catch-all error code */
+    janus_invalid_sdk_path = 2  /*!< Incorrect location provided to
+                                     #janus_initialize */
+} janus_error;
 
 /*!
  * \brief Data buffer type.
@@ -155,21 +149,68 @@ janus_data intensity = m.data[index];
  * #channels = 1 indicates grayscale.
  * #channels = 3 indicates \c BGR color.
  */
-struct janus_media
+typedef struct janus_media
 {
-    janus_data *data;  /**< \brief Data buffer. */
-    janus_size channels; /**< \brief Channel count. \see \ref channel_order. */
-    janus_size columns; /**< \brief Column count. */
-    janus_size rows; /**< \brief Row count. */
-    janus_size frames; /**< \brief Frame count. */
-};
+    janus_data *data;    /*!< \brief Data buffer. */
+    janus_size channels; /*!< \brief Channel count. \see \ref channel_order. */
+    janus_size columns;  /*!< \brief Column count. */
+    janus_size rows;     /*!< \brief Row count. */
+    janus_size frames;   /*!< \brief Frame count. */
+} janus_media;
+
+/*!
+ * A measurement made on a #janus_media.
+ */
+typedef enum janus_attribute
+{
+    janus_face_x          = 16, /*!< Face detection bounding box */
+    janus_face_y          = 17, /*!< Face detection bounding box */
+    janus_face_width      = 18, /*!< Face detection bounding box */
+    janus_face_height     = 19, /*!< Face detection bounding box */
+    janus_face_confidence = 20, /*!< Face detection confidence */
+    janus_face_roll       = 21, /*!< Face pose */
+    janus_face_pitch      = 22, /*!< Face pose */
+    janus_face_yaw        = 23, /*!< Face pose */
+
+    janus_right_eye_x         = 32, /*!< Face landmark */
+    janus_right_eye_y         = 33, /*!< Face landmark */
+    janus_left_eye_x          = 34, /*!< Face landmark */
+    janus_left_eye_y          = 35, /*!< Face landmark */
+    janus_nose_base_x         = 36, /*!< Face landmark */
+    janus_nose_base_y         = 37, /*!< Face landmark */
+    janus_nose_bridge_x       = 38, /*!< Face landmark */
+    janus_nose_bridge_y       = 39, /*!< Face landmark */
+    janus_right_upper_cheek_x = 40, /*!< Face landmark */
+    janus_right_upper_cheek_y = 41, /*!< Face landmark */
+    janus_right_lower_cheek_x = 42, /*!< Face landmark */
+    janus_right_lower_cheek_y = 43, /*!< Face landmark */
+    janus_left_upper_cheek_x  = 44, /*!< Face landmark */
+    janus_left_upper_cheek_y  = 45, /*!< Face landmark */
+    janus_left_lower_cheek_x  = 46, /*!< Face landmark */
+    janus_left_lower_cheek_y  = 47  /*!< Face landmark */
+} janus_attribute;
+
+/*!
+ * \brief The computed value for a #janus_attribute.
+ */
+typedef float janus_value;
+
+/*!
+ * \brief A list of associated #janus_attribute and #janus_value pairs.
+ */
+typedef struct janus_attributes
+{
+    janus_size num_attributes; /*!< \brief Size of #attributes and #values. */
+    janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
+    janus_value *values; /*!< \brief Array of #janus_value. */
+} janus_attributes;
 
 /*!
  * \brief Contains the extracted representation of a subject.
  *
  * Computed during enrollment and used for comparison.
  */
-typedef void *janus_template;
+typedef struct janum_template_impl *janus_template;
 
 /*!
  * \brief Call once at the start of the application, before making any other
@@ -177,8 +218,7 @@ typedef void *janus_template;
  *
  * \param sdk_path Path to the \em read-only directory containing the
  *                 janus-compliant SDK as provided by the implementer.
- * \returns \c JANUS_SUCCESS, \c JANUS_INVALID_SDK_PATH, or another \ref
- *          error_codes "error code".
+ * \returns #janus_success, #janus_invalid_sdk_path, or another #janus_error.
  * \note \ref single-shot
  * \see janus_finalize
  */
