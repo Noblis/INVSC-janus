@@ -8,3 +8,6 @@ add_subdirectory(pittpatt)
 
 # Janus API documentation
 add_subdirectory(doxygen)
+
+# Janus unit tests
+add_subdirectory(tests)

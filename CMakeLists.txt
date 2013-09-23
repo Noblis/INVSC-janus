@@ -20,6 +20,7 @@ if(UNIX)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 endif()
 
+include(CTest)
 add_subdirectory(src)
 
 install(FILES LICENSE.txt DESTINATION .)

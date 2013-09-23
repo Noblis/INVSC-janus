@@ -10,6 +10,19 @@
 
 ppr_context_type context;
 
+static janus_error to_janus_error(ppr_error_type error)
+{
+    if (error != PPR_SUCCESS)
+        printf("PittPatt 5: %s\n", ppr_error_message(error));
+
+    switch (error) {
+      case PPR_SUCCESS:             return JANUS_SUCCESS;
+      case PPR_INVALID_MODELS_PATH: return JANUS_INVALID_SDK_PATH;
+      case PPR_NULL_MODELS_PATH:    return JANUS_INVALID_SDK_PATH;
+      default:                      return JANUS_UNKNOWN_ERROR;
+    }
+}
+
 janus_error janus_initialize(const char *sdk_path)
 {
     const char *models = "/models/";
@@ -17,14 +30,14 @@ janus_error janus_initialize(const char *sdk_path)
     char *models_path = malloc(models_path_len);
     snprintf(models_path, models_path_len, "%s%s", sdk_path, models);
 
-    ppr_error_type error = ppr_initialize_sdk(models_path, my_license_id, my_license_key);
-    if (error != PPR_SUCCESS)
-        return (error == PPR_INVALID_MODELS_PATH) ? JANUS_INVALID_SDK_PATH : JANUS_UNKNOWN_ERROR;
+    janus_error error = to_janus_error(ppr_initialize_sdk(models_path, my_license_id, my_license_key));
+    free(models_path);
+    if (error != JANUS_SUCCESS) return error;
 
     ppr_settings_type settings = ppr_get_default_settings();
     settings.detection.enable = 1;
     settings.detection.min_size = 4;
-    settings.detection.max_size = INT_MAX;
+    settings.detection.max_size = PPR_MAX_MAX_SIZE;
     settings.detection.adaptive_max_size = 1.f;
     settings.detection.adaptive_min_size = 0.01f;
     settings.detection.threshold = 0;
@@ -41,10 +54,7 @@ janus_error janus_initialize(const char *sdk_path)
     settings.recognition.num_comparison_threads = 1;
     settings.recognition.automatically_extract_templates = 1;
     settings.recognition.extract_thumbnails = 0;
-    ppr_initialize_context(settings, &context);
-
-    free(models_path);
-    return JANUS_SUCCESS;
+    return to_janus_error(ppr_initialize_context(settings, &context));
 }
 
 void janus_finalize()

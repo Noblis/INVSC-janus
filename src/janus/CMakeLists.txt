@@ -14,3 +14,6 @@ set_target_properties(janus PROPERTIES
 install(TARGETS janus RUNTIME DESTINATION bin 
                       LIBRARY DESTINATION lib
                       ARCHIVE DESTINATION lib)
+
+# Test this implementation by default
+set(JANUS_TEST_IMPLEMENTATION "janus" PARENT_SCOPE)

@@ -13,4 +13,8 @@ if(PittPatt5_FOUND)
   install(TARGETS janus_pittpatt RUNTIME DESTINATION bin
                                  LIBRARY DESTINATION lib
                                  ARCHIVE DESTINATION lib)
+
+  # Test this implementation if PittPatt was found
+  set(JANUS_TEST_IMPLEMENTATION "janus_pittpatt" PARENT_SCOPE)
+  set(JANUS_TEST_SDK_PATH ${PittPatt5_DIR} PARENT_SCOPE)
 endif()
