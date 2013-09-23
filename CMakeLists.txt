@@ -20,10 +20,7 @@ if(UNIX)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 endif()
 
-include_directories(include)
 add_subdirectory(src)
-add_subdirectory(pittpatt)
-add_subdirectory(doxygen)
 
 install(FILES LICENSE.txt DESTINATION .)
 install(DIRECTORY include DESTINATION .)
