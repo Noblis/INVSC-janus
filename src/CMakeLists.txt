@@ -5,7 +5,6 @@ set(JANUS_MISC_FILES ../LICENSE.txt
                      ../doxygen/Doxyfile.in
                      ../include/janus.h)
 
-include_directories(../include)
 add_library(janus SHARED janus.c ${JANUS_MISC_FILES})
 set_target_properties(janus PROPERTIES
                       DEFINE_SYMBOL JANUS_LIBRARY
