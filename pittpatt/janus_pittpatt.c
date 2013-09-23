@@ -19,7 +19,7 @@ janus_error janus_initialize(const char *sdk_path)
 
     ppr_error_type error = ppr_initialize_sdk(models_path, my_license_id, my_license_key);
     if (error != PPR_SUCCESS)
-        return (error == PPR_INVALID_MODELS_PATH) ? janus_invalid_sdk_path : janus_unknown_error;
+        return (error == PPR_INVALID_MODELS_PATH) ? JANUS_INVALID_SDK_PATH : JANUS_UNKNOWN_ERROR;
 
     ppr_settings_type settings = ppr_get_default_settings();
     settings.detection.enable = 1;
@@ -44,7 +44,7 @@ janus_error janus_initialize(const char *sdk_path)
     ppr_initialize_context(settings, &context);
 
     free(models_path);
-    return janus_success;
+    return JANUS_SUCCESS;
 }
 
 void janus_finalize()

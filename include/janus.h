@@ -98,16 +98,16 @@ extern "C" {
 /*!
  * \brief Return type for functions that indicate an error status.
  *
- * All error values are positive integers, with the exception of #janus_success
+ * All error values are positive integers, with the exception of #JANUS_SUCCESS
  * = 0 which indicates no error.
  * Values in the inclusive interval \f$\left[2^{16},2^{32}-1\right]\f$ are
  * reserved for implementer use.
  */
 typedef enum janus_error
 {
-    janus_success          = 0, /*!< No error */
-    janus_unknown_error    = 1, /*!< Catch-all error code */
-    janus_invalid_sdk_path = 2  /*!< Incorrect location provided to
+    JANUS_SUCCESS          = 0, /*!< No error */
+    JANUS_UNKNOWN_ERROR    = 1, /*!< Catch-all error code */
+    JANUS_INVALID_SDK_PATH = 2  /*!< Incorrect location provided to
                                      #janus_initialize */
 } janus_error;
 
@@ -163,31 +163,31 @@ typedef struct janus_media
  */
 typedef enum janus_attribute
 {
-    janus_face_x          = 16, /*!< Face detection bounding box */
-    janus_face_y          = 17, /*!< Face detection bounding box */
-    janus_face_width      = 18, /*!< Face detection bounding box */
-    janus_face_height     = 19, /*!< Face detection bounding box */
-    janus_face_confidence = 20, /*!< Face detection confidence */
-    janus_face_roll       = 21, /*!< Face pose */
-    janus_face_pitch      = 22, /*!< Face pose */
-    janus_face_yaw        = 23, /*!< Face pose */
+    JANUS_FACE_X          = 16, /*!< Face detection bounding box */
+    JANUS_FACE_Y          = 17, /*!< Face detection bounding box */
+    JANUS_FACE_WIDTH      = 18, /*!< Face detection bounding box */
+    JANUS_FACE_HEIGHT     = 19, /*!< Face detection bounding box */
+    JANUS_FACE_CONFIDENCE = 20, /*!< Face detection confidence */
+    JANUS_FACE_ROLL       = 21, /*!< Face pose */
+    JANUS_FACE_PITCH      = 22, /*!< Face pose */
+    JANUS_FACE_YAW        = 23, /*!< Face pose */
 
-    janus_right_eye_x         = 32, /*!< Face landmark */
-    janus_right_eye_y         = 33, /*!< Face landmark */
-    janus_left_eye_x          = 34, /*!< Face landmark */
-    janus_left_eye_y          = 35, /*!< Face landmark */
-    janus_nose_base_x         = 36, /*!< Face landmark */
-    janus_nose_base_y         = 37, /*!< Face landmark */
-    janus_nose_bridge_x       = 38, /*!< Face landmark */
-    janus_nose_bridge_y       = 39, /*!< Face landmark */
-    janus_right_upper_cheek_x = 40, /*!< Face landmark */
-    janus_right_upper_cheek_y = 41, /*!< Face landmark */
-    janus_right_lower_cheek_x = 42, /*!< Face landmark */
-    janus_right_lower_cheek_y = 43, /*!< Face landmark */
-    janus_left_upper_cheek_x  = 44, /*!< Face landmark */
-    janus_left_upper_cheek_y  = 45, /*!< Face landmark */
-    janus_left_lower_cheek_x  = 46, /*!< Face landmark */
-    janus_left_lower_cheek_y  = 47  /*!< Face landmark */
+    JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark */
+    JANUS_RIGHT_EYE_Y         = 33, /*!< Face landmark */
+    JANUS_LEFT_EYE_X          = 34, /*!< Face landmark */
+    JANUS_LEFT_EYE_Y          = 35, /*!< Face landmark */
+    JANUS_NOSE_BASE_X         = 36, /*!< Face landmark */
+    JANUS_NOSE_BASE_Y         = 37, /*!< Face landmark */
+    JANUS_NOSE_BRIDGE_X       = 38, /*!< Face landmark */
+    JANUS_NOSE_BRIDGE_Y       = 39, /*!< Face landmark */
+    JANUS_RIGHT_UPPER_CHEEK_X = 40, /*!< Face landmark */
+    JANUS_RIGHT_UPPER_CHEEK_Y = 41, /*!< Face landmark */
+    JANUS_RIGHT_LOWER_CHEEK_X = 42, /*!< Face landmark */
+    JANUS_RIGHT_LOWER_CHEEK_Y = 43, /*!< Face landmark */
+    JANUS_LEFT_UPPER_CHEEK_X  = 44, /*!< Face landmark */
+    JANUS_LEFT_UPPER_CHEEK_Y  = 45, /*!< Face landmark */
+    JANUS_LEFT_LOWER_CHEEK_X  = 46, /*!< Face landmark */
+    JANUS_LEFT_LOWER_CHEEK_Y  = 47  /*!< Face landmark */
 } janus_attribute;
 
 /*!
@@ -218,7 +218,7 @@ typedef struct janum_template_impl *janus_template;
  *
  * \param sdk_path Path to the \em read-only directory containing the
  *                 janus-compliant SDK as provided by the implementer.
- * \returns #janus_success, #janus_invalid_sdk_path, or another #janus_error.
+ * \returns #JANUS_SUCCESS, #JANUS_INVALID_SDK_PATH, or another #janus_error.
  * \note \ref single-shot
  * \see janus_finalize
  */

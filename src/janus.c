@@ -9,7 +9,7 @@ struct janus_template_impl
 janus_error janus_initialize(const char *sdk_path)
 {
     (void) sdk_path;
-    return janus_success;
+    return JANUS_SUCCESS;
 }
 
 void janus_finalize()
