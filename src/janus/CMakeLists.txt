@@ -5,7 +5,8 @@ set(JANUS_MISC_FILES ${CMAKE_SOURCE_DIR}/LICENSE.txt
                      ${CMAKE_SOURCE_DIR}/src/doxygen/Doxyfile.in
                      ${CMAKE_SOURCE_DIR}/include/janus.h)
 
-add_library(janus SHARED janus.c ${JANUS_MISC_FILES})
+file(GLOB JANUS_SOURCES *.c *.h)
+add_library(janus SHARED ${JANUS_SOURCES} ${JANUS_MISC_FILES})
 set_target_properties(janus PROPERTIES
                       DEFINE_SYMBOL JANUS_LIBRARY
                       VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH}
