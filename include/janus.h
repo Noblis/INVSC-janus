@@ -206,6 +206,22 @@ typedef struct janus_object
 } janus_object;
 
 /*!
+ * \brief Returns a #janus_object capable of storing \em size attributes.
+ * \param size Desired value for janus_object::size.
+ * \note Memory will be allocated, but not initialized, for
+ *       janus_object::attributes and janus_object::values.
+ */
+JANUS_EXPORT janus_object janus_allocate_object(janus_size size);
+
+/*!
+ * \brief Frees the memory previously allocated for a #janus_object.
+ * \param object Object to free.
+ * \note janus_object::size will be set to 0 and janus_object::attributes and
+ *       janus_object::values will be set to NULL.
+ */
+ JANUS_EXPORT void janus_free_object(janus_object *object);
+
+/*!
  * \brief A list of #janus_object.
  */
 typedef struct janus_object_list
