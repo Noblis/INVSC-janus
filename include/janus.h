@@ -198,12 +198,21 @@ typedef float janus_value;
 /*!
  * \brief A list of associated #janus_attribute and #janus_value pairs.
  */
-typedef struct janus_attributes
+typedef struct janus_object
 {
-    janus_size num_attributes; /*!< \brief Size of #attributes and #values. */
+    janus_size size; /*!< \brief Size of #attributes and #values. */
     janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
     janus_value *values; /*!< \brief Array of #janus_value. */
-} janus_attributes;
+} janus_object;
+
+/*!
+ * \brief A list of #janus_object.
+ */
+typedef struct janus_object_list
+{
+    janus_size size; /*!< \brief Number of elements in #objects. */
+    janus_object *objects; /*!< \brief Array of #janus_object. */
+} janus_object_list;
 
 /*!
  * \brief Contains the extracted representation of a subject.
@@ -231,6 +240,11 @@ JANUS_EXPORT janus_error janus_initialize(const char *sdk_path);
  * \see janus_initialize
  */
 JANUS_EXPORT void janus_finalize();
+
+/*!
+ * \brief Detect objects in a #janus_media.
+ */
+JANUS_EXPORT janus_object_list janus_detect(const janus_media *media);
 
 /*! @}*/
 
