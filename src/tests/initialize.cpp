@@ -12,15 +12,14 @@ int main(int argc, char *argv[])
 
     const char *sdk_path;
     if (argc > 1) sdk_path = argv[1];
-    else          sdk_path = "../"; // Assumes it is run from <sdk_path>/bin
+    else          sdk_path = "../";
 
     janus_error error = janus_initialize(sdk_path);
     if (error != JANUS_SUCCESS) {
-        printf("janus_initialize failed with error: %d\n", error);
+        printf("Failed with error: %d\n", error);
         abort();
     }
 
     janus_finalize();
-
     return 0;
 }
