@@ -35,7 +35,11 @@ extern "C" {
  * \brief Auxillary I/O functions for \ref janus.
  */
 
-janus_media janus_read_image(const char *file);
+/*!
+ * \brief Read an image from disk.
+ * \see janus_free_media
+ */
+JANUS_EXPORT janus_media janus_read_image(const char *file);
 
 #ifdef __cplusplus
 }
