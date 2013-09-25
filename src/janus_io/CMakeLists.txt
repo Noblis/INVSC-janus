@@ -1,0 +1,10 @@
+file(GLOB JANUS_IO_SOURCES *.c)
+add_library(janus_io SHARED ${JANUS_IO_SOURCES})
+set_target_properties(janus_io PROPERTIES
+                      DEFINE_SYMBOL JANUS_LIBRARY
+                      VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH}
+                      SOVERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR})
+target_link_libraries(janus_io janus)
+install(TARGETS janus_io RUNTIME DESTINATION bin
+                         LIBRARY DESTINATION lib
+                         ARCHIVE DESTINATION lib)

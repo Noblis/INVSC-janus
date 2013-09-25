@@ -4,8 +4,8 @@
 
 janus_object_list janus_allocate_object_list(janus_size size)
 {
-    // Initializing the object this way requires just one call to malloc and
-    // simplifies the implementation of janus_free_object_list.
+    // Initializing the object_list this way requires just one call to malloc
+    // and simplifies the implementation of janus_free_object_list.
     janus_object_list object_list = malloc(sizeof(struct janus_object_list_type) +
                                            sizeof(janus_object) * size);
     object_list->size = size;

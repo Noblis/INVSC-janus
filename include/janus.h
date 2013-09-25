@@ -25,7 +25,6 @@
 #define JANUS_H
 
 #include <inttypes.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,13 +124,13 @@ typedef uint32_t janus_size;
 /*!
  * \brief Common representation for images and videos.
  *
- * An \a image is a janus_media with #frames = 1.
- * A \a video is a janus_media with #frames > 1.
+ * An \a image is a janus_media with janus_media::frames = 1.
+ * A \a video is a janus_media with janus_media::frames > 1.
  * This API generally does not distinguish between images and videos, and refers
  * to both collectively as \a media.
  *
  * \section element_access Element Access
- * Element layout in the #data buffer with respect to decreasing spatial
+ * Element layout in the janus_media::data buffer with respect to decreasing spatial
  * locality is \a channel, \a column, \a row, \a frame.
  * Thus an element at channel \c c, column \c x, row \c y, and frame \c t can be
  * retrieved like:
@@ -146,9 +145,9 @@ janus_data intensity = m.data[index];
 \endcode
  *
  * \section channel_order Channel Order
- * Valid #channels values are 1 or 3.
- * #channels = 1 indicates grayscale.
- * #channels = 3 indicates \c BGR color.
+ * Valid janus_media::channels values are 1 or 3.
+ * janus_media::channels = 1 indicates grayscale.
+ * janus_media::channels = 3 indicates \c BGR color.
  */
 typedef struct janus_media_type
 {
@@ -160,7 +159,30 @@ typedef struct janus_media_type
 } *janus_media;
 
 /*!
- * A measurement made on a #janus_media.
+ * \brief Returns a #janus_media capable of storing \em channels * \em columns *
+ *        \em rows * \em frames elements in \em data.
+ * \param channels Desired value for janus_media::channels.
+ * \param columns Desired value for janus_media::columns.
+ * \param rows Desired value for janus_media::rows.
+ * \param frames Desired value for janus_media::frames.
+ * \note Memory will be allocated, but not initialized, for
+ *       janus_media::data.
+ * \see janus_free_media
+ */
+JANUS_EXPORT janus_media janus_allocate_media(janus_size channels,
+                                              janus_size columns,
+                                              janus_size rows,
+                                              janus_size frames);
+
+/*!
+ * \brief Frees the memory previously allocated for a #janus_media.
+ * \param media #janus_media to free.
+ * \see janus_allocate_media
+ */
+JANUS_EXPORT void janus_free_media(janus_media media);
+
+/*!
+ * \brief A measurement made on a #janus_media.
  */
 typedef enum janus_attribute
 {
@@ -220,7 +242,7 @@ JANUS_EXPORT janus_object janus_allocate_object(janus_size size);
  * \param object #janus_object to free.
  * \see janus_allocate_object
  */
- JANUS_EXPORT void janus_free_object(janus_object object);
+JANUS_EXPORT void janus_free_object(janus_object object);
 
 /*!
  * \brief A list of #janus_object.
@@ -249,7 +271,7 @@ JANUS_EXPORT janus_object_list janus_allocate_object_list(janus_size size);
  *       #janus_object_list::size to 0 before calling this function;
  * \see janus_allocate_object_list
  */
- JANUS_EXPORT void janus_free_object_list(janus_object_list object_list);
+JANUS_EXPORT void janus_free_object_list(janus_object_list object_list);
 
 /*!
  * \brief Contains the extracted representation of a subject.
