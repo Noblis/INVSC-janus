@@ -16,5 +16,5 @@ install(TARGETS janus RUNTIME DESTINATION bin
                       LIBRARY DESTINATION lib
                       ARCHIVE DESTINATION lib)
 
-# Test this implementation by default
-set(JANUS_TEST_IMPLEMENTATION "janus" PARENT_SCOPE)
+# Add this to the list of implementations to test
+set(JANUS_TEST_IMPLEMENTATIONS ${JANUS_TEST_IMPLEMENTATIONS} "janus" PARENT_SCOPE)

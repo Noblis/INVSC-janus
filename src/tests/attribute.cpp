@@ -1,8 +1,7 @@
-#include <opencv2/highgui/highgui.hpp>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "janus.h"
-
-using namespace cv;
 
 int main(int argc, char *argv[])
 {
@@ -22,11 +21,7 @@ int main(int argc, char *argv[])
     }
 
     const char *file_name = "../data/Kirchner0.jpg";
-    Mat image = imread(file_name);
-    if (!image.data) {
-        printf("Failed to open: %s\n", file_name);
-        abort();
-    }
+    (void) file_name;
 
     janus_finalize();
     return 0;
