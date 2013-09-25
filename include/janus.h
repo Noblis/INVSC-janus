@@ -25,6 +25,7 @@
 #define JANUS_H
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -149,14 +150,14 @@ janus_data intensity = m.data[index];
  * #channels = 1 indicates grayscale.
  * #channels = 3 indicates \c BGR color.
  */
-typedef struct janus_media
+typedef struct janus_media_type
 {
     janus_data *data;    /*!< \brief Data buffer. */
     janus_size channels; /*!< \brief Channel count. \see \ref channel_order. */
     janus_size columns;  /*!< \brief Column count. */
     janus_size rows;     /*!< \brief Row count. */
     janus_size frames;   /*!< \brief Frame count. */
-} janus_media;
+} *janus_media;
 
 /*!
  * A measurement made on a #janus_media.
@@ -198,44 +199,64 @@ typedef float janus_value;
 /*!
  * \brief A list of associated #janus_attribute and #janus_value pairs.
  */
-typedef struct janus_object
+typedef struct janus_object_type
 {
     janus_size size; /*!< \brief Size of #attributes and #values. */
     janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
     janus_value *values; /*!< \brief Array of #janus_value. */
-} janus_object;
+} *janus_object;
 
 /*!
  * \brief Returns a #janus_object capable of storing \em size attributes.
  * \param size Desired value for janus_object::size.
  * \note Memory will be allocated, but not initialized, for
  *       janus_object::attributes and janus_object::values.
+ * \see janus_free_object
  */
 JANUS_EXPORT janus_object janus_allocate_object(janus_size size);
 
 /*!
  * \brief Frees the memory previously allocated for a #janus_object.
- * \param object Object to free.
- * \note janus_object::size will be set to 0 and janus_object::attributes and
- *       janus_object::values will be set to NULL.
+ * \param object #janus_object to free.
+ * \see janus_allocate_object
  */
- JANUS_EXPORT void janus_free_object(janus_object *object);
+ JANUS_EXPORT void janus_free_object(janus_object object);
 
 /*!
  * \brief A list of #janus_object.
  */
-typedef struct janus_object_list
+typedef struct janus_object_list_type
 {
     janus_size size; /*!< \brief Number of elements in #objects. */
     janus_object *objects; /*!< \brief Array of #janus_object. */
-} janus_object_list;
+} *janus_object_list;
+
+/*!
+ * \brief Returns a #janus_object_list capable of storing \em size
+ *        #janus_object.
+ * \param size Desired value for janus_object_list::size.
+ * \note Memory will be allocated, but not initialized, for
+ *       janus_object_list::objects.
+ * \see janus_free_object_list
+ */
+JANUS_EXPORT janus_object_list janus_allocate_object_list(janus_size size);
+
+/*!
+ * \brief Frees the memory previously allocated for a #janus_object_list.
+ * \param object_list #janus_object_list to free.
+ * \note #janus_free_object will be called for each object in
+ *       #janus_object_list::objects. If this behavior is undesired, set
+ *       #janus_object_list::size to 0 before calling this function;
+ * \see janus_allocate_object_list
+ */
+ JANUS_EXPORT void janus_free_object_list(janus_object_list object_list);
 
 /*!
  * \brief Contains the extracted representation of a subject.
  *
  * Computed during enrollment and used for comparison.
  */
-typedef struct janum_template_impl *janus_template;
+typedef struct janus_template_type *janus_template;
 
 /*!
  * \brief Call once at the start of the application, before making any other
@@ -259,8 +280,9 @@ JANUS_EXPORT void janus_finalize();
 
 /*!
  * \brief Detect objects in a #janus_media.
+ * \see janus_free_object_list
  */
-JANUS_EXPORT janus_object_list janus_detect(const janus_media *media);
+JANUS_EXPORT janus_object_list janus_detect(const janus_media media);
 
 /*! @}*/
 
