@@ -11,7 +11,6 @@
 include(FindPackageHandleStandardArgs)
 find_path(PittPatt5_DIR include/pittpatt_sdk.h)
 find_package_handle_standard_args(PittPatt5 DEFAULT_MSG PittPatt5_DIR)
-
 set(PittPatt5_FOUND ${PITTPATT5_FOUND})
 if(PittPatt5_FOUND)
   include_directories(${PittPatt5_DIR}/include)

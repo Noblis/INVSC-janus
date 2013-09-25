@@ -37,6 +37,7 @@ extern "C" {
 
 /*!
  * \brief Read an image from disk.
+ * \note Returns \c NULL on failure.
  * \see janus_free_media
  */
 JANUS_EXPORT janus_media janus_read_image(const char *file);
