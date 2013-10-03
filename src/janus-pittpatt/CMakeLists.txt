@@ -11,12 +11,11 @@ if(PittPatt5_FOUND)
                         VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH}
                         SOVERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR})
   target_link_libraries(janus-pittpatt pittpatt_sdk)
-
   install(TARGETS janus-pittpatt RUNTIME DESTINATION bin
                                  LIBRARY DESTINATION lib
                                  ARCHIVE DESTINATION lib)
 
   # Add this to the list of implementations to test
   set(JANUS_TEST_IMPLEMENTATIONS ${JANUS_TEST_IMPLEMENTATIONS} "janus-pittpatt" PARENT_SCOPE)
-  set(JANUS_TEST_SDK_PATH ${PittPatt5_DIR} PARENT_SCOPE)
+  set(JANUS_TEST_SDK_PATHS ${JANUS_TEST_SDK_PATHS} ${PittPatt5_DIR} PARENT_SCOPE)
 endif()
