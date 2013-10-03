@@ -13,4 +13,5 @@ janus_media janus_read_image(const char *file)
 
     janus_media media = janus_allocate_media(mat.channels(), mat.cols, mat.rows, 1);
     memcpy(media->data, mat.data, media->channels * media->columns * media->rows * sizeof(janus_data));
+    return NULL;
 }

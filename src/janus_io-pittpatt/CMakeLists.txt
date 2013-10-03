@@ -8,3 +8,6 @@ target_link_libraries(janus_io-pittpatt janus-pittpatt pittpatt_raw_image pittpa
 install(TARGETS janus_io-pittpatt RUNTIME DESTINATION bin
                                   LIBRARY DESTINATION lib
                                   ARCHIVE DESTINATION lib)
+
+# Add this to the list of implementations to test
+set(JANUS_IO_TEST_IMPLEMENTATIONS ${JANUS_IO_TEST_IMPLEMENTATIONS} "janus_io-pittpatt" PARENT_SCOPE)

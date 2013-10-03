@@ -2,11 +2,12 @@
 #include <stdlib.h>
 
 #include "janus.h"
+#include "janus_io.h"
 
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-        printf("Usage: attribute sdk_path");
+        printf("Usage: read_image sdk_path");
         return 1;
     }
 
@@ -16,8 +17,8 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    const char *file_name = "../data/Kirchner0.jpg";
-    (void) file_name;
+    janus_media image = janus_read_image("../data/Kirchner0.jpg");
+    janus_free_media(image);
 
     janus_finalize();
     return 0;
