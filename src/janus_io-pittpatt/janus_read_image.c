@@ -1,7 +1,9 @@
-#include <janus_io.h>
-#include <pittpatt_raw_image_io.h>
 #include <stddef.h>
 #include <string.h>
+
+#include <pittpatt_raw_image_io.h>
+
+#include "janus_io.h"
 
 janus_media janus_read_image(const char *file)
 {
