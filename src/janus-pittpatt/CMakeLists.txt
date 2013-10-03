@@ -5,7 +5,7 @@ if(PittPatt5_FOUND)
                                    ../janus/janus_free_media.c
                                    ../janus/janus_free_object.c
                                    ../janus/janus_free_object_list.c)
-  add_library(janus-pittpatt SHARED janus_pittpatt.c ${JANUS_DEFAULT_IMPLEMENTATION})
+  add_library(janus-pittpatt SHARED janus-pittpatt.c ${JANUS_DEFAULT_IMPLEMENTATION})
   set_target_properties(janus-pittpatt PROPERTIES
                         DEFINE_SYMBOL JANUS_LIBRARY
                         VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH}

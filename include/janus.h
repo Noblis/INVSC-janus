@@ -186,6 +186,8 @@ JANUS_EXPORT void janus_free_media(janus_media media);
  */
 typedef enum janus_attribute
 {
+    JANUS_INVALID_ATTRIBUTE = 0, /*!< Catch-all attribute code */
+
     JANUS_FACE_X          = 16, /*!< Face detection bounding box */
     JANUS_FACE_Y          = 17, /*!< Face detection bounding box */
     JANUS_FACE_WIDTH      = 18, /*!< Face detection bounding box */
@@ -203,14 +205,16 @@ typedef enum janus_attribute
     JANUS_NOSE_BASE_Y         = 37, /*!< Face landmark */
     JANUS_NOSE_BRIDGE_X       = 38, /*!< Face landmark */
     JANUS_NOSE_BRIDGE_Y       = 39, /*!< Face landmark */
-    JANUS_RIGHT_UPPER_CHEEK_X = 40, /*!< Face landmark */
-    JANUS_RIGHT_UPPER_CHEEK_Y = 41, /*!< Face landmark */
-    JANUS_RIGHT_LOWER_CHEEK_X = 42, /*!< Face landmark */
-    JANUS_RIGHT_LOWER_CHEEK_Y = 43, /*!< Face landmark */
-    JANUS_LEFT_UPPER_CHEEK_X  = 44, /*!< Face landmark */
-    JANUS_LEFT_UPPER_CHEEK_Y  = 45, /*!< Face landmark */
-    JANUS_LEFT_LOWER_CHEEK_X  = 46, /*!< Face landmark */
-    JANUS_LEFT_LOWER_CHEEK_Y  = 47  /*!< Face landmark */
+    JANUS_EYE_NOSE_X          = 40, /*!< Face landmark */
+    JANUS_EYE_NOSE_Y          = 41, /*!< Face landmark */
+    JANUS_RIGHT_UPPER_CHEEK_X = 42, /*!< Face landmark */
+    JANUS_RIGHT_UPPER_CHEEK_Y = 43, /*!< Face landmark */
+    JANUS_RIGHT_LOWER_CHEEK_X = 44, /*!< Face landmark */
+    JANUS_RIGHT_LOWER_CHEEK_Y = 45, /*!< Face landmark */
+    JANUS_LEFT_UPPER_CHEEK_X  = 46, /*!< Face landmark */
+    JANUS_LEFT_UPPER_CHEEK_Y  = 47, /*!< Face landmark */
+    JANUS_LEFT_LOWER_CHEEK_X  = 48, /*!< Face landmark */
+    JANUS_LEFT_LOWER_CHEEK_Y  = 49  /*!< Face landmark */
 } janus_attribute;
 
 /*!
