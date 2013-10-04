@@ -4,20 +4,18 @@
 #include "janus.h"
 #include "janus_io.h"
 
+// Doesn't bother checking assumptions tested by `initialize`
 int main(int argc, char *argv[])
 {
-    if (argc != 2) {
-        printf("Usage: read_image sdk_path");
-        return 1;
-    }
+    (void) argc;
+    janus_initialize(argv[1]);
 
-    janus_error error = janus_initialize(argv[1]);
-    if (error != JANUS_SUCCESS) {
-        printf("Failed with error: %d\n", error);
+    const char *file = "/Users/m29396/openbr/data/MEDS/img/S001-01-t10_01.jpg";
+    janus_media image = janus_read_image(file);
+    if (image == NULL) {
+        printf("Failed to read image: %s\n", file);
         abort();
     }
-
-    janus_media image = janus_read_image("../data/Kirchner0.jpg");
     janus_free_media(image);
 
     janus_finalize();
