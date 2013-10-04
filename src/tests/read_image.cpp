@@ -4,13 +4,13 @@
 #include "janus.h"
 #include "janus_io.h"
 
-// Doesn't bother checking assumptions tested by `initialize`
+// Makes assumptions that are tested by `initialize`
 int main(int argc, char *argv[])
 {
     (void) argc;
     janus_initialize(argv[1]);
 
-    const char *file = "/Users/m29396/openbr/data/MEDS/img/S001-01-t10_01.jpg";
+    const char *file = "../data/Kirchner0.jpg";
     janus_media image = janus_read_image(file);
     if (image == NULL) {
         printf("Failed to read image: %s\n", file);

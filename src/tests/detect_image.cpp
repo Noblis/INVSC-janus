@@ -4,7 +4,7 @@
 #include "janus.h"
 #include "janus_io.h"
 
-// Doesn't bother checking assumptions tested by `read_image`
+// Makes assumptions that are tested by `read_image`
 int main(int argc, char *argv[])
 {
     (void) argc;
@@ -12,6 +12,10 @@ int main(int argc, char *argv[])
 
     janus_media image = janus_read_image("../data/Kirchner0.jpg");
     janus_object_list faces = janus_detect(image);
+    if (faces->size != 1) {
+        printf("Expected 1 face detection, got: %d", faces->size);
+        abort();
+    }
     janus_free_object_list(faces);
     janus_free_media(image);
 
