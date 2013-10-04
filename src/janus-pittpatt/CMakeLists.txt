@@ -16,6 +16,9 @@ if(PittPatt5_FOUND)
                                  ARCHIVE DESTINATION lib)
 
   # Add this to the list of implementations to test
-  set(JANUS_TEST_IMPLEMENTATIONS ${JANUS_TEST_IMPLEMENTATIONS} "janus-pittpatt" PARENT_SCOPE)
-  set(JANUS_TEST_SDK_PATHS ${JANUS_TEST_SDK_PATHS} ${PittPatt5_DIR} PARENT_SCOPE)
+  option(JANUS_TEST_JANUS-PITTPATT "Test the PittPatt implementation of the Janus API" ON)
+  if(${JANUS_TEST_JANUS-PITTPATT})
+    set(JANUS_TEST_IMPLEMENTATIONS ${JANUS_TEST_IMPLEMENTATIONS} "janus-pittpatt" PARENT_SCOPE)
+    set(JANUS_TEST_SDK_PATHS ${JANUS_TEST_SDK_PATHS} ${PittPatt5_DIR} PARENT_SCOPE)
+  endif()
 endif()

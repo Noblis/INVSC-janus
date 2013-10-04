@@ -17,5 +17,8 @@ install(TARGETS janus RUNTIME DESTINATION bin
                       ARCHIVE DESTINATION lib)
 
 # Add this to the list of implementations to test
-set(JANUS_TEST_IMPLEMENTATIONS ${JANUS_TEST_IMPLEMENTATIONS} "janus" PARENT_SCOPE)
-set(JANUS_TEST_SDK_PATHS ${JANUS_TEST_SDK_PATHS} "../" PARENT_SCOPE)
+option(JANUS_TEST_JANUS "Test the trivial implementation of the Janus API" ON)
+if(${JANUS_TEST_JANUS})
+  set(JANUS_TEST_IMPLEMENTATIONS ${JANUS_TEST_IMPLEMENTATIONS} "janus" PARENT_SCOPE)
+  set(JANUS_TEST_SDK_PATHS ${JANUS_TEST_SDK_PATHS} "../" PARENT_SCOPE)
+endif()
