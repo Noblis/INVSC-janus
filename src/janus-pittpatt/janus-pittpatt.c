@@ -65,6 +65,9 @@ void janus_finalize()
 
 janus_object_list janus_detect(const janus_media media)
 {
+    if (!media)
+        return janus_allocate_object_list(0);
+
     ppr_raw_image_type raw_image;
     raw_image.bytes_per_line = media->channels * media->columns;
     raw_image.color_space = (media->channels == 1 ? PPR_RAW_IMAGE_GRAY8 : PPR_RAW_IMAGE_BGR24);
