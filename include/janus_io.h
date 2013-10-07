@@ -42,6 +42,29 @@ extern "C" {
  */
 JANUS_EXPORT janus_media janus_read_image(const char *file);
 
+/*!
+ * \brief Handle to a private video decoding type.
+ */
+typedef struct janus_video_type *janus_video;
+
+/*!
+ * \brief Returns a video ready for reading.
+ * \see janus_read_frame janus_close_video
+ */
+JANUS_EXPORT janus_video janus_open_video(const char *file);
+
+/*!
+ * \brief Returns the current frame and advances the video to the next frame.
+ * \see janus_open_video
+ */
+JANUS_EXPORT janus_media janus_read_frame(janus_video video);
+
+/*!
+ * \brief Closes a video.
+ * \see janus_open_video
+ */
+JANUS_EXPORT void janus_close_video(janus_video video);
+
 #ifdef __cplusplus
 }
 #endif

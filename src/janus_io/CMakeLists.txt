@@ -1,4 +1,4 @@
-file(GLOB JANUS_IO_SOURCES *.c)
+file(GLOB JANUS_IO_SOURCES *.c *.h)
 add_library(janus_io SHARED ${JANUS_IO_SOURCES})
 set_target_properties(janus_io PROPERTIES
                       DEFINE_SYMBOL JANUS_LIBRARY
