@@ -10,10 +10,10 @@ int main(int argc, char *argv[])
     (void) argc;
     janus_initialize(argv[1]);
 
-    const char *file = "../data/Kirchner0.jpg";
-    janus_image image = janus_read_image(file);
+    const char *file_name = "../data/Kirchner0.jpg";
+    janus_image image = janus_read_image(file_name);
     if (image == NULL) {
-        printf("Failed to read image: %s\n", file);
+        printf("Failed to read image: %s\n", file_name);
         abort();
     }
     janus_free_image(image);
