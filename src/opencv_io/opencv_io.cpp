@@ -17,21 +17,14 @@ static janus_image janusFromOpenCV(const Mat &mat)
     return image;
 }
 
-janus_image janus_read_image(const char *file)
+janus_image janus_read_image(const char *file_name)
 {
-    return janusFromOpenCV(imread(file, IMREAD_UNCHANGED));
+    return janusFromOpenCV(imread(file_name, IMREAD_UNCHANGED));
 }
 
-struct janus_video_type
+janus_video janus_open_video(const char *file_name)
 {
-    VideoCapture videoCapture;
-    janus_video_type(const char *file)
-        : videoCapture(file) {}
-};
-
-janus_video janus_open_video(const char *file)
-{
-    return new janus_video_type(file);
+    return reinterpret_cast<janus_video>(new VideoCapture(file_name));
 }
 
 janus_image janus_read_frame(janus_video video)
@@ -40,11 +33,11 @@ janus_image janus_read_frame(janus_video video)
         return NULL;
 
     Mat mat;
-    video->videoCapture.read(mat);
+    reinterpret_cast<VideoCapture*>(video)->read(mat);
     return janusFromOpenCV(mat);
 }
 
 void janus_close_video(janus_video video)
 {
-    delete video;
+    delete reinterpret_cast<VideoCapture*>(video);
 }
