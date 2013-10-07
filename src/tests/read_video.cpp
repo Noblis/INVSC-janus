@@ -7,10 +7,14 @@
 // Makes assumptions that are tested by `initialize`
 int main(int argc, char *argv[])
 {
-    (void) argc;
+    if ((argc < 2) || (argc > 3)) {
+        printf("Usage: read_video sdk_path [file_name]\n");
+        return 1;
+    }
+
     janus_initialize(argv[1]);
 
-    const char *file_name = "../data/Kirchner.flv";
+    const char *file_name = (argc >= 3 ? argv[2] : "../data/Kirchner.flv");
     janus_video video = janus_open_video(file_name);
     if (video == NULL) {
         printf("Failed to open video: %s\n", file_name);

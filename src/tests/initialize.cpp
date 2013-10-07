@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-        printf("Usage: initialize sdk_path");
+        printf("Usage: initialize sdk_path\n");
         return 1;
     }
 
