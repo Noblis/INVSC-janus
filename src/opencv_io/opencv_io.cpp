@@ -36,6 +36,9 @@ janus_video janus_open_video(const char *file)
 
 janus_image janus_read_frame(janus_video video)
 {
+    if (!video)
+        return NULL;
+
     Mat mat;
     video->videoCapture.read(mat);
     return janusFromOpenCV(mat);
