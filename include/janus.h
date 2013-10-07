@@ -124,17 +124,14 @@ typedef uint32_t janus_size;
 /*!
  * \brief Common representation for images.
  *
- * This API generally does not distinguish between images and videos, and refers
- * to both collectively as \a media.
- *
  * \section element_access Element Access
- * Element layout in the janus_media::data buffer with respect to decreasing spatial
+ * Element layout in the janus_image::data buffer with respect to decreasing spatial
  * locality is \a channel, \a column, \a row.
  * Thus an element at channel \c c, column \c x, row \c y, can be
  * retrieved like:
  *
 \code
-janus_media m = foo();
+janus_image m = foo();
 janus_size columnStep = m.channels;
 janus_size rowStep = m.channels * columnStep;
 janus_size index = y*rowStep + x*columnStep + c;
@@ -142,41 +139,41 @@ janus_data intensity = m.data[index];
 \endcode
  *
  * \section channel_order Channel Order
- * Valid janus_media::channels values are 1 or 3.
- * janus_media::channels = 1 indicates grayscale.
- * janus_media::channels = 3 indicates \c BGR color.
+ * Valid janus_image::channels values are 1 or 3.
+ * janus_image::channels = 1 indicates grayscale.
+ * janus_image::channels = 3 indicates \c BGR color.
  */
-typedef struct janus_media_type
+typedef struct janus_image_type
 {
     janus_data *data;    /*!< \brief Data buffer. */
     janus_size channels; /*!< \brief Channel count. \see \ref channel_order. */
     janus_size width;    /*!< \brief Column count in pixels. */
     janus_size height;   /*!< \brief Row count in pixels. */
-} *janus_media;
+} *janus_image;
 
 /*!
- * \brief Returns a #janus_media capable of storing \em channels * \em columns *
+ * \brief Returns a #janus_image capable of storing \em channels * \em columns *
  *        \em rows elements in \em data.
- * \param channels Desired value for janus_media::channels.
- * \param columns Desired value for janus_media::columns.
- * \param rows Desired value for janus_media::rows.
+ * \param channels Desired value for janus_image::channels.
+ * \param columns Desired value for janus_image::columns.
+ * \param rows Desired value for janus_image::rows.
  * \note Memory will be allocated, but not initialized, for
- *       janus_media::data.
- * \see janus_free_media
+ *       janus_image::data.
+ * \see janus_free_image
  */
-JANUS_EXPORT janus_media janus_allocate_media(janus_size channels,
+JANUS_EXPORT janus_image janus_allocate_image(janus_size channels,
                                               janus_size columns,
                                               janus_size rows);
 
 /*!
- * \brief Frees the memory previously allocated for a #janus_media.
- * \param media #janus_media to free.
- * \see janus_allocate_media
+ * \brief Frees the memory previously allocated for a #janus_image.
+ * \param image #janus_image to free.
+ * \see janus_allocate_image
  */
-JANUS_EXPORT void janus_free_media(janus_media media);
+JANUS_EXPORT void janus_free_image(janus_image image);
 
 /*!
- * \brief A measurement made on a #janus_media.
+ * \brief A measurement made on a #janus_image.
  */
 typedef enum janus_attribute
 {
@@ -299,10 +296,10 @@ JANUS_EXPORT janus_error janus_initialize(const char *sdk_path);
 JANUS_EXPORT void janus_finalize();
 
 /*!
- * \brief Detect objects in a #janus_media.
+ * \brief Detect objects in a #janus_image.
  * \see janus_free_object_list
  */
-JANUS_EXPORT janus_object_list janus_detect(const janus_media media);
+JANUS_EXPORT janus_object_list janus_detect(const janus_image image);
 
 /*! @}*/
 

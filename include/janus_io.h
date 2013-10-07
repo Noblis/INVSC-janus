@@ -40,7 +40,7 @@ extern "C" {
  * \note Returns \c NULL on failure.
  * \see janus_free_media
  */
-JANUS_EXPORT janus_media janus_read_image(const char *file);
+JANUS_EXPORT janus_image janus_read_image(const char *file);
 
 /*!
  * \brief Handle to a private video decoding type.
@@ -57,7 +57,7 @@ JANUS_EXPORT janus_video janus_open_video(const char *file);
  * \brief Returns the current frame and advances the video to the next frame.
  * \see janus_open_video
  */
-JANUS_EXPORT janus_media janus_read_frame(janus_video video);
+JANUS_EXPORT janus_image janus_read_frame(janus_video video);
 
 /*!
  * \brief Closes a video.

@@ -5,22 +5,22 @@
 
 #include "janus_io.h"
 
-janus_media janus_read_image(const char *file)
+janus_image janus_read_image(const char *file)
 {
-    ppr_raw_image_type image;
-    ppr_raw_image_error_type error = ppr_raw_image_io_read(file, &image);
+    ppr_raw_image_type ppr_image;
+    ppr_raw_image_error_type error = ppr_raw_image_io_read(file, &ppr_image);
     if (error != PPR_RAW_IMAGE_SUCCESS)
         return NULL;
 
-    if ((image.color_space != PPR_RAW_IMAGE_GRAY8) &&
-        (image.color_space != PPR_RAW_IMAGE_BGR24))
-        ppr_raw_image_convert(&image, PPR_RAW_IMAGE_BGR24);
+    if ((ppr_image.color_space != PPR_RAW_IMAGE_GRAY8) &&
+        (ppr_image.color_space != PPR_RAW_IMAGE_BGR24))
+        ppr_raw_image_convert(&ppr_image, PPR_RAW_IMAGE_BGR24);
 
-    janus_media media = janus_allocate_media(image.color_space == PPR_RAW_IMAGE_GRAY8 ? 1 : 3, image.width, image.height);
-    const janus_size elements_per_row = media->channels * media->width * sizeof(janus_data);
-    for (int i=0; i<image.height; i++)
-        memcpy(media->data + i*elements_per_row, image.data + i*image.bytes_per_line, elements_per_row);
+    janus_image image = janus_allocate_image(ppr_image.color_space == PPR_RAW_IMAGE_GRAY8 ? 1 : 3, ppr_image.width, ppr_image.height);
+    const janus_size elements_per_row = image->channels * image->width * sizeof(janus_data);
+    for (int i=0; i<ppr_image.height; i++)
+        memcpy(image->data + i*elements_per_row, ppr_image.data + i*ppr_image.bytes_per_line, elements_per_row);
 
-    ppr_raw_image_free(image);
-    return media;
+    ppr_raw_image_free(ppr_image);
+    return image;
 }

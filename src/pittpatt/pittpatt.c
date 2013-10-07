@@ -63,23 +63,23 @@ void janus_finalize()
     ppr_finalize_sdk();
 }
 
-janus_object_list janus_detect(const janus_media media)
+janus_object_list janus_detect(const janus_image image)
 {
-    if (!media)
+    if (!image)
         return janus_allocate_object_list(0);
 
     ppr_raw_image_type raw_image;
-    raw_image.bytes_per_line = media->channels * media->width;
-    raw_image.color_space = (media->channels == 1 ? PPR_RAW_IMAGE_GRAY8 : PPR_RAW_IMAGE_BGR24);
-    raw_image.data = media->data;
-    raw_image.height = media->height;
-    raw_image.width = media->width;
+    raw_image.bytes_per_line = image->channels * image->width;
+    raw_image.color_space = (image->channels == 1 ? PPR_RAW_IMAGE_GRAY8 : PPR_RAW_IMAGE_BGR24);
+    raw_image.data = image->data;
+    raw_image.height = image->height;
+    raw_image.width = image->width;
 
-    ppr_image_type image;
-    ppr_create_image(raw_image, &image);
+    ppr_image_type ppr_image;
+    ppr_create_image(raw_image, &ppr_image);
 
     ppr_face_list_type face_list;
-    ppr_detect_faces(context, image, &face_list);
+    ppr_detect_faces(context, ppr_image, &face_list);
 
     janus_object_list object_list = janus_allocate_object_list(face_list.length);
     for (janus_size i=0; i<object_list->size; i++) {
@@ -161,7 +161,7 @@ janus_object_list janus_detect(const janus_media media)
     }
 
     ppr_free_face_list(face_list);
-    ppr_free_image(image);
+    ppr_free_image(ppr_image);
 
     return object_list;
 }

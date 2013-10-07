@@ -5,15 +5,15 @@
 // These implementations of janus_allocate_* require just one call to malloc
 // and simplify the implementations of janus_free_*.
 
-janus_media janus_allocate_media(janus_size channels, janus_size columns, janus_size rows)
+janus_image janus_allocate_image(janus_size channels, janus_size columns, janus_size rows)
 {
-    janus_media media = malloc(sizeof(struct janus_media_type) +
+    janus_image image = malloc(sizeof(struct janus_image_type) +
                                sizeof(janus_data) * channels * columns * rows);
-    media->channels = channels;
-    media->width = columns;
-    media->height = rows;
-    media->data = (janus_data*)(media + 1);
-    return media;
+    image->channels = channels;
+    image->width = columns;
+    image->height = rows;
+    image->data = (janus_data*)(image + 1);
+    return image;
 }
 
 janus_object janus_allocate_object(janus_size size)
@@ -36,9 +36,9 @@ janus_object_list janus_allocate_object_list(janus_size size)
     return object_list;
 }
 
-void janus_free_media(janus_media media)
+void janus_free_image(janus_image image)
 {
-    free(media);
+    free(image);
 }
 
 void janus_free_object(janus_object object)

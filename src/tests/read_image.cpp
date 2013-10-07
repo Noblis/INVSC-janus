@@ -11,12 +11,12 @@ int main(int argc, char *argv[])
     janus_initialize(argv[1]);
 
     const char *file = "../data/Kirchner0.jpg";
-    janus_media image = janus_read_image(file);
+    janus_image image = janus_read_image(file);
     if (image == NULL) {
         printf("Failed to read image: %s\n", file);
         abort();
     }
-    janus_free_media(image);
+    janus_free_image(image);
 
     janus_finalize();
     return 0;
