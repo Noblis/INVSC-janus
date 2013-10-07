@@ -12,8 +12,8 @@ janus_media janus_read_image(const char *file)
     if (!mat.data)
         return NULL;
 
-    janus_media media = janus_allocate_media(mat.channels(), mat.cols, mat.rows, 1);
+    janus_media media = janus_allocate_media(mat.channels(), mat.cols, mat.rows);
     assert(mat.isContinuous());
-    memcpy(media->data, mat.data, media->channels * media->columns * media->rows * sizeof(janus_data));
+    memcpy(media->data, mat.data, media->channels * media->width * media->height * sizeof(janus_data));
     return media;
 }

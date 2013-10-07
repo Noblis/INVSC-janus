@@ -69,11 +69,11 @@ janus_object_list janus_detect(const janus_media media)
         return janus_allocate_object_list(0);
 
     ppr_raw_image_type raw_image;
-    raw_image.bytes_per_line = media->channels * media->columns;
+    raw_image.bytes_per_line = media->channels * media->width;
     raw_image.color_space = (media->channels == 1 ? PPR_RAW_IMAGE_GRAY8 : PPR_RAW_IMAGE_BGR24);
     raw_image.data = media->data;
-    raw_image.height = media->rows;
-    raw_image.width = media->columns;
+    raw_image.height = media->height;
+    raw_image.width = media->width;
 
     ppr_image_type image;
     ppr_create_image(raw_image, &image);
