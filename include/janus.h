@@ -107,9 +107,19 @@ typedef enum janus_error
 {
     JANUS_SUCCESS          = 0, /*!< No error */
     JANUS_UNKNOWN_ERROR    = 1, /*!< Catch-all error code */
-    JANUS_INVALID_SDK_PATH = 2  /*!< Incorrect location provided to
+    JANUS_OUT_OF_MEMORY    = 2, /*!< Memorry allocation failed */
+    JANUS_INVALID_SDK_PATH = 3, /*!< Incorrect location provided to
                                      #janus_initialize */
+    JANUS_NULL_CONTEXT     = 8, /*!< Value of #janus_context was 0 */
+    JANUS_NULL_IMAGE       = 9, /*!< Value of #janus_image was 0 */
+    JANUS_NULL_OBJECT_LIST = 10 /*!< Value of #janus_object_list was 0 */
 } janus_error;
+
+/*!
+ * \brief Returns a human-readable error message.
+ * \note Memory for the return value is managed internally.
+ */
+JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 
 /*!
  * \brief Data buffer type.
@@ -155,15 +165,17 @@ typedef struct janus_image_type
  * \brief Returns a #janus_image capable of storing \em channels * \em columns *
  *        \em rows elements in \em data.
  * \param channels Desired value for janus_image::channels.
- * \param columns Desired value for janus_image::columns.
- * \param rows Desired value for janus_image::rows.
+ * \param width Desired value for janus_image::width.
+ * \param height Desired value for janus_image::height.
+ * \param image Pointer to image buffer.
  * \note Memory will be allocated, but not initialized, for
  *       janus_image::data.
  * \see janus_free_image
  */
-JANUS_EXPORT janus_image janus_allocate_image(janus_size channels,
-                                              janus_size columns,
-                                              janus_size rows);
+JANUS_EXPORT janus_error janus_allocate_image(const janus_size channels,
+                                              const janus_size width,
+                                              const janus_size height,
+                                              janus_image *image);
 
 /*!
  * \brief Frees the memory previously allocated for a #janus_image.
@@ -296,10 +308,50 @@ JANUS_EXPORT janus_error janus_initialize(const char *sdk_path);
 JANUS_EXPORT void janus_finalize();
 
 /*!
+ * \brief Resources associated with the thread of execution.
+ */
+typedef struct janus_context_type *janus_context;
+
+/*!
+ * \brief Create and initialize a new context.
+ * \see janus_free_context
+ */
+JANUS_EXPORT janus_error janus_initialize_context(janus_context *context);
+
+/*!
+ * \brief Release the memory associated with a context.
+ * \see janus_allocate_context
+ */
+JANUS_EXPORT void janus_finalize_context(janus_context *context);
+
+/*!
  * \brief Detect objects in a #janus_image.
  * \see janus_free_object_list
  */
-JANUS_EXPORT janus_object_list janus_detect(const janus_image image);
+JANUS_EXPORT janus_error janus_detect(const janus_context context,
+                                      const janus_image image,
+                                      janus_object_list *object_list);
+
+/*!
+ * \brief Contains tracking information for objects in a video.
+ */
+typedef struct janus_track_type *janus_track;
+
+/*!
+ * \brief Create a new track.
+ */
+JANUS_EXPORT janus_track janus_allocate_track();
+
+/*!
+ * \brief Add a frame to the track.
+ */
+JANUS_EXPORT void janus_track_frame(const janus_image frame,
+                                    janus_track *track);
+
+/*!
+ * \brief Free the track and return the detected objects.
+ */
+JANUS_EXPORT janus_object_list janus_free_track(janus_track track);
 
 /*! @}*/
 

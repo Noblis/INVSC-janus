@@ -8,8 +8,6 @@
 
 #include "janus.h"
 
-ppr_context_type context;
-
 static janus_error to_janus_error(ppr_error_type error)
 {
     if (error != PPR_SUCCESS)
@@ -32,8 +30,21 @@ janus_error janus_initialize(const char *sdk_path)
 
     janus_error error = to_janus_error(ppr_initialize_sdk(models_path, my_license_id, my_license_key));
     free(models_path);
-    if (error != JANUS_SUCCESS) return error;
+    return error;
+}
 
+void janus_finalize()
+{
+    ppr_finalize_sdk();
+}
+
+typedef struct janus_context_type
+{
+    ppr_error_type ppr_error;
+} janus_context_type;
+
+janus_error janus_initialize_context(janus_context *context)
+{
     ppr_settings_type settings = ppr_get_default_settings();
     settings.detection.enable = 1;
     settings.detection.min_size = 4;
@@ -54,19 +65,36 @@ janus_error janus_initialize(const char *sdk_path)
     settings.recognition.num_comparison_threads = 1;
     settings.recognition.automatically_extract_templates = 1;
     settings.recognition.extract_thumbnails = 0;
-    return to_janus_error(ppr_initialize_context(settings, &context));
+    settings.tracking.enable = 1;
+    settings.tracking.cutoff = 0;
+    settings.tracking.discard_completed_tracks = 0;
+    settings.tracking.enable_shot_boundary_detection = 1;
+    settings.tracking.shot_boundary_threshold = 0;
+    return to_janus_error(ppr_initialize_context(settings, (ppr_context_type*)context));
 }
 
-void janus_finalize()
+void janus_finalize_context(janus_context *context)
 {
-    ppr_finalize_context(context);
-    ppr_finalize_sdk();
+    if (!context || !*context)
+        return;
+    ppr_finalize_context((ppr_context_type)*context);
+    *context = NULL;
 }
 
-janus_object_list janus_detect(const janus_image image)
+janus_error janus_detect(const janus_context context, const janus_image image, janus_object_list *object_list)
 {
-    if (!image)
-        return janus_allocate_object_list(0);
+    if (!object_list)
+        return JANUS_NULL_OBJECT_LIST;
+
+    if (!context) {
+        *object_list = NULL;
+        return JANUS_NULL_CONTEXT;
+    }
+
+    if (!image) {
+        object_list = NULL;
+        return JANUS_NULL_IMAGE;
+    }
 
     ppr_raw_image_type raw_image;
     raw_image.bytes_per_line = image->channels * image->width;
@@ -79,10 +107,10 @@ janus_object_list janus_detect(const janus_image image)
     ppr_create_image(raw_image, &ppr_image);
 
     ppr_face_list_type face_list;
-    ppr_detect_faces(context, ppr_image, &face_list);
+//    ppr_detect_faces(context, ppr_image, &face_list);
 
-    janus_object_list object_list = janus_allocate_object_list(face_list.length);
-    for (janus_size i=0; i<object_list->size; i++) {
+    *object_list = janus_allocate_object_list(face_list.length);
+    for (janus_size i=0; i<(*object_list)->size; i++) {
         ppr_face_type face = face_list.faces[i];
         ppr_face_attributes_type face_attributes;
         ppr_get_face_attributes(face, &face_attributes);
@@ -157,11 +185,34 @@ janus_object_list janus_detect(const janus_image image)
         }
         ppr_free_landmark_list(landmark_list);
 
-        object_list->objects[i] = object;
+        (*object_list)->objects[i] = object;
     }
 
     ppr_free_face_list(face_list);
     ppr_free_image(ppr_image);
 
-    return object_list;
+    return JANUS_SUCCESS;
+}
+
+typedef struct janus_track_type
+{
+    ppr_context_type context;
+} janus_track_type;
+
+janus_track janus_allocate_track()
+{
+    janus_track track = malloc(sizeof(janus_track_type));
+    return track;
+}
+
+void janus_track_frame(const janus_image frame, janus_track *track)
+{
+    (void) frame;
+    (void) track;
+}
+
+janus_object_list janus_free_track(janus_track track)
+{
+    (void) track;
+    return janus_allocate_object_list(0);
 }

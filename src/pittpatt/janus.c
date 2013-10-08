@@ -2,18 +2,39 @@
 
 #include "janus.h"
 
+// The implementation of these functions only rely on the C Standard Library.
+
+const char *janus_error_to_string(janus_error error)
+{
+    switch (error) {
+      case JANUS_SUCCESS:          return "Success";
+      case JANUS_UNKNOWN_ERROR:    return "Unknown error";
+      case JANUS_OUT_OF_MEMORY:    return "Out of memory";
+      case JANUS_INVALID_SDK_PATH: return "Invalid SDK path";
+      case JANUS_NULL_CONTEXT:     return "Null context";
+      case JANUS_NULL_IMAGE:       return "Null image";
+      case JANUS_NULL_OBJECT_LIST: return "Null object list";
+      default:                     return "Unrecognized error";
+    }
+}
+
 // These implementations of janus_allocate_* require just one call to malloc
 // and simplify the implementations of janus_free_*.
 
-janus_image janus_allocate_image(janus_size channels, janus_size columns, janus_size rows)
+janus_error janus_allocate_image(const janus_size channels,
+                                 const janus_size width,
+                                 const janus_size height,
+                                 janus_image *image)
 {
-    janus_image image = malloc(sizeof(struct janus_image_type) +
-                               sizeof(janus_data) * channels * columns * rows);
-    image->channels = channels;
-    image->width = columns;
-    image->height = rows;
-    image->data = (janus_data*)(image + 1);
-    return image;
+    if (!image) return JANUS_NULL_IMAGE;
+    *image = malloc(sizeof(struct janus_image_type) +
+                    sizeof(janus_data) * channels * width * height);
+    if (!*image) return JANUS_OUT_OF_MEMORY;
+    (*image)->channels = channels;
+    (*image)->width = width;
+    (*image)->height = height;
+    (*image)->data = (janus_data*)(*image + 1);
+    return JANUS_SUCCESS;
 }
 
 janus_object janus_allocate_object(janus_size size)

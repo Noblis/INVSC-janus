@@ -11,7 +11,8 @@ static janus_image janusFromOpenCV(const Mat &mat)
     if (!mat.data)
         return NULL;
 
-    janus_image image = janus_allocate_image(mat.channels(), mat.cols, mat.rows);
+    janus_image image;
+    janus_allocate_image(mat.channels(), mat.cols, mat.rows, &image);
     assert(mat.isContinuous());
     memcpy(image->data, mat.data, image->channels * image->width * image->height * sizeof(janus_data));
     return image;

@@ -1,4 +1,4 @@
-add_library(pittpatt SHARED janus_mem.c pittpatt.c)
+add_library(pittpatt SHARED janus.c pittpatt.c)
 set_target_properties(pittpatt PROPERTIES
                       DEFINE_SYMBOL JANUS_LIBRARY
                       VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH}

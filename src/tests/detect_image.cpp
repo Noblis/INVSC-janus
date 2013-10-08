@@ -13,13 +13,21 @@ int main(int argc, char *argv[])
     }
 
     janus_initialize(argv[1]);
+    janus_context context;
+    janus_initialize_context(&context);
 
     janus_image image = janus_read_image(argc >= 3 ? argv[2] : "../data/Kirchner0.jpg");
-    janus_object_list faces = janus_detect(image);
-    printf("Face detections: %d", faces->size);
+    janus_object_list faces;
+    janus_error error = janus_detect(context, image, &faces);
+    if (error != JANUS_SUCCESS) {
+        printf("Failed to detect faces with error: %d\n", error);
+        abort();
+    }
+    printf("Faces found: %d", faces->size);
 
     janus_free_object_list(faces);
     janus_free_image(image);
+    janus_finalize_context(&context);
     janus_finalize();
     return 0;
 }

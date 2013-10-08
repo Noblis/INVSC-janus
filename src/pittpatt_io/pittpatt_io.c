@@ -16,7 +16,8 @@ static janus_image janus_from_pittpatt(ppr_raw_image_type *ppr_image)
         if (error != PPR_RAW_IMAGE_SUCCESS) return NULL;
     }
 
-    janus_image image = janus_allocate_image(ppr_image->color_space == PPR_RAW_IMAGE_GRAY8 ? 1 : 3, ppr_image->width, ppr_image->height);
+    janus_image image;
+    janus_allocate_image(ppr_image->color_space == PPR_RAW_IMAGE_GRAY8 ? 1 : 3, ppr_image->width, ppr_image->height, &image);
     const janus_size elements_per_row = image->channels * image->width * sizeof(janus_data);
     for (int i=0; i<ppr_image->height; i++)
         memcpy(image->data + i*elements_per_row, ppr_image->data + i*ppr_image->bytes_per_line, elements_per_row);
