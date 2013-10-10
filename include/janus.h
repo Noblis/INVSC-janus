@@ -356,13 +356,15 @@ JANUS_EXPORT void janus_finalize();
 typedef struct janus_context_type *janus_context;
 
 /*!
- * \brief Create and initialize a new context.
+ * \brief Create a new context.
+ * A context is used to store per-thread resources.
+ * \note \ref not_thread-safe
  * \see janus_finalize_context
  */
 JANUS_EXPORT janus_error janus_initialize_context(janus_context *context);
 
 /*!
- * \brief Release the memory associated with a context.
+ * \brief Release the memory previously initialized for a context.
  * \see janus_initialize_context
  */
 JANUS_EXPORT void janus_finalize_context(janus_context context);
@@ -388,7 +390,8 @@ JANUS_EXPORT janus_error janus_initialize_track(janus_track *track);
 /*!
  * \brief Add a frame to the track.
  */
-JANUS_EXPORT janus_error janus_track_frame(const janus_image frame,
+JANUS_EXPORT janus_error janus_track_frame(const janus_context context,
+                                           const janus_image frame,
                                            janus_track *track);
 
 /*!

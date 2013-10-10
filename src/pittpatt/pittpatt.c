@@ -38,12 +38,7 @@ void janus_finalize()
     ppr_finalize_sdk();
 }
 
-typedef struct janus_context_type
-{
-    ppr_error_type ppr_error;
-} janus_context_type;
-
-janus_error janus_initialize_context(janus_context *context)
+static ppr_error_type initialize_ppr_context(ppr_context_type *context)
 {
     ppr_settings_type settings = ppr_get_default_settings();
     settings.detection.enable = 1;
@@ -70,7 +65,16 @@ janus_error janus_initialize_context(janus_context *context)
     settings.tracking.discard_completed_tracks = 0;
     settings.tracking.enable_shot_boundary_detection = 1;
     settings.tracking.shot_boundary_threshold = 0;
-    return to_janus_error(ppr_initialize_context(settings, (ppr_context_type*)context));
+    return ppr_initialize_context(settings, context);
+}
+
+janus_error janus_initialize_context(janus_context *context)
+{
+    if (!context) return JANUS_NULL_CONTEXT;
+    ppr_context_type ppr_context;
+    ppr_error_type ppr_error = initialize_ppr_context(&ppr_context);
+    *context = (janus_context)ppr_context;
+    return to_janus_error(ppr_error);
 }
 
 void janus_finalize_context(janus_context context)
@@ -203,8 +207,9 @@ janus_error janus_initialize_track(janus_track *track)
     return JANUS_SUCCESS;
 }
 
-janus_error janus_track_frame(const janus_image frame, janus_track *track)
+janus_error janus_track_frame(const janus_context context, const janus_image frame, janus_track *track)
 {
+    (void) context;
     (void) frame;
     (void) track;
     return JANUS_SUCCESS;
