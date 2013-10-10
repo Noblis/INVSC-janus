@@ -61,7 +61,13 @@ extern "C" {
  * Calling this function more than once will result in undefined behaviour.
  * Implies \ref not_thread-safe.
  *
- * \section suggestions_for_implementers Suggestions for Implementers
+ * \section notes_for_developers Notes for Developers
+ * - API return values are generally either \c void or #janus_error.
+ * - Output parameters are passed by reference/pointer/address.
+ * - Input parameters are passed by value.
+ * - Parameters that won't be modified are marked \c const.
+ *
+ * \section notes_for_implementers Notes for Implementers
  * The following are considered "best practices" for Janus implementations:
  * - Define \c JANUS_LIBRARY during compilation to export Janus symbols and
  *   compile a Unix implementation with \c \-fvisibility=hidden.
@@ -105,19 +111,22 @@ extern "C" {
  */
 typedef enum janus_error
 {
-    JANUS_SUCCESS          = 0, /*!< No error */
-    JANUS_UNKNOWN_ERROR    = 1, /*!< Catch-all error code */
-    JANUS_OUT_OF_MEMORY    = 2, /*!< Memorry allocation failed */
-    JANUS_INVALID_SDK_PATH = 3, /*!< Incorrect location provided to
+    JANUS_SUCCESS             = 0, /*!< No error */
+    JANUS_UNKNOWN_ERROR       = 1, /*!< Catch-all error code */
+    JANUS_OUT_OF_MEMORY       = 2, /*!< Memorry allocation failed */
+    JANUS_INVALID_SDK_PATH    = 3, /*!< Incorrect location provided to
                                      #janus_initialize */
-    JANUS_NULL_CONTEXT     = 8, /*!< Value of #janus_context was 0 */
-    JANUS_NULL_IMAGE       = 9, /*!< Value of #janus_image was 0 */
-    JANUS_NULL_OBJECT_LIST = 10 /*!< Value of #janus_object_list was 0 */
+    JANUS_NULL_CONTEXT        = 8, /*!< Value of #janus_context was 0 */
+    JANUS_NULL_IMAGE          = 9, /*!< Value of #janus_image was 0 */
+    JANUS_NULL_ATTRIBUTE_LIST = 10, /*!< Value of #janus_attribute_list was 0 */
+    JANUS_NULL_OBJECT         = 11, /*!< Value of #janus_object was 0 */
+    JANUS_NULL_OBJECT_LIST    = 12 /*!< Value of #janus_object_list was 0 */
 } janus_error;
 
 /*!
  * \brief Returns a human-readable error message.
- * \note Memory for the return value is managed internally.
+ * \note Memory for the return value is managed internally and should not be
+ *       freed.
  */
 JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 
@@ -135,8 +144,8 @@ typedef uint32_t janus_size;
  * \brief Common representation for images.
  *
  * \section element_access Element Access
- * Element layout in the janus_image::data buffer with respect to decreasing spatial
- * locality is \a channel, \a column, \a row.
+ * Element layout in the janus_image::data buffer with respect to decreasing
+ * spatial locality is \a channel, \a column, \a row.
  * Thus an element at channel \c c, column \c x, row \c y, can be
  * retrieved like:
  *
@@ -164,10 +173,10 @@ typedef struct janus_image_type
 /*!
  * \brief Returns a #janus_image capable of storing \em channels * \em columns *
  *        \em rows elements in \em data.
- * \param channels Desired value for janus_image::channels.
- * \param width Desired value for janus_image::width.
- * \param height Desired value for janus_image::height.
- * \param image Pointer to image buffer.
+ * \param[in] channels Desired value for janus_image::channels.
+ * \param[in] width Desired value for janus_image::width.
+ * \param[in] height Desired value for janus_image::height.
+ * \param[out] image Address to store the allocated image.
  * \note Memory will be allocated, but not initialized, for
  *       janus_image::data.
  * \see janus_free_image
@@ -179,7 +188,7 @@ JANUS_EXPORT janus_error janus_allocate_image(const janus_size channels,
 
 /*!
  * \brief Frees the memory previously allocated for a #janus_image.
- * \param image #janus_image to free.
+ * \param[in] image #janus_image to free.
  * \see janus_allocate_image
  */
 JANUS_EXPORT void janus_free_image(janus_image image);
@@ -226,27 +235,66 @@ typedef enum janus_attribute
 typedef float janus_value;
 
 /*!
- * \brief A list of associated #janus_attribute and #janus_value pairs.
+ * \brief A list of #janus_attribute and #janus_value pairs all belonging to a
+ *        the same #janus_object in a particular #janus_image.
  */
-typedef struct janus_object_type
+typedef struct janus_attribute_list_type
 {
     janus_size size; /*!< \brief Size of #attributes and #values. */
     janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
     janus_value *values; /*!< \brief Array of #janus_value. */
+} *janus_attribute_list;
+
+/*!
+ * \brief Allocates memory for a #janus_attribute_list capable of storing \em
+ *        size attributes.
+ * \param[in] size Desired value for janus_attribute_list::size.
+ * \param[out] attribute_list Address to store the allocated attribute list.
+ * \note Memory will be allocated, but not initialized, for
+ *       janus_attribute_list::attributes and janus_attribute_list::values.
+ * \see janus_free_attribute_list
+ */
+JANUS_EXPORT janus_error janus_allocate_attribute_list(const janus_size size,
+                                          janus_attribute_list *attribute_list);
+
+/*!
+ * \brief Frees the memory previously allocated for the attribute list.
+ * \param[in] attribute_list #janus_attribute_list to free.
+ * \see janus_allocate_object
+ */
+JANUS_EXPORT void janus_free_attribute_list(
+                                           janus_attribute_list attribute_list);
+
+/*!
+ * \brief A collection of #janus_attribute_list all associated with the same
+ *        object.
+ */
+typedef struct janus_object_type
+{
+    janus_size size; /*!< \brief Size of #attribute_lists. */
+    janus_attribute_list *attribute_lists; /*!< \brief Array of
+                                                       #janus_attribute_list. */
 } *janus_object;
 
 /*!
- * \brief Returns a #janus_object capable of storing \em size attributes.
- * \param size Desired value for janus_object::size.
+ * \brief Allocates memory for a #janus_object capable of storing \em size
+ *        attribute lists.
+ * \param[in] size Desired value for janus_object::size.
+ * \param[out] object Address to store the allocated object.
  * \note Memory will be allocated, but not initialized, for
- *       janus_object::attributes and janus_object::values.
+ *       janus_object::attribute_lists.
  * \see janus_free_object
  */
-JANUS_EXPORT janus_object janus_allocate_object(janus_size size);
+JANUS_EXPORT janus_error janus_allocate_object(const janus_size size,
+                                               janus_object *object);
 
 /*!
- * \brief Frees the memory previously allocated for a #janus_object.
- * \param object #janus_object to free.
+ * \brief Frees the memory previously allocated for the object.
+ * \param[in] object #janus_object to free.
+ * \note #janus_free_attribute_list will be called for each attribute list in
+ *       #janus_object::attribute_lists. If this behavior is undesired, set
+ *       #janus_object::size to 0 before calling this function or set individual
+ *       elements in #janus_object::attribute_lists to \c NULL.
  * \see janus_allocate_object
  */
 JANUS_EXPORT void janus_free_object(janus_object object);
@@ -261,39 +309,34 @@ typedef struct janus_object_list_type
 } *janus_object_list;
 
 /*!
- * \brief Returns a #janus_object_list capable of storing \em size
+ * \brief Allocates memory for a #janus_object_list capable of storing \em size
  *        #janus_object.
- * \param size Desired value for janus_object_list::size.
+ * \param[in] size Desired value for janus_object_list::size.
+ * \param[out] object_list Address to store the allocated object list.
  * \note Memory will be allocated, but not initialized, for
  *       janus_object_list::objects.
  * \see janus_free_object_list
  */
-JANUS_EXPORT janus_object_list janus_allocate_object_list(janus_size size);
+JANUS_EXPORT janus_error janus_allocate_object_list(const janus_size size,
+                                                janus_object_list *object_list);
 
 /*!
- * \brief Frees the memory previously allocated for a #janus_object_list.
- * \param object_list #janus_object_list to free.
+ * \brief Frees the memory previously allocated for the object list.
+ * \param[in] object_list #janus_object_list to free.
  * \note #janus_free_object will be called for each object in
  *       #janus_object_list::objects. If this behavior is undesired, set
- *       #janus_object_list::size to 0 before calling this function;
+ *       #janus_object_list::size to 0 before calling this function or set
+ *       individual elements in #janus_object_list::objects to \c NULL;
  * \see janus_allocate_object_list
  */
 JANUS_EXPORT void janus_free_object_list(janus_object_list object_list);
 
 /*!
- * \brief Contains the extracted representation of a subject.
- *
- * Computed during enrollment and used for comparison.
- */
-typedef struct janus_template_type *janus_template;
-
-/*!
  * \brief Call once at the start of the application, before making any other
  * calls to the API.
  *
- * \param sdk_path Path to the \em read-only directory containing the
- *                 janus-compliant SDK as provided by the implementer.
- * \returns #JANUS_SUCCESS, #JANUS_INVALID_SDK_PATH, or another #janus_error.
+ * \param[in] sdk_path Path to the \em read-only directory containing the
+ *                     janus-compliant SDK as provided by the implementer.
  * \note \ref single-shot
  * \see janus_finalize
  */
@@ -314,15 +357,15 @@ typedef struct janus_context_type *janus_context;
 
 /*!
  * \brief Create and initialize a new context.
- * \see janus_free_context
+ * \see janus_finalize_context
  */
 JANUS_EXPORT janus_error janus_initialize_context(janus_context *context);
 
 /*!
  * \brief Release the memory associated with a context.
- * \see janus_allocate_context
+ * \see janus_initialize_context
  */
-JANUS_EXPORT void janus_finalize_context(janus_context *context);
+JANUS_EXPORT void janus_finalize_context(janus_context context);
 
 /*!
  * \brief Detect objects in a #janus_image.
@@ -340,18 +383,19 @@ typedef struct janus_track_type *janus_track;
 /*!
  * \brief Create a new track.
  */
-JANUS_EXPORT janus_track janus_allocate_track();
+JANUS_EXPORT janus_error janus_initialize_track(janus_track *track);
 
 /*!
  * \brief Add a frame to the track.
  */
-JANUS_EXPORT void janus_track_frame(const janus_image frame,
-                                    janus_track *track);
+JANUS_EXPORT janus_error janus_track_frame(const janus_image frame,
+                                           janus_track *track);
 
 /*!
- * \brief Free the track and return the detected objects.
+ * \brief Free the track and compute the detected objects.
  */
-JANUS_EXPORT janus_object_list janus_free_track(janus_track track);
+JANUS_EXPORT janus_error janus_finalize_track(janus_track track,
+                                              janus_object_list *object_list);
 
 /*! @}*/
 

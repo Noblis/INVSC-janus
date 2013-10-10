@@ -73,12 +73,10 @@ janus_error janus_initialize_context(janus_context *context)
     return to_janus_error(ppr_initialize_context(settings, (ppr_context_type*)context));
 }
 
-void janus_finalize_context(janus_context *context)
+void janus_finalize_context(janus_context context)
 {
-    if (!context || !*context)
-        return;
-    ppr_finalize_context((ppr_context_type)*context);
-    *context = NULL;
+    if (!context) return;
+    ppr_finalize_context((ppr_context_type)context);
 }
 
 janus_error janus_detect(const janus_context context, const janus_image image, janus_object_list *object_list)
@@ -109,30 +107,31 @@ janus_error janus_detect(const janus_context context, const janus_image image, j
     ppr_face_list_type face_list;
 //    ppr_detect_faces(context, ppr_image, &face_list);
 
-    *object_list = janus_allocate_object_list(face_list.length);
+    janus_allocate_object_list(face_list.length, object_list);
     for (janus_size i=0; i<(*object_list)->size; i++) {
         ppr_face_type face = face_list.faces[i];
         ppr_face_attributes_type face_attributes;
         ppr_get_face_attributes(face, &face_attributes);
 
         const int num_face_attributes = 8;
-        janus_object object = janus_allocate_object(num_face_attributes + 2*face_attributes.num_landmarks);
-        object->attributes[0] = JANUS_FACE_CONFIDENCE;
-        object->values[0] = face_attributes.confidence;
-        object->attributes[1] = JANUS_FACE_WIDTH;
-        object->values[1] = face_attributes.dimensions.width;
-        object->attributes[2] = JANUS_FACE_HEIGHT;
-        object->values[2] = face_attributes.dimensions.height;
-        object->attributes[3] = JANUS_FACE_X;
-        object->values[3] = face_attributes.position.x;
-        object->attributes[4] = JANUS_FACE_Y;
-        object->values[4] = face_attributes.position.y;
-        object->attributes[5] = JANUS_FACE_ROLL;
-        object->values[5] = face_attributes.rotation.roll;
-        object->attributes[6] = JANUS_FACE_PITCH;
-        object->values[6] = face_attributes.rotation.pitch;
-        object->attributes[7] = JANUS_FACE_YAW;
-        object->values[7] = face_attributes.rotation.yaw;
+        janus_attribute_list attribute_list;
+        janus_allocate_attribute_list(num_face_attributes + 2*face_attributes.num_landmarks, &attribute_list);
+        attribute_list->attributes[0] = JANUS_FACE_CONFIDENCE;
+        attribute_list->values[0] = face_attributes.confidence;
+        attribute_list->attributes[1] = JANUS_FACE_WIDTH;
+        attribute_list->values[1] = face_attributes.dimensions.width;
+        attribute_list->attributes[2] = JANUS_FACE_HEIGHT;
+        attribute_list->values[2] = face_attributes.dimensions.height;
+        attribute_list->attributes[3] = JANUS_FACE_X;
+        attribute_list->values[3] = face_attributes.position.x;
+        attribute_list->attributes[4] = JANUS_FACE_Y;
+        attribute_list->values[4] = face_attributes.position.y;
+        attribute_list->attributes[5] = JANUS_FACE_ROLL;
+        attribute_list->values[5] = face_attributes.rotation.roll;
+        attribute_list->attributes[6] = JANUS_FACE_PITCH;
+        attribute_list->values[6] = face_attributes.rotation.pitch;
+        attribute_list->attributes[7] = JANUS_FACE_YAW;
+        attribute_list->values[7] = face_attributes.rotation.yaw;
 
         ppr_landmark_list_type landmark_list;
         ppr_get_face_landmarks(face, &landmark_list);
@@ -140,51 +139,54 @@ janus_error janus_detect(const janus_context context, const janus_image image, j
             const int index = num_face_attributes + 2*j;
             switch (landmark_list.landmarks[j].category) {
               case PPR_LANDMARK_CATEGORY_LEFT_EYE:
-                object->attributes[index] = JANUS_LEFT_EYE_X;
-                object->attributes[index+1] = JANUS_LEFT_EYE_Y;
+                attribute_list->attributes[index] = JANUS_LEFT_EYE_X;
+                attribute_list->attributes[index+1] = JANUS_LEFT_EYE_Y;
                 break;
               case PPR_LANDMARK_CATEGORY_RIGHT_EYE:
-                object->attributes[index] = JANUS_RIGHT_EYE_X;
-                object->attributes[index+1] = JANUS_RIGHT_EYE_Y;
+                attribute_list->attributes[index] = JANUS_RIGHT_EYE_X;
+                attribute_list->attributes[index+1] = JANUS_RIGHT_EYE_Y;
                 break;
               case PPR_LANDMARK_CATEGORY_NOSE_BASE:
-                object->attributes[index] = JANUS_NOSE_BASE_X;
-                object->attributes[index+1] = JANUS_NOSE_BASE_Y;
+                attribute_list->attributes[index] = JANUS_NOSE_BASE_X;
+                attribute_list->attributes[index+1] = JANUS_NOSE_BASE_Y;
                 break;
               case PPR_LANDMARK_CATEGORY_NOSE_BRIDGE:
-                object->attributes[index] = JANUS_NOSE_BRIDGE_X;
-                object->attributes[index+1] = JANUS_NOSE_BRIDGE_Y;
+                attribute_list->attributes[index] = JANUS_NOSE_BRIDGE_X;
+                attribute_list->attributes[index+1] = JANUS_NOSE_BRIDGE_Y;
                 break;
               case PPR_LANDMARK_CATEGORY_EYE_NOSE:
-                object->attributes[index] = JANUS_EYE_NOSE_X;
-                object->attributes[index+1] = JANUS_EYE_NOSE_Y;
+                attribute_list->attributes[index] = JANUS_EYE_NOSE_X;
+                attribute_list->attributes[index+1] = JANUS_EYE_NOSE_Y;
                 break;
               case PPR_LANDMARK_CATEGORY_LEFT_UPPER_CHEEK:
-                object->attributes[index] = JANUS_LEFT_UPPER_CHEEK_X;
-                object->attributes[index+1] = JANUS_LEFT_UPPER_CHEEK_Y;
+                attribute_list->attributes[index] = JANUS_LEFT_UPPER_CHEEK_X;
+                attribute_list->attributes[index+1] = JANUS_LEFT_UPPER_CHEEK_Y;
                 break;
               case PPR_LANDMARK_CATEGORY_LEFT_LOWER_CHEEK:
-                object->attributes[index] = JANUS_LEFT_LOWER_CHEEK_X;
-                object->attributes[index+1] = JANUS_LEFT_LOWER_CHEEK_Y;
+                attribute_list->attributes[index] = JANUS_LEFT_LOWER_CHEEK_X;
+                attribute_list->attributes[index+1] = JANUS_LEFT_LOWER_CHEEK_Y;
                 break;
               case PPR_LANDMARK_CATEGORY_RIGHT_UPPER_CHEEK:
-                object->attributes[index] = JANUS_RIGHT_UPPER_CHEEK_X;
-                object->attributes[index+1] = JANUS_RIGHT_UPPER_CHEEK_Y;
+                attribute_list->attributes[index] = JANUS_RIGHT_UPPER_CHEEK_X;
+                attribute_list->attributes[index+1] = JANUS_RIGHT_UPPER_CHEEK_Y;
                 break;
               case PPR_LANDMARK_CATEGORY_RIGHT_LOWER_CHEEK:
-                object->attributes[index] = JANUS_RIGHT_LOWER_CHEEK_X;
-                object->attributes[index+1] = JANUS_RIGHT_LOWER_CHEEK_Y;
+                attribute_list->attributes[index] = JANUS_RIGHT_LOWER_CHEEK_X;
+                attribute_list->attributes[index+1] = JANUS_RIGHT_LOWER_CHEEK_Y;
                 break;
               case PPR_NUM_LANDMARK_CATEGORIES:
-                object->attributes[index] = JANUS_INVALID_ATTRIBUTE;
-                object->attributes[index+1] = JANUS_INVALID_ATTRIBUTE;
+                attribute_list->attributes[index] = JANUS_INVALID_ATTRIBUTE;
+                attribute_list->attributes[index+1] = JANUS_INVALID_ATTRIBUTE;
                 break;
             }
-            object->values[index]   = landmark_list.landmarks[j].position.x;
-            object->values[index+1] = landmark_list.landmarks[j].position.y;
+            attribute_list->values[index]   = landmark_list.landmarks[j].position.x;
+            attribute_list->values[index+1] = landmark_list.landmarks[j].position.y;
         }
         ppr_free_landmark_list(landmark_list);
 
+        janus_object object;
+        janus_allocate_object(1, &object);
+        object->attribute_lists[0] = attribute_list;
         (*object_list)->objects[i] = object;
     }
 
@@ -194,25 +196,23 @@ janus_error janus_detect(const janus_context context, const janus_image image, j
     return JANUS_SUCCESS;
 }
 
-typedef struct janus_track_type
+janus_error janus_initialize_track(janus_track *track)
 {
-    ppr_context_type context;
-} janus_track_type;
-
-janus_track janus_allocate_track()
-{
-    janus_track track = malloc(sizeof(janus_track_type));
-    return track;
+    ppr_context_type context = NULL;
+    *track = (janus_track)context;
+    return JANUS_SUCCESS;
 }
 
-void janus_track_frame(const janus_image frame, janus_track *track)
+janus_error janus_track_frame(const janus_image frame, janus_track *track)
 {
     (void) frame;
     (void) track;
+    return JANUS_SUCCESS;
 }
 
-janus_object_list janus_free_track(janus_track track)
+janus_error janus_finalize_track(janus_track track, janus_object_list *object_list)
 {
     (void) track;
-    return janus_allocate_object_list(0);
+    janus_allocate_object_list(0, object_list);
+    return JANUS_SUCCESS;
 }

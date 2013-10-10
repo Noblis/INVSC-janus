@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 
     janus_free_object_list(faces);
     janus_free_image(image);
-    janus_finalize_context(&context);
+    janus_finalize_context(context);
     janus_finalize();
     return 0;
 }
