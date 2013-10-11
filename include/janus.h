@@ -412,7 +412,7 @@ JANUS_EXPORT janus_error janus_initialize_track(janus_track *track);
  */
 JANUS_EXPORT janus_error janus_track_frame(const janus_context context,
                                            const janus_image frame,
-                                           janus_track *track);
+                                           janus_track track);
 
 /*!
  * \brief Free the track and compute the detected objects.
