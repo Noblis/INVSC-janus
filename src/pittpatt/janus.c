@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "janus.h"
 
@@ -31,7 +32,10 @@ janus_error janus_allocate_image(const janus_size channels,
     if (!image) return JANUS_NULL_IMAGE;
     janus_image result = malloc(sizeof(struct janus_image_type) +
                                 sizeof(janus_data) * channels * width * height);
-    if (!result) return JANUS_OUT_OF_MEMORY;
+    if (!result) {
+        *image = NULL;
+        return JANUS_OUT_OF_MEMORY;
+    }
     result->channels = channels;
     result->width = width;
     result->height = height;
@@ -52,10 +56,14 @@ janus_error janus_allocate_attribute_list(const janus_size size,
     janus_attribute_list result = malloc(sizeof(struct janus_attribute_list_type) +
                                          sizeof(janus_attribute) * size +
                                          sizeof(janus_value) * size);
-    if (!result) return JANUS_OUT_OF_MEMORY;
+    if (!result) {
+        *attribute_list = NULL;
+        return JANUS_OUT_OF_MEMORY;
+    }
     result->size = size;
     result->attributes = (janus_attribute*)(result + 1);
     result->values = (janus_value*)(result->attributes + size);
+    memset(result->attributes, JANUS_INVALID_ATTRIBUTE, sizeof(janus_attribute) * size);
     *attribute_list = result;
     return JANUS_SUCCESS;
 }
@@ -70,15 +78,20 @@ janus_error janus_allocate_object(const janus_size size, janus_object *object)
     if (!object) return JANUS_NULL_OBJECT;
     janus_object result = malloc(sizeof(struct janus_object_type) +
                                  sizeof(janus_attribute_list) * size);
-    if (!result) return JANUS_OUT_OF_MEMORY;
+    if (!result) {
+        *object = NULL;
+        return JANUS_OUT_OF_MEMORY;
+    }
     result->size = size;
     result->attribute_lists = (janus_attribute_list*)(result + 1);
+    memset(result->attribute_lists, 0, sizeof(janus_attribute_list) * size);
     *object = result;
     return JANUS_SUCCESS;
 }
 
 void janus_free_object(janus_object object)
 {
+    if (!object) return;
     for (janus_size i=0; i<object->size; i++)
         janus_free_attribute_list(object->attribute_lists[i]);
     free(object);
@@ -90,15 +103,20 @@ janus_error janus_allocate_object_list(const janus_size size,
     if (!object_list) return JANUS_NULL_OBJECT_LIST;
     janus_object_list result = malloc(sizeof(struct janus_object_list_type) +
                                       sizeof(janus_object) * size);
-    if (!result) return JANUS_OUT_OF_MEMORY;
+    if (!result) {
+        *object_list = NULL;
+        return JANUS_OUT_OF_MEMORY;
+    }
     result->size = size;
-    result->objects = (janus_object*)(object_list + 1);
+    result->objects = (janus_object*)(result + 1);
+    memset(result->objects, 0, sizeof(janus_object) * size);
     *object_list = result;
     return JANUS_SUCCESS;
 }
 
 void janus_free_object_list(janus_object_list object_list)
 {
+    if (!object_list) return;
     for (janus_size i=0; i<object_list->size; i++)
         janus_free_object(object_list->objects[i]);
     free(object_list);

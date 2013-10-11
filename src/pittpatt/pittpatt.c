@@ -58,7 +58,7 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context)
     settings.recognition.enable_comparison = 1;
     settings.recognition.recognizer = PPR_RECOGNIZER_MULTI_POSE;
     settings.recognition.num_comparison_threads = 1;
-    settings.recognition.automatically_extract_templates = 1;
+    settings.recognition.automatically_extract_templates = 0;
     settings.recognition.extract_thumbnails = 0;
     settings.tracking.enable = 1;
     settings.tracking.cutoff = 0;
@@ -85,18 +85,10 @@ void janus_finalize_context(janus_context context)
 
 janus_error janus_detect(const janus_context context, const janus_image image, janus_object_list *object_list)
 {
-    if (!object_list)
-        return JANUS_NULL_OBJECT_LIST;
-
-    if (!context) {
-        *object_list = NULL;
-        return JANUS_NULL_CONTEXT;
-    }
-
-    if (!image) {
-        object_list = NULL;
-        return JANUS_NULL_IMAGE;
-    }
+    if (!object_list) return JANUS_NULL_OBJECT_LIST;
+    *object_list = NULL;
+    if (!context) return JANUS_NULL_CONTEXT;
+    if (!image) return JANUS_NULL_IMAGE;
 
     ppr_raw_image_type raw_image;
     raw_image.bytes_per_line = image->channels * image->width;
@@ -109,10 +101,11 @@ janus_error janus_detect(const janus_context context, const janus_image image, j
     ppr_create_image(raw_image, &ppr_image);
 
     ppr_face_list_type face_list;
-//    ppr_detect_faces(context, ppr_image, &face_list);
+    ppr_detect_faces((ppr_context_type)context, ppr_image, &face_list);
 
-    janus_allocate_object_list(face_list.length, object_list);
-    for (janus_size i=0; i<(*object_list)->size; i++) {
+    janus_object_list result;
+    janus_allocate_object_list(face_list.length, &result);
+    for (janus_size i=0; i<result->size; i++) {
         ppr_face_type face = face_list.faces[i];
         ppr_face_attributes_type face_attributes;
         ppr_get_face_attributes(face, &face_attributes);
@@ -191,12 +184,12 @@ janus_error janus_detect(const janus_context context, const janus_image image, j
         janus_object object;
         janus_allocate_object(1, &object);
         object->attribute_lists[0] = attribute_list;
-        (*object_list)->objects[i] = object;
+        result->objects[i] = object;
     }
 
     ppr_free_face_list(face_list);
     ppr_free_image(ppr_image);
-
+    *object_list = result;
     return JANUS_SUCCESS;
 }
 

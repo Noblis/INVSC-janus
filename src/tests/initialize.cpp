@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 
     janus_error error = janus_initialize(argv[1]);
     if (error != JANUS_SUCCESS) {
-        printf("Failed with error: %d\n", error);
+        printf("Failed to initialize: %s\n", janus_error_to_string(error));
         abort();
     }
 

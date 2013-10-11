@@ -20,10 +20,10 @@ int main(int argc, char *argv[])
     janus_object_list faces;
     janus_error error = janus_detect(context, image, &faces);
     if (error != JANUS_SUCCESS) {
-        printf("Failed to detect faces with error: %d\n", error);
+        printf("Failed to detect faces: %s\n", janus_error_to_string(error));
         abort();
     }
-    printf("Faces found: %d", faces->size);
+    printf("Faces found: %d\n", faces->size);
 
     janus_free_object_list(faces);
     janus_free_image(image);
