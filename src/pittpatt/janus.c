@@ -17,7 +17,7 @@ const char *janus_error_to_string(janus_error error)
       case JANUS_NULL_ATTRIBUTE_LIST: return "Null attribute list";
       case JANUS_NULL_OBJECT:         return "Null object";
       case JANUS_NULL_OBJECT_LIST:    return "Null object list";
-      default:                        return "Unrecognized error";
+      default:                        return "Unrecognized error code";
     }
 }
 

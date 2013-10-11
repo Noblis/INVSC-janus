@@ -14,10 +14,16 @@ static janus_error to_janus_error(ppr_error_type error)
         printf("PittPatt 5: %s\n", ppr_error_message(error));
 
     switch (error) {
-      case PPR_SUCCESS:             return JANUS_SUCCESS;
-      case PPR_INVALID_MODELS_PATH: return JANUS_INVALID_SDK_PATH;
-      case PPR_NULL_MODELS_PATH:    return JANUS_INVALID_SDK_PATH;
-      default:                      return JANUS_UNKNOWN_ERROR;
+      case PPR_SUCCESS:                 return JANUS_SUCCESS;
+      case PPR_NULL_CONTEXT:
+      case PPR_CORRUPT_CONTEXT:
+      case PPR_CONTEXT_NOT_INITIALIZED: return JANUS_NULL_CONTEXT;
+      case PPR_INVALID_MODELS_PATH:
+      case PPR_NULL_IMAGE:              return JANUS_NULL_IMAGE;
+      case PPR_NULL_FACE:               return JANUS_NULL_OBJECT;
+      case PPR_NULL_MODELS_PATH:
+      case PPR_INVALID_MODELS_PATH:     return JANUS_INVALID_SDK_PATH;
+      default:                          return JANUS_UNKNOWN_ERROR;
     }
 }
 
