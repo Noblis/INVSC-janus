@@ -25,6 +25,7 @@
 #define JANUS_H
 
 #include <inttypes.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -129,6 +130,25 @@ typedef enum janus_error
  *       freed.
  */
 JANUS_EXPORT const char *janus_error_to_string(janus_error error);
+
+/*!
+ * \brief The \c JANUS_TRY macro provides a simlpe error handling mechanism.
+ */
+#ifdef JANUS_DISABLE_TRY
+    #define JANUS_TRY(JANUS_API_CALL) (JANUS_API_CALL);
+#else
+    #define JANUS_TRY(JANUS_API_CALL)                           \
+    {                                                           \
+        janus_error error = (JANUS_API_CALL);                   \
+        if (error != JANUS_SUCCESS) {                           \
+            printf("Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
+                   janus_error_to_string(error),                \
+                   __FILE__,                                    \
+                   __LINE__);                                   \
+            abort();                                            \
+        }                                                       \
+    }
+#endif
 
 /*!
  * \brief Data buffer type.

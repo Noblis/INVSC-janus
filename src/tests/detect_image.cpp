@@ -1,10 +1,8 @@
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "janus.h"
 #include "janus_io.h"
 
-// Makes assumptions that are tested by `read_image`
 int main(int argc, char *argv[])
 {
     if ((argc < 2) || (argc > 3)) {
@@ -12,17 +10,20 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    janus_initialize(argv[1]);
-    janus_context context;
-    janus_initialize_context(&context);
+    JANUS_TRY(janus_initialize(argv[1]));
 
-    janus_image image = janus_read_image(argc >= 3 ? argv[2] : "../data/Kirchner0.jpg");
-    janus_object_list faces;
-    janus_error error = janus_detect(context, image, &faces);
-    if (error != JANUS_SUCCESS) {
-        printf("Failed to detect faces: %s\n", janus_error_to_string(error));
+    janus_context context;
+    JANUS_TRY(janus_initialize_context(&context));
+
+    const char *file_name = (argc >= 3 ? argv[2] : "../data/Kirchner0.jpg");
+    janus_image image = janus_read_image(file_name);
+    if (image == NULL) {
+        printf("Failed to read image: %s\n", file_name);
         abort();
     }
+
+    janus_object_list faces;
+    JANUS_TRY(janus_detect(context, image, &faces));
     printf("Faces found: %d\n", faces->size);
 
     janus_free_object_list(faces);

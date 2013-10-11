@@ -18,7 +18,6 @@ static janus_error to_janus_error(ppr_error_type error)
       case PPR_NULL_CONTEXT:
       case PPR_CORRUPT_CONTEXT:
       case PPR_CONTEXT_NOT_INITIALIZED: return JANUS_NULL_CONTEXT;
-      case PPR_INVALID_MODELS_PATH:
       case PPR_NULL_IMAGE:              return JANUS_NULL_IMAGE;
       case PPR_NULL_FACE:               return JANUS_NULL_OBJECT;
       case PPR_NULL_MODELS_PATH:
