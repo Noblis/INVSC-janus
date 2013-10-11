@@ -60,13 +60,13 @@ janus_image janus_read_frame(janus_video video)
 
     ppr_raw_image_type ppr_frame;
     ppr_video_io_error_type error = ppr_video_io_get_frame((ppr_video_io_type)video, &ppr_frame);
-    ppr_video_io_step_forward((ppr_video_io_type)video);
+    error = error || ppr_video_io_step_forward((ppr_video_io_type)video);
     if (error != PPR_VIDEO_IO_SUCCESS)
         return NULL;
 
-    janus_image ppr_image = janus_from_pittpatt(&ppr_frame);
+    janus_image image = janus_from_pittpatt(&ppr_frame);
     ppr_raw_image_free(ppr_frame);
-    return ppr_image;
+    return image;
 }
 
 void janus_close_video(janus_video video)

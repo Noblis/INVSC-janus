@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     if ((argc < 2) || (argc > 3)) {
-        printf("Usage: detect_image sdk_path [file_name]\n");
+        printf("Usage: detect_image sdk_path [image_file_name]\n");
         return 1;
     }
 
