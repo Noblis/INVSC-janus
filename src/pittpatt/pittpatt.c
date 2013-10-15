@@ -231,6 +231,7 @@ janus_error janus_track_frame(const janus_context context, const janus_image fra
     ppr_face_list_type face_list;
     ppr_error_type ppr_error = ppr_detect_faces((ppr_context_type)track, ppr_image, &face_list);
     ppr_free_face_list(face_list);
+    ppr_free_image(ppr_image);
     return to_janus_error(ppr_error);
 }
 

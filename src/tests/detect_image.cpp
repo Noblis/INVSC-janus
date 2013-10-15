@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
     janus_object_list faces;
     JANUS_TRY(janus_detect(context, image, &faces));
-    printf("Faces found: %d\n", faces->size);
+    fprintf(stderr, "Faces found: %d\n", faces->size);
 
     janus_free_object_list(faces);
     janus_free_image(image);

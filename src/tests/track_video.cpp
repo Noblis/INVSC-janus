@@ -5,8 +5,8 @@
 
 int main(int argc, char *argv[])
 {
-    if ((argc < 2) || (argc > 3)) {
-        printf("Usage: track_video sdk_path [video_file_name]\n");
+    if ((argc < 2) || (argc > 5)) {
+        printf("Usage: track_video sdk_path [video_file_name [start_frame stop_frame]]\n");
         return 1;
     }
 
@@ -31,17 +31,29 @@ int main(int argc, char *argv[])
         abort();
     }
 
+    int start_frame;
+    if (argc >= 4) start_frame = atoi(argv[3]);
+    else           start_frame = 0;
+
+    int stop_frame;
+    if (argc >= 5) stop_frame = atoi(argv[4]);
+    else           stop_frame = INT32_MAX;
+
     int i = 0;
     while (frame != NULL) {
-        printf("i = %d\n", i++);
-        JANUS_TRY(janus_track_frame(context, frame, track))
+        fprintf(stderr, "\rFrame: %d", i);
+        if (i >= start_frame)
+            JANUS_TRY(janus_track_frame(context, frame, track))
         janus_free_image(frame);
-        frame = janus_read_frame(video);
+
+        i++;
+        if (i > stop_frame) break;
+        else                frame = janus_read_frame(video);
     }
 
     janus_object_list object_list;
     JANUS_TRY(janus_finalize_track(track, &object_list))
-    printf("Faces tracks found: %d\n", object_list->size);
+    fprintf(stderr, "\rFaces tracks found: %d\n", object_list->size);
 
     janus_free_object_list(object_list);
     janus_close_video(video);
