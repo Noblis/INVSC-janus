@@ -24,49 +24,45 @@ static janus_image janus_from_pittpatt(ppr_raw_image_type *ppr_image)
     return image;
 }
 
-janus_image janus_read_image(const char *file_name)
+janus_error janus_read_image(const char *file_name, janus_image *image)
 {
-    if (!file_name)
-        return NULL;
-
     ppr_raw_image_type ppr_image;
     ppr_raw_image_error_type error = ppr_raw_image_io_read(file_name, &ppr_image);
-    if (error != PPR_RAW_IMAGE_SUCCESS)
-        return NULL;
+    if (error != PPR_RAW_IMAGE_SUCCESS) {
+        *image = NULL;
+        return JANUS_INVALID_IMAGE;
+    }
 
-    janus_image image = janus_from_pittpatt(&ppr_image);
-
+    *image = janus_from_pittpatt(&ppr_image);
     ppr_raw_image_free(ppr_image);
-    return image;
+    return JANUS_SUCCESS;
 }
 
-janus_video janus_open_video(const char *file_name)
+janus_error janus_open_video(const char *file_name, janus_video *video)
 {
-    if (!file_name)
-        return NULL;
-
-    ppr_video_io_type video;
-    ppr_video_io_error_type error = ppr_video_io_open(&video, file_name);
-    if (error != PPR_VIDEO_IO_SUCCESS)
-        return NULL;
-
-    return (janus_video)video;
+    ppr_video_io_type ppr_video;
+    ppr_video_io_error_type error = ppr_video_io_open(&ppr_video, file_name);
+    if (error != PPR_VIDEO_IO_SUCCESS) {
+        *video = NULL;
+        return JANUS_INVALID_VIDEO;
+    }
+    *video = (janus_video)ppr_video;
+    return JANUS_SUCCESS;
 }
 
-janus_image janus_read_frame(janus_video video)
+janus_error janus_read_frame(janus_video video, janus_image *image)
 {
-    if (!video)
-        return NULL;
-
     ppr_raw_image_type ppr_frame;
     ppr_video_io_error_type error = ppr_video_io_get_frame((ppr_video_io_type)video, &ppr_frame);
     error = error || ppr_video_io_step_forward((ppr_video_io_type)video);
-    if (error != PPR_VIDEO_IO_SUCCESS)
-        return NULL;
+    if (error != PPR_VIDEO_IO_SUCCESS) {
+        *image = NULL;
+        return JANUS_INVALID_VIDEO;
+    }
 
-    janus_image image = janus_from_pittpatt(&ppr_frame);
+    *image = janus_from_pittpatt(&ppr_frame);
     ppr_raw_image_free(ppr_frame);
-    return image;
+    return JANUS_SUCCESS;
 }
 
 void janus_close_video(janus_video video)

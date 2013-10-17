@@ -37,10 +37,11 @@ extern "C" {
 
 /*!
  * \brief Read an image from disk.
- * \note Returns \c NULL on failure.
- * \see janus_free_media
+ * \param[in] Path to image file.
+ * \param[out] Address to store the allocated image.
+ * \see janus_free_image
  */
-JANUS_EXPORT janus_image janus_read_image(const char *file_name);
+JANUS_EXPORT janus_error janus_read_image(const char *file_name, janus_image *image);
 
 /*!
  * \brief Handle to a private video decoding type.
@@ -49,15 +50,19 @@ typedef struct janus_video_type *janus_video;
 
 /*!
  * \brief Returns a video ready for reading.
+ * \param[in] Path to image file.
+ * \param[out] Address to store the allocated video.
  * \see janus_read_frame janus_close_video
  */
-JANUS_EXPORT janus_video janus_open_video(const char *file_name);
+JANUS_EXPORT janus_error janus_open_video(const char *file_name, janus_video *video);
 
 /*!
  * \brief Returns the current frame and advances the video to the next frame.
- * \see janus_open_video
+ * \param[in] Video to decode.
+ * \param[out] Address to store the allocated image.
+ * \see janus_open_video janus_free_image
  */
-JANUS_EXPORT janus_image janus_read_frame(janus_video video);
+JANUS_EXPORT janus_error janus_read_frame(janus_video video, janus_image *image);
 
 /*!
  * \brief Closes a video.

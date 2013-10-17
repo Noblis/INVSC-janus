@@ -117,6 +117,8 @@ typedef enum janus_error
     JANUS_OUT_OF_MEMORY       = 2, /*!< Memorry allocation failed */
     JANUS_INVALID_SDK_PATH    = 3, /*!< Incorrect location provided to
                                      #janus_initialize */
+    JANUS_INVALID_IMAGE       = 4, /*!< Could not decode image file. */
+    JANUS_INVALID_VIDEO       = 5, /*!< Could not decode video file. */
     JANUS_NULL_CONTEXT        = 8, /*!< Value of #janus_context was 0 */
     JANUS_NULL_IMAGE          = 9, /*!< Value of #janus_image was 0 */
     JANUS_NULL_ATTRIBUTE_LIST = 10, /*!< Value of #janus_attribute_list was 0 */

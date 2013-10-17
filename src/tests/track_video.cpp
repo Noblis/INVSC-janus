@@ -10,26 +10,20 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    JANUS_TRY(janus_initialize(argv[1]));
+    JANUS_TRY(janus_initialize(argv[1]))
 
     janus_context context;
-    JANUS_TRY(janus_initialize_context(&context));
+    JANUS_TRY(janus_initialize_context(&context))
 
     const char *file_name = (argc >= 3 ? argv[2] : "../data/Kirchner.flv");
-    janus_video video = janus_open_video(file_name);
-    if (video == NULL) {
-        printf("Failed to open video: %s\n", file_name);
-        abort();
-    }
+    janus_video video;
+    JANUS_TRY(janus_open_video(file_name, &video))
 
     janus_track track;
     JANUS_TRY(janus_initialize_track(&track))
 
-    janus_image frame = janus_read_frame(video);
-    if (frame == NULL) {
-        printf("Failed to read frame from video: %s\n", file_name);
-        abort();
-    }
+    janus_image frame;
+    JANUS_TRY(janus_read_frame(video, &frame))
 
     int start_frame;
     if (argc >= 4) start_frame = atoi(argv[3]);
@@ -48,7 +42,7 @@ int main(int argc, char *argv[])
 
         i++;
         if (i > stop_frame) break;
-        else                frame = janus_read_frame(video);
+        else                JANUS_TRY(janus_read_frame(video, &frame));
     }
 
     janus_object_list object_list;

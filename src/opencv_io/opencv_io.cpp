@@ -18,24 +18,24 @@ static janus_image janusFromOpenCV(const Mat &mat)
     return image;
 }
 
-janus_image janus_read_image(const char *file_name)
+janus_error janus_read_image(const char *file_name, janus_image *image)
 {
-    return janusFromOpenCV(imread(file_name, IMREAD_UNCHANGED));
+    *image = janusFromOpenCV(imread(file_name, IMREAD_UNCHANGED));
+    return *image ? JANUS_SUCCESS : JANUS_INVALID_IMAGE;
 }
 
-janus_video janus_open_video(const char *file_name)
+janus_error janus_open_video(const char *file_name, janus_video *video)
 {
-    return reinterpret_cast<janus_video>(new VideoCapture(file_name));
+    *video = reinterpret_cast<janus_video>(new VideoCapture(file_name));
+    return JANUS_SUCCESS;
 }
 
-janus_image janus_read_frame(janus_video video)
+janus_error janus_read_frame(janus_video video, janus_image *image)
 {
-    if (!video)
-        return NULL;
-
     Mat mat;
     reinterpret_cast<VideoCapture*>(video)->read(mat);
-    return janusFromOpenCV(mat);
+    *image = janusFromOpenCV(mat);
+    return *image ? JANUS_SUCCESS : JANUS_INVALID_VIDEO;
 }
 
 void janus_close_video(janus_video video)
