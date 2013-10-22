@@ -112,18 +112,19 @@ extern "C" {
  */
 typedef enum janus_error
 {
-    JANUS_SUCCESS             = 0, /*!< No error */
-    JANUS_UNKNOWN_ERROR       = 1, /*!< Catch-all error code */
-    JANUS_OUT_OF_MEMORY       = 2, /*!< Memorry allocation failed */
-    JANUS_INVALID_SDK_PATH    = 3, /*!< Incorrect location provided to
-                                     #janus_initialize */
-    JANUS_INVALID_IMAGE       = 4, /*!< Could not decode image file. */
-    JANUS_INVALID_VIDEO       = 5, /*!< Could not decode video file. */
-    JANUS_NULL_CONTEXT        = 8, /*!< Value of #janus_context was 0 */
-    JANUS_NULL_IMAGE          = 9, /*!< Value of #janus_image was 0 */
-    JANUS_NULL_ATTRIBUTE_LIST = 10, /*!< Value of #janus_attribute_list was 0 */
-    JANUS_NULL_OBJECT         = 11, /*!< Value of #janus_object was 0 */
-    JANUS_NULL_OBJECT_LIST    = 12 /*!< Value of #janus_object_list was 0 */
+    JANUS_SUCCESS             = 0,  /*!< No error */
+    JANUS_UNKNOWN_ERROR       = 1,  /*!< Catch-all error code */
+    JANUS_OUT_OF_MEMORY       = 2,  /*!< Memorry allocation failed */
+    JANUS_INVALID_SDK_PATH    = 3,  /*!< Incorrect location provided to
+                                         #janus_initialize */
+    JANUS_INVALID_IMAGE       = 4,  /*!< Could not decode image file */
+    JANUS_INVALID_VIDEO       = 5,  /*!< Could not decode video file */
+    JANUS_NULL_CONTEXT        = 8,  /*!< Value of #janus_context was 0 */
+    JANUS_NULL_IMAGE          = 9,  /*!< Value of #janus_image was 0 */
+    JANUS_NULL_VALUE          = 10, /*!< Value of #janus_value was 0 */
+    JANUS_NULL_ATTRIBUTE_LIST = 11, /*!< Value of #janus_attribute_list was 0 */
+    JANUS_NULL_OBJECT         = 12, /*!< Value of #janus_object was 0 */
+    JANUS_NULL_OBJECT_LIST    = 13  /*!< Value of #janus_object_list was 0 */
 } janus_error;
 
 /*!
@@ -220,35 +221,40 @@ JANUS_EXPORT void janus_free_image(janus_image image);
  */
 typedef enum janus_attribute
 {
-    JANUS_INVALID_ATTRIBUTE = 0, /*!< Catch-all attribute code */
+    JANUS_INVALID_ATTRIBUTE   = 0, /*!< Catch-all error attribute code */
+    JANUS_MEDIA_ID            = 1, /*!< Unique integer identifier for source
+                                        image or video file */
+    JANUS_FRAME               = 2, /*!< Video frame number, -1 for images */
+    JANUS_TRACKING_CONFIDENCE = 3, /*!< Object tracking confidence, -1 for
+                                        images */
 
-    JANUS_FACE_X          = 16, /*!< Face detection bounding box */
-    JANUS_FACE_Y          = 17, /*!< Face detection bounding box */
-    JANUS_FACE_WIDTH      = 18, /*!< Face detection bounding box */
-    JANUS_FACE_HEIGHT     = 19, /*!< Face detection bounding box */
+    JANUS_FACE_X          = 16, /*!< Face detection bounding box (pixels) */
+    JANUS_FACE_Y          = 17, /*!< Face detection bounding box (pixels) */
+    JANUS_FACE_WIDTH      = 18, /*!< Face detection bounding box (pixels) */
+    JANUS_FACE_HEIGHT     = 19, /*!< Face detection bounding box (pixels) */
     JANUS_FACE_CONFIDENCE = 20, /*!< Face detection confidence */
-    JANUS_FACE_ROLL       = 21, /*!< Face pose */
-    JANUS_FACE_PITCH      = 22, /*!< Face pose */
-    JANUS_FACE_YAW        = 23, /*!< Face pose */
+    JANUS_FACE_ROLL       = 21, /*!< Face pose (degrees) */
+    JANUS_FACE_PITCH      = 22, /*!< Face pose (degrees) */
+    JANUS_FACE_YAW        = 23, /*!< Face pose (degrees) */
 
-    JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark */
-    JANUS_RIGHT_EYE_Y         = 33, /*!< Face landmark */
-    JANUS_LEFT_EYE_X          = 34, /*!< Face landmark */
-    JANUS_LEFT_EYE_Y          = 35, /*!< Face landmark */
-    JANUS_NOSE_BASE_X         = 36, /*!< Face landmark */
-    JANUS_NOSE_BASE_Y         = 37, /*!< Face landmark */
-    JANUS_NOSE_BRIDGE_X       = 38, /*!< Face landmark */
-    JANUS_NOSE_BRIDGE_Y       = 39, /*!< Face landmark */
-    JANUS_EYE_NOSE_X          = 40, /*!< Face landmark */
-    JANUS_EYE_NOSE_Y          = 41, /*!< Face landmark */
-    JANUS_RIGHT_UPPER_CHEEK_X = 42, /*!< Face landmark */
-    JANUS_RIGHT_UPPER_CHEEK_Y = 43, /*!< Face landmark */
-    JANUS_RIGHT_LOWER_CHEEK_X = 44, /*!< Face landmark */
-    JANUS_RIGHT_LOWER_CHEEK_Y = 45, /*!< Face landmark */
-    JANUS_LEFT_UPPER_CHEEK_X  = 46, /*!< Face landmark */
-    JANUS_LEFT_UPPER_CHEEK_Y  = 47, /*!< Face landmark */
-    JANUS_LEFT_LOWER_CHEEK_X  = 48, /*!< Face landmark */
-    JANUS_LEFT_LOWER_CHEEK_Y  = 49  /*!< Face landmark */
+    JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark (pixels) */
+    JANUS_RIGHT_EYE_Y         = 33, /*!< Face landmark (pixels) */
+    JANUS_LEFT_EYE_X          = 34, /*!< Face landmark (pixels) */
+    JANUS_LEFT_EYE_Y          = 35, /*!< Face landmark (pixels) */
+    JANUS_NOSE_BASE_X         = 36, /*!< Face landmark (pixels) */
+    JANUS_NOSE_BASE_Y         = 37, /*!< Face landmark (pixels) */
+    JANUS_NOSE_BRIDGE_X       = 38, /*!< Face landmark (pixels) */
+    JANUS_NOSE_BRIDGE_Y       = 39, /*!< Face landmark (pixels) */
+    JANUS_EYE_NOSE_X          = 40, /*!< Face landmark (pixels) */
+    JANUS_EYE_NOSE_Y          = 41, /*!< Face landmark (pixels) */
+    JANUS_RIGHT_UPPER_CHEEK_X = 42, /*!< Face landmark (pixels) */
+    JANUS_RIGHT_UPPER_CHEEK_Y = 43, /*!< Face landmark (pixels) */
+    JANUS_RIGHT_LOWER_CHEEK_X = 44, /*!< Face landmark (pixels) */
+    JANUS_RIGHT_LOWER_CHEEK_Y = 45, /*!< Face landmark (pixels) */
+    JANUS_LEFT_UPPER_CHEEK_X  = 46, /*!< Face landmark (pixels) */
+    JANUS_LEFT_UPPER_CHEEK_Y  = 47, /*!< Face landmark (pixels) */
+    JANUS_LEFT_LOWER_CHEEK_X  = 48, /*!< Face landmark (pixels) */
+    JANUS_LEFT_LOWER_CHEEK_Y  = 49  /*!< Face landmark (pixels) */
 } janus_attribute;
 
 /*!
@@ -274,18 +280,36 @@ typedef struct janus_attribute_list_type
  * \param[out] attribute_list Address to store the allocated attribute list.
  * \note Memory will be allocated, but not initialized, for
  *       janus_attribute_list::attributes and janus_attribute_list::values.
- * \see janus_free_attribute_list
+ * \see janus_copy_attribute_list janus_free_attribute_list
  */
 JANUS_EXPORT janus_error janus_allocate_attribute_list(const janus_size size,
                                           janus_attribute_list *attribute_list);
 
 /*!
+ * \brief Create a copy of an attribute list.
+ * \param[in] input Attribute list to copy.
+ * \param[out] output Address to store the copied attribute list.
+ * \see janus_allocate_attribute_list janus_free_attribute_list
+ */
+JANUS_EXPORT janus_error janus_copy_attribute_list(const janus_attribute_list input,
+                                                   janus_attribute_list *output);
+
+/*!
  * \brief Frees the memory previously allocated for the attribute list.
  * \param[in] attribute_list #janus_attribute_list to free.
- * \see janus_allocate_object
+ * \see janus_allocate_attribute_list janus_copy_attribute_list
  */
-JANUS_EXPORT void janus_free_attribute_list(
-                                           janus_attribute_list attribute_list);
+JANUS_EXPORT void janus_free_attribute_list(janus_attribute_list attribute_list);
+
+/*!
+ * \brief Retrieve the value for an attribute in an attribute list.
+ * \param[in] attribute_list The attribute list to search.
+ * \param[in] attribute The attribute to search for.
+ * \param[out] value The value for the requested attribute.
+ */
+JANUS_EXPORT janus_error janus_get_value(const janus_attribute_list attribute_list,
+                                         const janus_attribute attribute,
+                                         janus_value *value);
 
 /*!
  * \brief A collection of #janus_attribute_list all associated with the same
@@ -320,6 +344,17 @@ JANUS_EXPORT janus_error janus_allocate_object(const janus_size size,
  * \see janus_allocate_object
  */
 JANUS_EXPORT void janus_free_object(janus_object object);
+
+/*!
+ * \brief Retrieve the values for an attribute in an object.
+ * \param[in] object The object to search.
+ * \param[in] attribute The attribute to search for.
+ * \param[out] values The values for the requested attribute.
+ * \note values should be a pre-allocated buffer of length object->size.
+ */
+JANUS_EXPORT janus_error janus_get_values(const janus_object object,
+                                          const janus_attribute attribute,
+                                          janus_value *values);
 
 /*!
  * \brief A list of #janus_object.
@@ -421,6 +456,13 @@ JANUS_EXPORT janus_error janus_track_frame(const janus_context context,
  */
 JANUS_EXPORT janus_error janus_finalize_track(janus_track track,
                                               janus_object_list *object_list);
+
+/*!
+ * \brief Downsample object annotations to only those desired for template generation.
+ * \param[in] input Input object
+ * \param[out] output Output object
+ */
+JANUS_EXPORT janus_error janus_downsample(const janus_object input, janus_object *output);
 
 /*! @}*/
 

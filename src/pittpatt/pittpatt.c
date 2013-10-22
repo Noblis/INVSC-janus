@@ -108,30 +108,36 @@ static ppr_error_type to_ppr_image(const janus_image image, ppr_image_type *ppr_
     return ppr_create_image(raw_image, ppr_image);
 }
 
-static janus_error to_janus_attribute_list(ppr_face_type face, janus_attribute_list *attribute_list)
+static janus_error to_janus_attribute_list(ppr_face_type face, janus_attribute_list *attribute_list, int media_id)
 {
     ppr_face_attributes_type face_attributes;
     ppr_get_face_attributes(face, &face_attributes);
 
-    const int num_face_attributes = 8;
+    const int num_face_attributes = 11;
     janus_attribute_list result;
     janus_allocate_attribute_list(num_face_attributes + 2*face_attributes.num_landmarks, &result);
-    result->attributes[0] = JANUS_FACE_CONFIDENCE;
-    result->values[0] = face_attributes.confidence;
-    result->attributes[1] = JANUS_FACE_WIDTH;
-    result->values[1] = face_attributes.dimensions.width;
-    result->attributes[2] = JANUS_FACE_HEIGHT;
-    result->values[2] = face_attributes.dimensions.height;
-    result->attributes[3] = JANUS_FACE_X;
-    result->values[3] = face_attributes.position.x;
-    result->attributes[4] = JANUS_FACE_Y;
-    result->values[4] = face_attributes.position.y;
-    result->attributes[5] = JANUS_FACE_ROLL;
-    result->values[5] = face_attributes.rotation.roll;
-    result->attributes[6] = JANUS_FACE_PITCH;
-    result->values[6] = face_attributes.rotation.pitch;
-    result->attributes[7] = JANUS_FACE_YAW;
-    result->values[7] = face_attributes.rotation.yaw;
+    result->attributes[0] = JANUS_MEDIA_ID;
+    result->values[0] = media_id;
+    result->attributes[1] = JANUS_FRAME;
+    result->values[1] = face_attributes.tracking_info.frame_number;
+    result->attributes[2] = JANUS_TRACKING_CONFIDENCE;
+    result->values[2] = face_attributes.tracking_info.confidence_level;
+    result->attributes[3] = JANUS_FACE_CONFIDENCE;
+    result->values[3] = face_attributes.confidence;
+    result->attributes[4] = JANUS_FACE_WIDTH;
+    result->values[4] = face_attributes.dimensions.width;
+    result->attributes[5] = JANUS_FACE_HEIGHT;
+    result->values[5] = face_attributes.dimensions.height;
+    result->attributes[6] = JANUS_FACE_X;
+    result->values[6] = face_attributes.position.x;
+    result->attributes[7] = JANUS_FACE_Y;
+    result->values[7] = face_attributes.position.y;
+    result->attributes[8] = JANUS_FACE_ROLL;
+    result->values[8] = face_attributes.rotation.roll;
+    result->attributes[9] = JANUS_FACE_PITCH;
+    result->values[9] = face_attributes.rotation.pitch;
+    result->attributes[10] = JANUS_FACE_YAW;
+    result->values[10] = face_attributes.rotation.yaw;
 
     ppr_landmark_list_type landmark_list;
     ppr_get_face_landmarks(face, &landmark_list);
@@ -187,12 +193,16 @@ static janus_error to_janus_attribute_list(ppr_face_type face, janus_attribute_l
     return JANUS_SUCCESS;
 }
 
+static int media_id_counter = 0; // TODO: This should be an atomic integer
+
 janus_error janus_detect(const janus_context context, const janus_image image, janus_object_list *object_list)
 {
     if (!object_list) return JANUS_NULL_OBJECT_LIST;
     *object_list = NULL;
     if (!context) return JANUS_NULL_CONTEXT;
     if (!image) return JANUS_NULL_IMAGE;
+
+    const int media_id = media_id_counter++;
 
     ppr_image_type ppr_image;
     JANUS_TRY_PPR(to_ppr_image(image, &ppr_image))
@@ -205,7 +215,7 @@ janus_error janus_detect(const janus_context context, const janus_image image, j
     for (janus_size i=0; i<result->size; i++) {
         janus_object object;
         janus_allocate_object(1, &object);
-        to_janus_attribute_list(face_list.faces[i], &object->attribute_lists[0]);
+        to_janus_attribute_list(face_list.faces[i], &object->attribute_lists[0], media_id);
         result->objects[i] = object;
     }
 
@@ -240,6 +250,8 @@ janus_error janus_finalize_track(janus_track track, janus_object_list *object_li
     if (!object_list) return JANUS_NULL_OBJECT_LIST;
     *object_list = NULL;
 
+    const int media_id = media_id_counter++;
+
     ppr_track_list_type ppr_track_list;
     JANUS_TRY_PPR(ppr_finalize_tracks((ppr_context_type)track))
     JANUS_TRY_PPR(ppr_get_completed_tracks((ppr_context_type)track, &ppr_track_list));
@@ -252,7 +264,7 @@ janus_error janus_finalize_track(janus_track track, janus_object_list *object_li
         janus_object object;
         janus_allocate_object(ppr_track.tracked_faces.length, &object);
         for (janus_size j=0; j<object->size; j++)
-            to_janus_attribute_list(ppr_track.tracked_faces.faces[j], &object->attribute_lists[j]);
+            to_janus_attribute_list(ppr_track.tracked_faces.faces[j], &object->attribute_lists[j], media_id);
         result->objects[i] = object;
     }
 
