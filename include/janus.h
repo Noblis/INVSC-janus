@@ -458,6 +458,58 @@ JANUS_EXPORT janus_error janus_finalize_track(janus_track track,
                                               janus_object_list *object_list);
 
 /*!
+ * \brief Contains the partially-constructed recognition information for an
+ *        object.
+ */
+typedef struct janus_partial_template_type *janus_partial_template;
+
+/*!
+ * \brief Contains the completed representation of the recognition information
+ *        for an object.
+ */
+typedef janus_data *janus_template;
+
+/*!
+ * \brief Create an empty template for enrollment.
+ * \param[in] partial_template Address of the partial template to initialize for
+ *                             enrollment.
+ * \see janus_augment_template janus_finalize_template
+ */
+JANUS_EXPORT janus_error janus_initialize_template(janus_partial_template *partial_template);
+
+/*!
+ * \brief Add information to the template.
+ * \param[in] attributes The detected object to recognize.
+ * \param[in] image The image containing the detected object.
+ * \param[in,out] partial_template The template to contain the object's
+ *                                 recognition information.
+ * \see janus_initialize_template janus_finalize_template
+ */
+JANUS_EXPORT janus_error janus_augment_template(const janus_attribute_list attributes,
+                                                const janus_image image,
+                                                janus_partial_template partial_template);
+
+/*!
+ * \brief Create the finalized version of the template.
+ * \param[in,out] partial_template The recognition information to contruct the
+ *                                 template from.
+ * \param[out] template_ Address of the uninitialized buffer to hold the
+ *                       template.
+ * \param[out] bytes Length of template_.
+ * \note Deallocates memory for the partial template.
+ * \see janus_initialize_template janus_augment_template janus_free_template
+ */
+JANUS_EXPORT janus_error janus_finalize_template(janus_partial_template partial_template,
+                                                 janus_template *template_,
+                                                 janus_size *bytes);
+
+/*!
+ * \brief Deallocate a template.
+ * \see janus_finalize_template
+ */
+JANUS_EXPORT void janus_free_template(janus_template *template_);
+
+/*!
  * \brief Downsample object annotations to only those desired for template generation.
  * \param[in] input Input object
  * \param[out] output Output object
