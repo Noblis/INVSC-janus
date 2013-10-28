@@ -32,7 +32,9 @@ extern "C" {
 
 /*!
  * \defgroup janus_aux Janus Auxiliary
- * \brief Functions not required for Janus Phase 1.
+ * \brief Proposed interface additions for Phases 2 & 3.
+ * \addtogroup janus_aux
+ *  @{
  */
 
 /*!
@@ -65,6 +67,8 @@ JANUS_EXPORT janus_error janus_track_frame(const janus_context context,
  */
 JANUS_EXPORT janus_error janus_finalize_track(janus_track track,
                                               janus_object_list *object_list);
+
+/*! @}*/
 
 #ifdef __cplusplus
 }

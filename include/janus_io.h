@@ -32,7 +32,9 @@ extern "C" {
 
 /*!
  * \defgroup janus_io Janus I/O
- * \brief Image and video decoding functions.
+ * \brief Image and video decoding interface.
+ * \addtogroup janus_io
+ *  @{
  */
 
 /*!
@@ -69,6 +71,8 @@ JANUS_EXPORT janus_error janus_read_frame(janus_video video, janus_image *image)
  * \see janus_open_video
  */
 JANUS_EXPORT void janus_close_video(janus_video video);
+
+/*! @}*/
 
 #ifdef __cplusplus
 }

@@ -33,22 +33,29 @@ extern "C" {
 
 /*!
  * \mainpage
- * - \ref janus "API Specification"
- * - <a href="http://www.iarpa.gov/Programs/sc/Janus/janus.html">Program
- *   Homepage</a> [iarpa.gov]
+ * \section api_specification API Overview
+ *
+ * Janus is a \a C API consisting of three header files:
+ *
+ * Module         | Header      | Required | Description
+ * -------------- | ----------- | -------- | -----------
+ * \ref janus     | janus.h     | Yes      | \copybrief janus
+ * \ref janus_aux | janus_aux.h | No       | \copybrief janus_aux
+ * \ref janus_io  | janus_io.h  | No       | \copybrief janus_io
+ *
+ * \section miscellaneous Miscellaneous
+ * - [Janus Program Homepage](http://www.iarpa.gov/Programs/sc/Janus/janus.html)
+ *   [iarpa.gov]
  */
 
 /*!
  * \defgroup janus Janus
- * \brief \c C API for the IARPA Janus program.
+ * \brief Mandatory interface for Phase 1.
  * \author Joshua C. Klontz (Joshua.Klontz@noblis.org) - Current Maintainer
  *
  * \section license License
  * The API is provided under a <a href="LICENSE.txt">BSD-like license</a> and is
  * free for academic and commercial use.
- *
- * \section header Header
- * \code #include <janus.h> \endcode
  *
  * \section thread_safety Thread Safety
  * All functions are thread-safe unless noted otherwise.
