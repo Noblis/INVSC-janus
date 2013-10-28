@@ -39,8 +39,8 @@ extern "C" {
 
 /*!
  * \brief Read an image from disk.
- * \param[in] Path to image file.
- * \param[out] Address to store the allocated image.
+ * \param[in] file_name Path to the image file.
+ * \param[out] image Address to store the decoded image.
  * \see janus_free_image
  */
 JANUS_EXPORT janus_error janus_read_image(const char *file_name, janus_image *image);
@@ -52,23 +52,25 @@ typedef struct janus_video_type *janus_video;
 
 /*!
  * \brief Returns a video ready for reading.
- * \param[in] Path to image file.
- * \param[out] Address to store the allocated video.
+ * \param[in] file_name Path to image file.
+ * \param[out] video Address to store the allocated video.
  * \see janus_read_frame janus_close_video
  */
 JANUS_EXPORT janus_error janus_open_video(const char *file_name, janus_video *video);
 
 /*!
  * \brief Returns the current frame and advances the video to the next frame.
- * \param[in] Video to decode.
- * \param[out] Address to store the allocated image.
+ * \param[in] video Video to decode.
+ * \param[out] image Address to store the allocated image.
  * \see janus_open_video janus_free_image
  */
 JANUS_EXPORT janus_error janus_read_frame(janus_video video, janus_image *image);
 
 /*!
- * \brief Closes a video.
- * \see janus_open_video
+ * \brief Closes a video previously opened by \ref janus_open_video.
+ * \param[in] video The video to close.
+ * Call this function to deallocate the memory allocated to decode the video
+ * after the desired frames have been read.
  */
 JANUS_EXPORT void janus_close_video(janus_video video);
 
