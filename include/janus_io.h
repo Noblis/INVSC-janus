@@ -46,6 +46,13 @@ extern "C" {
 JANUS_EXPORT janus_error janus_read_image(const char *file_name, janus_image *image);
 
 /*!
+ * \brief Frees the memory previously allocated for a #janus_image.
+ * \param[in] image #janus_image to free.
+ * \see janus_allocate_image
+ */
+JANUS_EXPORT void janus_free_image(janus_image image);
+
+/*!
  * \brief Handle to a private video decoding type.
  */
 typedef struct janus_video_type *janus_video;

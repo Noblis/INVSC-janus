@@ -19,7 +19,6 @@ static janus_error to_janus_error(ppr_error_type error)
       case PPR_NULL_CONTEXT:
       case PPR_CORRUPT_CONTEXT:
       case PPR_CONTEXT_NOT_INITIALIZED: return JANUS_NULL_CONTEXT;
-      case PPR_NULL_IMAGE:              return JANUS_NULL_IMAGE;
       case PPR_NULL_FACE:               return JANUS_NULL_OBJECT;
       case PPR_NULL_MODELS_PATH:
       case PPR_INVALID_MODELS_PATH:     return JANUS_INVALID_SDK_PATH;
@@ -101,11 +100,11 @@ void janus_finalize_context(janus_context context)
 static ppr_error_type to_ppr_image(const janus_image image, ppr_image_type *ppr_image)
 {
     ppr_raw_image_type raw_image;
-    raw_image.bytes_per_line = image->channels * image->width;
-    raw_image.color_space = (image->channels == 1 ? PPR_RAW_IMAGE_GRAY8 : PPR_RAW_IMAGE_BGR24);
-    raw_image.data = image->data;
-    raw_image.height = image->height;
-    raw_image.width = image->width;
+    raw_image.bytes_per_line = (image.color_space == JANUS_BGR24 ? 3 : 1) * image.width;
+    raw_image.color_space = (image.color_space == JANUS_BGR24 ? PPR_RAW_IMAGE_BGR24 : PPR_RAW_IMAGE_GRAY8);
+    raw_image.data = image.data;
+    raw_image.height = image.height;
+    raw_image.width = image.width;
     return ppr_create_image(raw_image, ppr_image);
 }
 
@@ -200,8 +199,6 @@ janus_error janus_detect(const janus_context context, const janus_image image, j
 {
     if (!object_list) return JANUS_NULL_OBJECT_LIST;
     *object_list = NULL;
-    if (!context) return JANUS_NULL_CONTEXT;
-    if (!image) return JANUS_NULL_IMAGE;
 
     const int media_id = media_id_counter++;
 

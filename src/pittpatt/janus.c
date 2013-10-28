@@ -17,7 +17,6 @@ const char *janus_error_to_string(janus_error error)
       case JANUS_INVALID_IMAGE:       return "Invalid image";
       case JANUS_INVALID_VIDEO:       return "Invalid video";
       case JANUS_NULL_CONTEXT:        return "Null context";
-      case JANUS_NULL_IMAGE:          return "Null image";
       case JANUS_NULL_VALUE:          return "Null value";
       case JANUS_NULL_ATTRIBUTE_LIST: return "Null attribute list";
       case JANUS_NULL_OBJECT:         return "Null object";
@@ -28,31 +27,6 @@ const char *janus_error_to_string(janus_error error)
 
 // These implementations of janus_allocate_* require just one call to malloc
 // and simplify the implementations of janus_copy_* and janus_free_*.
-
-janus_error janus_allocate_image(const janus_size channels,
-                                 const janus_size width,
-                                 const janus_size height,
-                                 janus_image *image)
-{
-    if (!image) return JANUS_NULL_IMAGE;
-    janus_image result = malloc(sizeof(struct janus_image_type) +
-                                sizeof(janus_data) * channels * width * height);
-    if (!result) {
-        *image = NULL;
-        return JANUS_OUT_OF_MEMORY;
-    }
-    result->channels = channels;
-    result->width = width;
-    result->height = height;
-    result->data = (janus_data*)(result + 1);
-    *image = result;
-    return JANUS_SUCCESS;
-}
-
-void janus_free_image(janus_image image)
-{
-    free(image);
-}
 
 janus_error janus_allocate_attribute_list(const janus_size size,
                                           janus_attribute_list *attribute_list)

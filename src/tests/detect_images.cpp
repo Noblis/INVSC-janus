@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 
         janus_object_list faces;
         JANUS_TRY(janus_detect(context, image, &faces))
-        fprintf(stderr, "Found: %d faces in:%s\n", faces->size, file_names[i]);
+        fprintf(stderr, "Found: %d face(s) in:%s\n", faces->size, file_names[i]);
 
         janus_free_image(image);
         janus_free_object_list(faces);

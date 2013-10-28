@@ -127,7 +127,6 @@ typedef enum janus_error
     JANUS_INVALID_IMAGE       = 4,  /*!< Could not decode image file */
     JANUS_INVALID_VIDEO       = 5,  /*!< Could not decode video file */
     JANUS_NULL_CONTEXT        = 8,  /*!< Value of #janus_context was 0 */
-    JANUS_NULL_IMAGE          = 9,  /*!< Value of #janus_image was 0 */
     JANUS_NULL_VALUE          = 10, /*!< Value of #janus_value was 0 */
     JANUS_NULL_ATTRIBUTE_LIST = 11, /*!< Value of #janus_attribute_list was 0 */
     JANUS_NULL_OBJECT         = 12, /*!< Value of #janus_object was 0 */
@@ -171,6 +170,15 @@ typedef uint8_t janus_data;
 typedef uint32_t janus_size;
 
 /*!
+ * \brief Supported image formats.
+ */
+typedef enum janus_color_space
+{
+    JANUS_GRAY8 = 0, /*!< \brief 1 channel grayscale, 8-bit depth. */
+    JANUS_BGR24 = 1  /*!< \brief 3 channel color (BGR order), 8-bit depth. */
+} janus_color_space;
+
+/*!
  * \brief Common representation for images.
  *
  * \section element_access Element Access
@@ -180,48 +188,20 @@ typedef uint32_t janus_size;
  * retrieved like:
  *
 \code
-janus_image m = foo();
-janus_size columnStep = m.channels;
-janus_size rowStep = m.channels * columnStep;
-janus_size index = y*rowStep + x*columnStep + c;
-janus_data intensity = m.data[index];
+janus_image image = foo();
+janus_size xStep = (image.image_format == JANUS_COLOR ? 3 : 1);
+janus_size yStep = image.columns * xStep;
+janus_size index = y*yStep + x*xStep + c;
+janus_data intensity = i.data[index];
 \endcode
- *
- * \section channel_order Channel Order
- * Valid janus_image::channels values are 1 or 3.
- * janus_image::channels = 1 indicates grayscale.
- * janus_image::channels = 3 indicates \c BGR color.
  */
-typedef struct janus_image_type
+typedef struct janus_image
 {
-    janus_data *data;    /*!< \brief Data buffer. */
-    janus_size channels; /*!< \brief Channel count. \see \ref channel_order. */
-    janus_size width;    /*!< \brief Column count in pixels. */
-    janus_size height;   /*!< \brief Row count in pixels. */
-} *janus_image;
-
-/*!
- * \brief Returns a #janus_image capable of storing \em channels * \em columns *
- *        \em rows elements in \em data.
- * \param[in] channels Desired value for janus_image::channels.
- * \param[in] width Desired value for janus_image::width.
- * \param[in] height Desired value for janus_image::height.
- * \param[out] image Address to store the allocated image.
- * \note Memory will be allocated, but not initialized, for
- *       janus_image::data.
- * \see janus_free_image
- */
-JANUS_EXPORT janus_error janus_allocate_image(const janus_size channels,
-                                              const janus_size width,
-                                              const janus_size height,
-                                              janus_image *image);
-
-/*!
- * \brief Frees the memory previously allocated for a #janus_image.
- * \param[in] image #janus_image to free.
- * \see janus_allocate_image
- */
-JANUS_EXPORT void janus_free_image(janus_image image);
+    janus_data *data;                /*!< \brief Data buffer. */
+    janus_size width;                /*!< \brief Column count in pixels. */
+    janus_size height;               /*!< \brief Row count in pixels. */
+    janus_color_space color_space; /*!< \brief Arrangement of #data. */
+} janus_image;
 
 /*!
  * \brief A measurement made on a #janus_image.

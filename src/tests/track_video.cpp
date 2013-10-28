@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     JANUS_TRY(janus_initialize_track(&track))
 
     janus_image frame;
-    JANUS_TRY(janus_read_frame(video, &frame))
+    janus_error error = janus_read_frame(video, &frame);
 
     int start_frame;
     if (argc >= 4) start_frame = atoi(argv[3]);
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     else           stop_frame = INT32_MAX;
 
     int i = 0;
-    while (frame != NULL) {
+    while (error == JANUS_SUCCESS) {
         fprintf(stderr, "\rFrame: %d", i);
         if (i >= start_frame)
             JANUS_TRY(janus_track_frame(context, frame, track))
@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
 
         i++;
         if (i > stop_frame) break;
-        else                JANUS_TRY(janus_read_frame(video, &frame));
+        else                error = janus_read_frame(video, &frame);
     }
 
     janus_object_list object_list;
     JANUS_TRY(janus_finalize_track(track, &object_list))
-    fprintf(stderr, "\rFaces tracks found: %d\n", object_list->size);
+    fprintf(stderr, "\rFace tracks found: %d\n", object_list->size);
 
     janus_free_object_list(object_list);
     janus_close_video(video);
