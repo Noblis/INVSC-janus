@@ -509,13 +509,6 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_partial_template partial_
  */
 JANUS_EXPORT void janus_free_template(janus_template *template_);
 
-/*!
- * \brief Downsample object annotations to only those desired for template generation.
- * \param[in] input Input object
- * \param[out] output Output object
- */
-JANUS_EXPORT janus_error janus_downsample(const janus_object input, janus_object *output);
-
 /*! @}*/
 
 #ifdef __cplusplus
