@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "janus.h"
+#include "janus_aux.h"
 #include "janus_io.h"
 
 int main(int argc, char *argv[])

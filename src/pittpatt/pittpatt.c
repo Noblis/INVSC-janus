@@ -7,6 +7,7 @@
 #include <pittpatt_sdk.h>
 
 #include "janus.h"
+#include "janus_aux.h"
 
 static janus_error to_janus_error(ppr_error_type error)
 {

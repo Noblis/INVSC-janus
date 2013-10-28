@@ -21,8 +21,8 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  ******************************************************************************/
 
-#ifndef JANUS_IO_H
-#define JANUS_IO_H
+#ifndef JANUS_AUX_H
+#define JANUS_AUX_H
 
 #include <janus.h>
 
@@ -31,47 +31,43 @@ extern "C" {
 #endif
 
 /*!
- * \defgroup janus_io Janus I/O
- * \brief Image and video decoding functions.
+ * \defgroup janus_aux Janus Auxiliary
+ * \brief Functions not required for Janus Phase 1.
  */
 
 /*!
- * \brief Read an image from disk.
- * \param[in] Path to image file.
- * \param[out] Address to store the allocated image.
- * \see janus_free_image
+ * \brief Detect objects in a #janus_image.
+ * \see janus_free_object_list
  */
-JANUS_EXPORT janus_error janus_read_image(const char *file_name, janus_image *image);
+JANUS_EXPORT janus_error janus_detect(const janus_context context,
+                                      const janus_image image,
+                                      janus_object_list *object_list);
 
 /*!
- * \brief Handle to a private video decoding type.
+ * \brief Contains tracking information for objects in a video.
  */
-typedef struct janus_video_type *janus_video;
+typedef struct janus_track_type *janus_track;
 
 /*!
- * \brief Returns a video ready for reading.
- * \param[in] Path to image file.
- * \param[out] Address to store the allocated video.
- * \see janus_read_frame janus_close_video
+ * \brief Create a new track.
  */
-JANUS_EXPORT janus_error janus_open_video(const char *file_name, janus_video *video);
+JANUS_EXPORT janus_error janus_initialize_track(janus_track *track);
 
 /*!
- * \brief Returns the current frame and advances the video to the next frame.
- * \param[in] Video to decode.
- * \param[out] Address to store the allocated image.
- * \see janus_open_video janus_free_image
+ * \brief Add a frame to the track.
  */
-JANUS_EXPORT janus_error janus_read_frame(janus_video video, janus_image *image);
+JANUS_EXPORT janus_error janus_track_frame(const janus_context context,
+                                           const janus_image frame,
+                                           janus_track track);
 
 /*!
- * \brief Closes a video.
- * \see janus_open_video
+ * \brief Free the track and compute the detected objects.
  */
-JANUS_EXPORT void janus_close_video(janus_video video);
+JANUS_EXPORT janus_error janus_finalize_track(janus_track track,
+                                              janus_object_list *object_list);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* JANUS_IO_H */
+#endif /* JANUS_AUX_H */

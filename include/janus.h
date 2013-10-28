@@ -427,37 +427,6 @@ JANUS_EXPORT janus_error janus_initialize_context(janus_context *context);
 JANUS_EXPORT void janus_finalize_context(janus_context context);
 
 /*!
- * \brief Detect objects in a #janus_image.
- * \see janus_free_object_list
- */
-JANUS_EXPORT janus_error janus_detect(const janus_context context,
-                                      const janus_image image,
-                                      janus_object_list *object_list);
-
-/*!
- * \brief Contains tracking information for objects in a video.
- */
-typedef struct janus_track_type *janus_track;
-
-/*!
- * \brief Create a new track.
- */
-JANUS_EXPORT janus_error janus_initialize_track(janus_track *track);
-
-/*!
- * \brief Add a frame to the track.
- */
-JANUS_EXPORT janus_error janus_track_frame(const janus_context context,
-                                           const janus_image frame,
-                                           janus_track track);
-
-/*!
- * \brief Free the track and compute the detected objects.
- */
-JANUS_EXPORT janus_error janus_finalize_track(janus_track track,
-                                              janus_object_list *object_list);
-
-/*!
  * \brief Contains the partially-constructed recognition information for an
  *        object.
  */
