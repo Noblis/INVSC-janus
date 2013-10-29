@@ -19,7 +19,6 @@ static janus_error to_janus_error(ppr_error_type error)
       case PPR_NULL_CONTEXT:
       case PPR_CORRUPT_CONTEXT:
       case PPR_CONTEXT_NOT_INITIALIZED: return JANUS_NULL_CONTEXT;
-      case PPR_NULL_FACE:               return JANUS_NULL_OBJECT;
       case PPR_NULL_MODELS_PATH:
       case PPR_INVALID_MODELS_PATH:     return JANUS_INVALID_SDK_PATH;
       default:                          return JANUS_UNKNOWN_ERROR;
@@ -197,7 +196,7 @@ static int media_id_counter = 0; // TODO: This should be an atomic integer
 
 janus_error janus_detect(const janus_context context, const janus_image image, janus_object_list *object_list)
 {
-    if (!object_list) return JANUS_NULL_OBJECT_LIST;
+    if (!object_list) return JANUS_UNKNOWN_ERROR;
     *object_list = NULL;
 
     const int media_id = media_id_counter++;
@@ -245,7 +244,7 @@ janus_error janus_track_frame(const janus_context context, const janus_image fra
 
 janus_error janus_finalize_track(janus_track track, janus_object_list *object_list)
 {
-    if (!object_list) return JANUS_NULL_OBJECT_LIST;
+    if (!object_list) return JANUS_UNKNOWN_ERROR;
     *object_list = NULL;
 
     const int media_id = media_id_counter++;

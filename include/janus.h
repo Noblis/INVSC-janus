@@ -128,9 +128,7 @@ typedef enum janus_error
     JANUS_INVALID_VIDEO       = 5,  /*!< Could not decode video file */
     JANUS_NULL_CONTEXT        = 8,  /*!< Value of #janus_context was 0 */
     JANUS_NULL_VALUE          = 10, /*!< Value of #janus_value was 0 */
-    JANUS_NULL_ATTRIBUTE_LIST = 11, /*!< Value of #janus_attribute_list was 0 */
-    JANUS_NULL_OBJECT         = 12, /*!< Value of #janus_object was 0 */
-    JANUS_NULL_OBJECT_LIST    = 13  /*!< Value of #janus_object_list was 0 */
+    JANUS_NULL_ATTRIBUTE_LIST = 11  /*!< Value of #janus_attribute_list was 0 */
 } janus_error;
 
 /*!
@@ -251,7 +249,7 @@ typedef float janus_value;
 
 /*!
  * \brief A list of #janus_attribute and #janus_value pairs all belonging to a
- *        the same #janus_object in a particular #janus_image.
+ *        the same object in a particular image.
  */
 typedef struct janus_attribute_list_type
 {
@@ -297,83 +295,6 @@ JANUS_EXPORT void janus_free_attribute_list(janus_attribute_list attribute_list)
 JANUS_EXPORT janus_error janus_get_value(const janus_attribute_list attribute_list,
                                          const janus_attribute attribute,
                                          janus_value *value);
-
-/*!
- * \brief A collection of #janus_attribute_list all associated with the same
- *        object.
- */
-typedef struct janus_object_type
-{
-    janus_size size; /*!< \brief Size of #attribute_lists. */
-    janus_attribute_list *attribute_lists; /*!< \brief Array of
-                                                       #janus_attribute_list. */
-} *janus_object;
-
-/*!
- * \brief Allocates memory for a #janus_object capable of storing \em size
- *        attribute lists.
- * \param[in] size Desired value for janus_object::size.
- * \param[out] object Address to store the allocated object.
- * \note Memory will be allocated, but not initialized, for
- *       janus_object::attribute_lists.
- * \see janus_free_object
- */
-JANUS_EXPORT janus_error janus_allocate_object(const janus_size size,
-                                               janus_object *object);
-
-/*!
- * \brief Frees the memory previously allocated for the object.
- * \param[in] object #janus_object to free.
- * \note #janus_free_attribute_list will be called for each attribute list in
- *       #janus_object::attribute_lists. If this behavior is undesired, set
- *       #janus_object::size to 0 before calling this function or set individual
- *       elements in #janus_object::attribute_lists to \c NULL.
- * \see janus_allocate_object
- */
-JANUS_EXPORT void janus_free_object(janus_object object);
-
-/*!
- * \brief Retrieve the values for an attribute in an object.
- * \param[in] object The object to search.
- * \param[in] attribute The attribute to search for.
- * \param[out] values The values for the requested attribute.
- * \note values should be a pre-allocated buffer of length object->size.
- */
-JANUS_EXPORT janus_error janus_get_values(const janus_object object,
-                                          const janus_attribute attribute,
-                                          janus_value *values);
-
-/*!
- * \brief A list of #janus_object.
- */
-typedef struct janus_object_list_type
-{
-    janus_size size; /*!< \brief Number of elements in #objects. */
-    janus_object *objects; /*!< \brief Array of #janus_object. */
-} *janus_object_list;
-
-/*!
- * \brief Allocates memory for a #janus_object_list capable of storing \em size
- *        #janus_object.
- * \param[in] size Desired value for janus_object_list::size.
- * \param[out] object_list Address to store the allocated object list.
- * \note Memory will be allocated, but not initialized, for
- *       janus_object_list::objects.
- * \see janus_free_object_list
- */
-JANUS_EXPORT janus_error janus_allocate_object_list(const janus_size size,
-                                                janus_object_list *object_list);
-
-/*!
- * \brief Frees the memory previously allocated for the object list.
- * \param[in] object_list #janus_object_list to free.
- * \note #janus_free_object will be called for each object in
- *       #janus_object_list::objects. If this behavior is undesired, set
- *       #janus_object_list::size to 0 before calling this function or set
- *       individual elements in #janus_object_list::objects to \c NULL;
- * \see janus_allocate_object_list
- */
-JANUS_EXPORT void janus_free_object_list(janus_object_list object_list);
 
 /*!
  * \brief Call once at the start of the application, before making any other
@@ -478,16 +399,19 @@ JANUS_EXPORT janus_error janus_verify(const janus_template a,
                                       const janus_size b_bytes,
                                       float *similarity);
 
+/*!
+ * \brief A gallery.
+ */
 typedef janus_data *janus_gallery;
 
 /*!
  * \brief Create a gallery from an array of templates.
- * \param[in] Array of templates to construct the gallery from.
- * \param[in] Array containing the size of each template.
- * \param[in] Length of templates and template_sizes.
- * \param[out] A pre-allocated buffer no smaller than num_templates *
+ * \param[in] templates Array of templates to construct the gallery from.
+ * \param[in] template_sizes Array containing the size of each template.
+ * \param[in] num_templates Length of templates and template_sizes.
+ * \param[out] gallery A pre-allocated buffer no smaller than num_templates *
  *             #JANUS_MAX_TEMPLATE_SIZE to contain the final gallery.
- * \param[out] Bytes of the gallery buffer actually used.
+ * \param[out] gallery_size Bytes of the gallery buffer actually used.
  */
 JANUS_EXPORT janus_error janus_create_gallery(const janus_template *templates,
                                               const janus_size *template_sizes,
@@ -501,7 +425,7 @@ JANUS_EXPORT janus_error janus_create_gallery(const janus_template *templates,
  * \param[in] probe_size Length of probe in bytes.
  * \param[in] gallery The gallery to compare the probe against.
  * \param[in] gallery_size Length of gallery in bytes.
- * \param[out] A pre-allocated buffer no smaller than the number of templates
+ * \param[out] similarities A pre-allocated buffer no smaller than the number of templates
  *             in the gallery.
  */
 JANUS_EXPORT janus_error janus_search(const janus_template probe,

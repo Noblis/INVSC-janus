@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "janus.h"
+#include "janus_aux.h"
 
 // The implementation of these functions rely only on the C Standard Library.
 
@@ -19,8 +20,6 @@ const char *janus_error_to_string(janus_error error)
       case JANUS_NULL_CONTEXT:        return "Null context";
       case JANUS_NULL_VALUE:          return "Null value";
       case JANUS_NULL_ATTRIBUTE_LIST: return "Null attribute list";
-      case JANUS_NULL_OBJECT:         return "Null object";
-      case JANUS_NULL_OBJECT_LIST:    return "Null object list";
       default:                        return "Unrecognized error code";
     }
 }
@@ -67,7 +66,7 @@ void janus_free_attribute_list(janus_attribute_list attribute_list)
 
 janus_error janus_allocate_object(const janus_size size, janus_object *object)
 {
-    if (!object) return JANUS_NULL_OBJECT;
+    if (!object) return JANUS_UNKNOWN_ERROR;
     *object = NULL;
     janus_object result = malloc(sizeof(struct janus_object_type) +
                                  sizeof(janus_attribute_list) * size);
@@ -90,7 +89,7 @@ void janus_free_object(janus_object object)
 janus_error janus_allocate_object_list(const janus_size size,
                                        janus_object_list *object_list)
 {
-    if (!object_list) return JANUS_NULL_OBJECT_LIST;
+    if (!object_list) return JANUS_UNKNOWN_ERROR;
     *object_list = NULL;
     janus_object_list result = malloc(sizeof(struct janus_object_list_type) +
                                       sizeof(janus_object) * size);
@@ -128,7 +127,7 @@ janus_error janus_get_value(const janus_attribute_list attribute_list, const jan
 
 janus_error janus_get_values(const janus_object object, const janus_attribute attribute, janus_value *values)
 {
-    if (!object) return JANUS_NULL_OBJECT;
+    if (!object) return JANUS_UNKNOWN_ERROR;
     if (!values) return JANUS_NULL_VALUE;
 
     for (janus_size i=0; i<object->size; i++) {

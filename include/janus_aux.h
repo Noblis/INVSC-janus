@@ -38,6 +38,83 @@ extern "C" {
  */
 
 /*!
+ * \brief A collection of #janus_attribute_list all associated with the same
+ *        object.
+ */
+typedef struct janus_object_type
+{
+    janus_size size; /*!< \brief Size of #attribute_lists. */
+    janus_attribute_list *attribute_lists; /*!< \brief Array of
+                                                       #janus_attribute_list. */
+} *janus_object;
+
+/*!
+ * \brief Allocates memory for a #janus_object capable of storing \em size
+ *        attribute lists.
+ * \param[in] size Desired value for janus_object::size.
+ * \param[out] object Address to store the allocated object.
+ * \note Memory will be allocated, but not initialized, for
+ *       janus_object::attribute_lists.
+ * \see janus_free_object
+ */
+JANUS_EXPORT janus_error janus_allocate_object(const janus_size size,
+                                               janus_object *object);
+
+/*!
+ * \brief Frees the memory previously allocated for the object.
+ * \param[in] object #janus_object to free.
+ * \note #janus_free_attribute_list will be called for each attribute list in
+ *       #janus_object::attribute_lists. If this behavior is undesired, set
+ *       #janus_object::size to 0 before calling this function or set individual
+ *       elements in #janus_object::attribute_lists to \c NULL.
+ * \see janus_allocate_object
+ */
+JANUS_EXPORT void janus_free_object(janus_object object);
+
+/*!
+ * \brief Retrieve the values for an attribute in an object.
+ * \param[in] object The object to search.
+ * \param[in] attribute The attribute to search for.
+ * \param[out] values The values for the requested attribute.
+ * \note values should be a pre-allocated buffer of length object->size.
+ */
+JANUS_EXPORT janus_error janus_get_values(const janus_object object,
+                                          const janus_attribute attribute,
+                                          janus_value *values);
+
+/*!
+ * \brief A list of #janus_object.
+ */
+typedef struct janus_object_list_type
+{
+    janus_size size; /*!< \brief Number of elements in #objects. */
+    janus_object *objects; /*!< \brief Array of #janus_object. */
+} *janus_object_list;
+
+/*!
+ * \brief Allocates memory for a #janus_object_list capable of storing \em size
+ *        #janus_object.
+ * \param[in] size Desired value for janus_object_list::size.
+ * \param[out] object_list Address to store the allocated object list.
+ * \note Memory will be allocated, but not initialized, for
+ *       janus_object_list::objects.
+ * \see janus_free_object_list
+ */
+JANUS_EXPORT janus_error janus_allocate_object_list(const janus_size size,
+                                                janus_object_list *object_list);
+
+/*!
+ * \brief Frees the memory previously allocated for the object list.
+ * \param[in] object_list #janus_object_list to free.
+ * \note #janus_free_object will be called for each object in
+ *       #janus_object_list::objects. If this behavior is undesired, set
+ *       #janus_object_list::size to 0 before calling this function or set
+ *       individual elements in #janus_object_list::objects to \c NULL;
+ * \see janus_allocate_object_list
+ */
+JANUS_EXPORT void janus_free_object_list(janus_object_list object_list);
+
+/*!
  * \brief Detect objects in a #janus_image.
  * \see janus_free_object_list
  */
