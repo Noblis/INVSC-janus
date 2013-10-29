@@ -33,15 +33,60 @@ extern "C" {
 
 /*!
  * \mainpage
- * \section api_specification API Overview
+ * \section overview Overview
  *
  * Janus is a \a C API consisting of three header files:
  *
- * Module         | Header      | Required | Description
- * -------------- | ----------- | -------- | -----------
- * \ref janus     | janus.h     | Yes      | \copybrief janus
- * \ref janus_aux | janus_aux.h | No       | \copybrief janus_aux
- * \ref janus_io  | janus_io.h  | No       | \copybrief janus_io
+ * Header      | Documentation  | Required | Description
+ * ----------- | -------------  | -------- | -----------
+ * janus.h     | \ref janus     | \b Yes   | \copybrief janus
+ * janus_aux.h | \ref janus_aux | No       | \copybrief janus_aux
+ * janus_io.h  | \ref janus_io  | No       | \copybrief janus_io
+ *
+ * \ref more_information
+ *
+ * \subsection license License
+ * The API is provided under a [BSD-like license](LICENSE.txt) and is
+ * _free for academic and commercial use_.
+ *
+ * \subsection Feedback
+ * Feedback on the API is strongly desired.
+ * Please direct any questions or comments to the current maintainer listed
+ * below.
+ *
+ * \author Joshua C. Klontz (Joshua.Klontz@noblis.org) - Current Maintainer
+ *
+ * \page more_information More Information
+ * \brief Additional technical considerations.
+ *
+ * \section api_conventions API Conventions
+ * \subsection thread_safety Thread Safety
+ * All functions are thread-safe unless noted otherwise.
+ *
+ * \subsection function_attributes Function Attributes
+ * API functions may be marked with the following attributes which indicate
+ * restrictions on their usage.
+ *
+ * \subsubsection not_thread-safe Not Thread-Safe
+ * This function can not be called from multiple threads at the same time.
+ *
+ * \subsubsection single-shot Single-Shot
+ * Calling this function more than once will result in undefined behaviour.
+ * Implies \ref not_thread-safe.
+ *
+ * \section notes_to_users Notes to Users
+ * - Function return values are either \c void or #janus_error.
+ * - Output parameters are passed by reference/pointer/address.
+ * - Input parameters are passed by value.
+ * - Parameters that won't be modified are marked \c const.
+ * - #JANUS_TRY provides a light-weight mechanism for checking errors.
+ *
+ * \section notes_to_implementers Notes for Implementers
+ * - Define \c JANUS_LIBRARY during compilation to export Janus symbols and
+ *   compile a Unix implementation with \c \-fvisibility=hidden.
+ * - Follow the <a href="http://www.pathname.com/fhs/">Filesystem Hierarchy
+ *   Standard</a> by organizing the implementation into \c bin, \c include,
+ *   \c lib, \c share and \c src sub-folders.
  *
  * \section miscellaneous Miscellaneous
  * - [Janus Program Homepage](http://www.iarpa.gov/Programs/sc/Janus/janus.html)
@@ -51,37 +96,6 @@ extern "C" {
 /*!
  * \defgroup janus Janus
  * \brief Mandatory interface for Phase 1.
- * \author Joshua C. Klontz (Joshua.Klontz@noblis.org) - Current Maintainer
- *
- * \section license License
- * The API is provided under a <a href="LICENSE.txt">BSD-like license</a> and is
- * free for academic and commercial use.
- *
- * \section thread_safety Thread Safety
- * All functions are thread-safe unless noted otherwise.
- *
- * \section function_attributes Function Attributes
- * API functions may be marked with the following attributes which indicate
- * restrictions on their usage.
- * \subsection not_thread-safe Not Thread-Safe
- * This function can not be called from multiple threads at the same time.
- * \subsection single-shot Single-Shot
- * Calling this function more than once will result in undefined behaviour.
- * Implies \ref not_thread-safe.
- *
- * \section notes_for_developers Notes for Developers
- * - API return values are generally either \c void or #janus_error.
- * - Output parameters are passed by reference/pointer/address.
- * - Input parameters are passed by value.
- * - Parameters that won't be modified are marked \c const.
- *
- * \section notes_for_implementers Notes for Implementers
- * The following are considered "best practices" for Janus implementations:
- * - Define \c JANUS_LIBRARY during compilation to export Janus symbols and
- *   compile a Unix implementation with \c \-fvisibility=hidden.
- * - Follow the <a href="http://www.pathname.com/fhs/">Filesystem Hierarchy
- *   Standard</a> by organizing the implementation into \c bin, \c include,
- *   \c lib, \c share and \c src sub-folders.
  */
 #if defined JANUS_LIBRARY
 #  if defined _WIN32 || defined __CYGWIN__
@@ -142,19 +156,19 @@ JANUS_EXPORT const char *janus_error_to_string(janus_error error);
  * \brief The \c JANUS_TRY macro provides a simlpe error handling mechanism.
  */
 #ifdef JANUS_DISABLE_TRY
-    #define JANUS_TRY(JANUS_API_CALL) (JANUS_API_CALL);
+#  define JANUS_TRY(JANUS_API_CALL) (JANUS_API_CALL);
 #else
-    #define JANUS_TRY(JANUS_API_CALL)                           \
-    {                                                           \
-        janus_error error = (JANUS_API_CALL);                   \
-        if (error != JANUS_SUCCESS) {                           \
-            printf("Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
-                   janus_error_to_string(error),                \
-                   __FILE__,                                    \
-                   __LINE__);                                   \
-            abort();                                            \
-        }                                                       \
-    }
+#  define JANUS_TRY(JANUS_API_CALL)                            \
+   {                                                           \
+       janus_error error = (JANUS_API_CALL);                   \
+       if (error != JANUS_SUCCESS) {                           \
+           printf("Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
+                  janus_error_to_string(error),                \
+                  __FILE__,                                    \
+                  __LINE__);                                   \
+           abort();                                            \
+       }                                                       \
+   }
 #endif
 
 /*!
