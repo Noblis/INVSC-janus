@@ -461,7 +461,7 @@ JANUS_EXPORT janus_error janus_augment_template(const janus_attribute_list attri
  * \see janus_initialize_template janus_augment_template janus_free_template
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_partial_template partial_template,
-                                                 janus_template *template_,
+                                                 janus_template template_,
                                                  janus_size *bytes);
 
 /*!
@@ -477,6 +477,38 @@ JANUS_EXPORT janus_error janus_verify(const janus_template a,
                                       const janus_template b,
                                       const janus_size b_bytes,
                                       float *similarity);
+
+typedef janus_data *janus_gallery;
+
+/*!
+ * \brief Create a gallery from an array of templates.
+ * \param[in] Array of templates to construct the gallery from.
+ * \param[in] Array containing the size of each template.
+ * \param[in] Length of templates and template_sizes.
+ * \param[out] A pre-allocated buffer no smaller than num_templates *
+ *             #JANUS_MAX_TEMPLATE_SIZE to contain the final gallery.
+ * \param[out] Bytes of the gallery buffer actually used.
+ */
+JANUS_EXPORT janus_error janus_create_gallery(const janus_template *templates,
+                                              const janus_size *template_sizes,
+                                              const janus_size num_templates,
+                                              janus_gallery gallery,
+                                              janus_size *gallery_size);
+
+/*!
+ * \brief Compare a template against a gallery.
+ * \param[in] probe The template to compare against the gallery.
+ * \param[in] probe_size Length of probe in bytes.
+ * \param[in] gallery The gallery to compare the probe against.
+ * \param[in] gallery_size Length of gallery in bytes.
+ * \param[out] A pre-allocated buffer no smaller than the number of templates
+ *             in the gallery.
+ */
+JANUS_EXPORT janus_error janus_search(const janus_template probe,
+                                      const janus_size probe_size,
+                                      const janus_gallery gallery,
+                                      const janus_size gallery_size,
+                                      float *similarities);
 
 /*! @}*/
 
