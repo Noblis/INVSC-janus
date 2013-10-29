@@ -200,7 +200,7 @@ typedef struct janus_image
     janus_data *data;                /*!< \brief Data buffer. */
     janus_size width;                /*!< \brief Column count in pixels. */
     janus_size height;               /*!< \brief Row count in pixels. */
-    janus_color_space color_space; /*!< \brief Arrangement of #data. */
+    janus_color_space color_space;   /*!< \brief Arrangement of #data. */
 } janus_image;
 
 /*!
@@ -464,6 +464,20 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_partial_template partial_
  * \see janus_finalize_template
  */
 JANUS_EXPORT void janus_free_template(janus_template *template_);
+
+/*!
+ * \brief Return a similarity score for two templates.
+ * \param[in] a The first template to compare.
+ * \param[in] a_bytes Size of template a.
+ * \param[in] b The second template to compare.
+ * \param[in] b_bytes Size of template b.
+ * \param[out] similarity Higher values indicate greater similarity.
+ */
+JANUS_EXPORT janus_error janus_verify(const janus_template a,
+                                      const janus_size a_bytes,
+                                      const janus_template b,
+                                      const janus_size b_bytes,
+                                      float *similarity);
 
 /*! @}*/
 
