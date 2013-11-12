@@ -155,20 +155,17 @@ JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 /*!
  * \brief The \c JANUS_TRY macro provides a simlpe error handling mechanism.
  */
-#ifdef JANUS_DISABLE_TRY
-#  define JANUS_TRY(JANUS_API_CALL) (JANUS_API_CALL);
-#else
-#  define JANUS_TRY(JANUS_API_CALL)                            \
-   {                                                           \
-       janus_error error = (JANUS_API_CALL);                   \
-       if (error != JANUS_SUCCESS) {                           \
-           printf("Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
-                  janus_error_to_string(error),                \
-                  __FILE__,                                    \
-                  __LINE__);                                   \
-           abort();                                            \
-       }                                                       \
-   }
+#define JANUS_TRY(JANUS_API_CALL)                           \
+{                                                           \
+    janus_error error = (JANUS_API_CALL);                   \
+    if (error != JANUS_SUCCESS) {                           \
+        printf("Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
+               janus_error_to_string(error),                \
+               __FILE__,                                    \
+               __LINE__);                                   \
+        abort();                                            \
+    }                                                       \
+}
 #endif
 
 /*!
@@ -221,10 +218,8 @@ typedef struct janus_image
 typedef enum janus_attribute
 {
     JANUS_INVALID_ATTRIBUTE   = 0, /*!< Catch-all error attribute code */
-    JANUS_MEDIA_ID            = 1, /*!< Unique integer identifier for source
-                                        image or video file */
-    JANUS_FRAME               = 2, /*!< Video frame number, -1 for images */
-    JANUS_TRACKING_CONFIDENCE = 3, /*!< Object tracking confidence, -1 for
+    JANUS_FRAME               = 1, /*!< Video frame number, -1 for images */
+    JANUS_TRACKING_CONFIDENCE = 2, /*!< Object tracking confidence, -1 for
                                         images */
 
     JANUS_FACE_X          = 16, /*!< Face detection bounding box (pixels) */
@@ -265,50 +260,12 @@ typedef float janus_value;
  * \brief A list of #janus_attribute and #janus_value pairs all belonging to a
  *        the same object in a particular image.
  */
-typedef struct janus_attribute_list_type
+typedef struct janus_attribute_list
 {
     janus_size size; /*!< \brief Size of #attributes and #values. */
     janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
     janus_value *values; /*!< \brief Array of #janus_value. */
-} *janus_attribute_list;
-
-/*!
- * \brief Allocates memory for a #janus_attribute_list capable of storing \em
- *        size attributes.
- * \param[in] size Desired value for janus_attribute_list::size.
- * \param[out] attribute_list Address to store the allocated attribute list.
- * \note Memory will be allocated, but not initialized, for
- *       janus_attribute_list::attributes and janus_attribute_list::values.
- * \see janus_copy_attribute_list janus_free_attribute_list
- */
-JANUS_EXPORT janus_error janus_allocate_attribute_list(const janus_size size,
-                                          janus_attribute_list *attribute_list);
-
-/*!
- * \brief Create a copy of an attribute list.
- * \param[in] input Attribute list to copy.
- * \param[out] output Address to store the copied attribute list.
- * \see janus_allocate_attribute_list janus_free_attribute_list
- */
-JANUS_EXPORT janus_error janus_copy_attribute_list(const janus_attribute_list input,
-                                                   janus_attribute_list *output);
-
-/*!
- * \brief Frees the memory previously allocated for the attribute list.
- * \param[in] attribute_list #janus_attribute_list to free.
- * \see janus_allocate_attribute_list janus_copy_attribute_list
- */
-JANUS_EXPORT void janus_free_attribute_list(janus_attribute_list attribute_list);
-
-/*!
- * \brief Retrieve the value for an attribute in an attribute list.
- * \param[in] attribute_list The attribute list to search.
- * \param[in] attribute The attribute to search for.
- * \param[out] value The value for the requested attribute.
- */
-JANUS_EXPORT janus_error janus_get_value(const janus_attribute_list attribute_list,
-                                         const janus_attribute attribute,
-                                         janus_value *value);
+} janus_attribute_list;
 
 /*!
  * \brief Call once at the start of the application, before making any other
@@ -316,10 +273,13 @@ JANUS_EXPORT janus_error janus_get_value(const janus_attribute_list attribute_li
  *
  * \param[in] sdk_path Path to the \em read-only directory containing the
  *                     janus-compliant SDK as provided by the implementer.
+ * \param[in] scratch_path Path to a \em read-write directory for optional
+ *                         storage of temporary files.
  * \note \ref single-shot
  * \see janus_finalize
  */
-JANUS_EXPORT janus_error janus_initialize(const char *sdk_path);
+JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
+                                          const char *scratch_path);
 
 /*!
  * \brief Call once at the end of the application, after making all other calls
@@ -328,25 +288,6 @@ JANUS_EXPORT janus_error janus_initialize(const char *sdk_path);
  * \see janus_initialize
  */
 JANUS_EXPORT void janus_finalize();
-
-/*!
- * \brief Resources associated with the thread of execution.
- */
-typedef struct janus_context_type *janus_context;
-
-/*!
- * \brief Create a new context.
- * A context is used to store per-thread resources.
- * \note \ref not_thread-safe
- * \see janus_finalize_context
- */
-JANUS_EXPORT janus_error janus_initialize_context(janus_context *context);
-
-/*!
- * \brief Release the memory previously initialized for a context.
- * \see janus_initialize_context
- */
-JANUS_EXPORT void janus_finalize_context(janus_context context);
 
 /*!
  * \brief Contains the partially-constructed recognition information for an
@@ -375,15 +316,29 @@ JANUS_EXPORT janus_error janus_initialize_template(janus_partial_template *parti
 
 /*!
  * \brief Add information to the template.
- * \param[in] attributes The detected object to recognize.
  * \param[in] image The image containing the detected object.
+ * \param[in] attributes The detected object to recognize.
  * \param[in,out] partial_template The template to contain the object's
  *                                 recognition information.
- * \see janus_initialize_template janus_finalize_template
+ * \see janus_initialize_template janus_add_video janus_finalize_template
  */
-JANUS_EXPORT janus_error janus_augment_template(const janus_attribute_list attributes,
-                                                const janus_image image,
-                                                janus_partial_template partial_template);
+JANUS_EXPORT janus_error janus_add_image(const janus_image image,
+                                         const janus_attribute_list attributes,
+                                         janus_partial_template partial_template);
+
+/*!
+ * \brief Add information to the template.
+ * \param[in] frames An array of frames containing the detected object.
+ * \param[in] attributes The detected and tracked object to recognize.
+ * \param[in] num_frames Lenth of \em frames and \em attributes.
+ * \param[in,out] partial_template The template to contain the object's
+ *                                 recognition information.
+ * \see janus_initialize_template janus_add_image janus_finalize_template
+ */
+JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
+                                         const janus_attribute_list *attributes,
+                                         const janus_size num_frames,
+                                         janus_partial_template partial_template);
 
 /*!
  * \brief Create the final template representation.
@@ -412,41 +367,6 @@ JANUS_EXPORT janus_error janus_verify(const janus_template a,
                                       const janus_template b,
                                       const janus_size b_bytes,
                                       float *similarity);
-
-/*!
- * \brief A gallery.
- */
-typedef janus_data *janus_gallery;
-
-/*!
- * \brief Create a gallery from an array of templates.
- * \param[in] templates Array of templates to construct the gallery from.
- * \param[in] template_sizes Array containing the size of each template.
- * \param[in] num_templates Length of templates and template_sizes.
- * \param[out] gallery A pre-allocated buffer no smaller than num_templates *
- *             #JANUS_MAX_TEMPLATE_SIZE to contain the final gallery.
- * \param[out] gallery_size Bytes of the gallery buffer actually used.
- */
-JANUS_EXPORT janus_error janus_create_gallery(const janus_template *templates,
-                                              const janus_size *template_sizes,
-                                              const janus_size num_templates,
-                                              janus_gallery gallery,
-                                              janus_size *gallery_size);
-
-/*!
- * \brief Compare a template against a gallery.
- * \param[in] probe The template to compare against the gallery.
- * \param[in] probe_size Length of probe in bytes.
- * \param[in] gallery The gallery to compare the probe against.
- * \param[in] gallery_size Length of gallery in bytes.
- * \param[out] similarities A pre-allocated buffer no smaller than the number of templates
- *             in the gallery.
- */
-JANUS_EXPORT janus_error janus_search(const janus_template probe,
-                                      const janus_size probe_size,
-                                      const janus_gallery gallery,
-                                      const janus_size gallery_size,
-                                      float *similarities);
 
 /*! @}*/
 
