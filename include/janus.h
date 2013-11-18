@@ -55,6 +55,7 @@ extern "C" {
  * below.
  *
  * \author Joshua C. Klontz (Joshua.Klontz@noblis.org) - Current Maintainer
+ * // Todo: janus-dev@noblis.org
  *
  * \page more_information More Information
  * \brief Additional technical considerations.
@@ -62,17 +63,6 @@ extern "C" {
  * \section api_conventions API Conventions
  * \subsection thread_safety Thread Safety
  * All functions are thread-safe unless noted otherwise.
- *
- * \subsection function_attributes Function Attributes
- * API functions may be marked with the following attributes which indicate
- * restrictions on their usage.
- *
- * \subsubsection not_thread-safe Not Thread-Safe
- * This function can not be called from multiple threads at the same time.
- *
- * \subsubsection single-shot Single-Shot
- * Calling this function more than once will result in undefined behaviour.
- * Implies \ref not_thread-safe.
  *
  * \section notes_to_users Notes to Users
  * - Function return values are either \c void or #janus_error.
@@ -166,7 +156,6 @@ JANUS_EXPORT const char *janus_error_to_string(janus_error error);
         abort();                                            \
     }                                                       \
 }
-#endif
 
 /*!
  * \brief Data buffer type.
@@ -273,18 +262,18 @@ typedef struct janus_attribute_list
  *
  * \param[in] sdk_path Path to the \em read-only directory containing the
  *                     janus-compliant SDK as provided by the implementer.
- * \param[in] scratch_path Path to a \em read-write directory for optional
- *                         storage of temporary files.
- * \note \ref single-shot
+ * \param[in] model Path to a trained model file created by \ref janus_train or
+ *                  an empty string indicating the default algorithm.
+ * \note This function should only be called once.
  * \see janus_finalize
  */
 JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
-                                          const char *scratch_path);
+                                          const char *model_file);
 
 /*!
  * \brief Call once at the end of the application, after making all other calls
  * to the API.
- * \note \ref single-shot
+ * \note This function should only be called once.
  * \see janus_initialize
  */
 JANUS_EXPORT void janus_finalize();
@@ -310,7 +299,7 @@ typedef janus_data *janus_template;
  * \brief Create an empty template for enrollment.
  * \param[in] partial_template Address of the partial template to initialize for
  *                             enrollment.
- * \see janus_augment_template janus_finalize_template
+ * \see janus_add_image janus_add_video janus_finalize_template
  */
 JANUS_EXPORT janus_error janus_initialize_template(janus_partial_template *partial_template);
 
@@ -361,12 +350,71 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_partial_template partial_
  * \param[in] b The second template to compare.
  * \param[in] b_bytes Size of template b.
  * \param[out] similarity Higher values indicate greater similarity.
+ * \see janus_search
  */
 JANUS_EXPORT janus_error janus_verify(const janus_template a,
                                       const janus_size a_bytes,
                                       const janus_template b,
                                       const janus_size b_bytes,
                                       float *similarity);
+
+/*!
+ * \brief Contains the partially-constructed recognition information for an
+ *        object.
+ */
+typedef struct janus_partial_gallery_type *janus_partial_gallery;
+
+/*!
+ * \brief Create an empty gallery for enrollment.
+ * \param[in] partial_gallery Address of the partial gallery to initialize for
+ *                             enrollment.
+ * \see janus_augment_gallery janus_finalize_gallery
+ */
+JANUS_EXPORT janus_error janus_initialize_gallery(janus_partial_gallery *partial_gallery);
+
+/*!
+ * \brief Add information to the gallery.
+ * \param[in] partial_template The template information.
+ * \param[in,out] partial_gallery The gallery to contain the template.
+ * \see janus_initialize_gallery janus_finalize_gallery
+ */
+JANUS_EXPORT janus_error janus_add_template(const janus_partial_template partial_template,
+                                            janus_partial_gallery partial_gallery);
+
+/*!
+ * \brief Create the final gallery representation.
+ * \param[in,out] partial_gallery The recognition information to contruct the
+ *                                 gallery from. Deallocated after the gallery
+ *                                 is constructed.
+ * \param[out] gallery File path to contain the enrolled gallery.
+ * \see janus_initialize_gallery janus_add_template
+ */
+JANUS_EXPORT janus_error janus_finalize_gallery(janus_partial_gallery partial_gallery,
+                                                const char *gallery_file);
+/*!
+ * \brief Ranked search against a gallery for a template.
+ * \param [in] template_ Probe to search for.
+ * \param [in] gallery_file Gallery to search against.
+ * \param [in] num_requested_returns The desired number of returned results.
+ * \param [out] template_indicies Indicies of the returned templates.
+ * \param [out] num_actual_returns The length of \em template_indicies.
+ * \see janus_verify
+ */
+JANUS_EXPORT janus_error janus_search(const janus_template template_,
+                                      const char *gallery_file,
+                                      int num_requested_returns,
+                                      int *template_indicies,
+                                      int *num_acutal_returns);
+
+/*!
+ * \brief Train a new model from the provided templates.
+ * \param[in] partial_templates Training data to generate the model file.
+ * \param[in] num_partial_templates Length of \em partial_templates.
+ * \param[out] model File path to contain the trained model.
+ */
+JANUS_EXPORT janus_error janus_train(const janus_partial_template *partial_templates,
+                                     const int num_partial_templates,
+                                     const char *model_file);
 
 /*! @}*/
 
