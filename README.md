@@ -11,4 +11,3 @@ Janus
     $ cd build
     $ cmake ..
     $ make
-    $ cpack -G TGZ

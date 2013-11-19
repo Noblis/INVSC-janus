@@ -2,10 +2,13 @@ include_directories(../include)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Implementation of the Janus API using PittPatt
-find_package(PittPatt5)
-if(PittPatt5_FOUND)
-  # add_subdirectory(pittpatt)
-  add_subdirectory(pittpatt_io)
+option(JANUS_BUILD_PP5_WRAPPER "Build Janus implementation using PittPatt 5" ON)
+if(${JANUS_BUILD_PP5_WRAPPER})
+  find_package(PittPatt5)
+  if(PittPatt5_FOUND)
+    #add_subdirectory(pittpatt)
+    add_subdirectory(pittpatt_io)
+  endif()
 endif()
 
 # Implementation of the Janus API using OpenCV

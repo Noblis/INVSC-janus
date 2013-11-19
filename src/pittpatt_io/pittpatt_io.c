@@ -13,7 +13,7 @@ static janus_image janus_from_pittpatt(ppr_raw_image_type *ppr_image)
     assert(ppr_image);
     if ((ppr_image->color_space != PPR_RAW_IMAGE_GRAY8) && (ppr_image->color_space != PPR_RAW_IMAGE_BGR24)) {
         ppr_raw_image_error_type error = ppr_raw_image_convert(ppr_image, PPR_RAW_IMAGE_BGR24);
-        assert(error == PPR_RAW_IMAGE_SUCCESS);
+        assert(error == PPR_RAW_IMAGE_SUCCESS); (void) error;
     }
 
     janus_image image;
