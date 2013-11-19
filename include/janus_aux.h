@@ -63,10 +63,6 @@ JANUS_EXPORT janus_error janus_allocate_object(const janus_size size,
 /*!
  * \brief Frees the memory previously allocated for the object.
  * \param[in] object #janus_object to free.
- * \note #janus_free_attribute_list will be called for each attribute list in
- *       #janus_object::attribute_lists. If this behavior is undesired, set
- *       #janus_object::size to 0 before calling this function or set individual
- *       elements in #janus_object::attribute_lists to \c NULL.
  * \see janus_allocate_object
  */
 JANUS_EXPORT void janus_free_object(janus_object object);
@@ -118,8 +114,7 @@ JANUS_EXPORT void janus_free_object_list(janus_object_list object_list);
  * \brief Detect objects in a #janus_image.
  * \see janus_free_object_list
  */
-JANUS_EXPORT janus_error janus_detect(const janus_context context,
-                                      const janus_image image,
+JANUS_EXPORT janus_error janus_detect(const janus_image image,
                                       janus_object_list *object_list);
 
 /*!
@@ -135,8 +130,7 @@ JANUS_EXPORT janus_error janus_initialize_track(janus_track *track);
 /*!
  * \brief Add a frame to the track.
  */
-JANUS_EXPORT janus_error janus_track_frame(const janus_context context,
-                                           const janus_image frame,
+JANUS_EXPORT janus_error janus_track_frame(const janus_image frame,
                                            janus_track track);
 
 /*!

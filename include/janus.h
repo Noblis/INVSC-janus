@@ -130,7 +130,6 @@ typedef enum janus_error
                                          #janus_initialize */
     JANUS_INVALID_IMAGE       = 4,  /*!< Could not decode image file */
     JANUS_INVALID_VIDEO       = 5,  /*!< Could not decode video file */
-    JANUS_NULL_CONTEXT        = 8,  /*!< Value of #janus_context was 0 */
     JANUS_NULL_VALUE          = 10, /*!< Value of #janus_value was 0 */
     JANUS_NULL_ATTRIBUTE_LIST = 11  /*!< Value of #janus_attribute_list was 0 */
 } janus_error;
@@ -262,8 +261,9 @@ typedef struct janus_attribute_list
  *
  * \param[in] sdk_path Path to the \em read-only directory containing the
  *                     janus-compliant SDK as provided by the implementer.
- * \param[in] model Path to a trained model file created by \ref janus_train or
- *                  an empty string indicating the default algorithm.
+ * \param[in] model_file Path to a trained model file created by
+ *                       \ref janus_train or an empty string indicating the
+ *                       default algorithm.
  * \note This function should only be called once.
  * \see janus_finalize
  */
@@ -386,7 +386,7 @@ JANUS_EXPORT janus_error janus_add_template(const janus_partial_template partial
  * \param[in,out] partial_gallery The recognition information to contruct the
  *                                 gallery from. Deallocated after the gallery
  *                                 is constructed.
- * \param[out] gallery File path to contain the enrolled gallery.
+ * \param[out] gallery_file File path to contain the enrolled gallery.
  * \see janus_initialize_gallery janus_add_template
  */
 JANUS_EXPORT janus_error janus_finalize_gallery(janus_partial_gallery partial_gallery,
@@ -404,13 +404,13 @@ JANUS_EXPORT janus_error janus_search(const janus_template template_,
                                       const char *gallery_file,
                                       int num_requested_returns,
                                       int *template_indicies,
-                                      int *num_acutal_returns);
+                                      int *num_actual_returns);
 
 /*!
  * \brief Train a new model from the provided templates.
  * \param[in] partial_templates Training data to generate the model file.
  * \param[in] num_partial_templates Length of \em partial_templates.
- * \param[out] model File path to contain the trained model.
+ * \param[out] model_file File path to contain the trained model.
  */
 JANUS_EXPORT janus_error janus_train(const janus_partial_template *partial_templates,
                                      const int num_partial_templates,

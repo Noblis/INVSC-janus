@@ -32,8 +32,9 @@ static janus_error to_janus_error(ppr_error_type error)
         return to_janus_error(ppr_error);      \
 }
 
-janus_error janus_initialize(const char *sdk_path)
+janus_error janus_initialize(const char *sdk_path, const char *model_file)
 {
+    (void) model_file;
     const char *models = "/models/";
     const size_t models_path_len = strlen(sdk_path) + strlen(models);
     char *models_path = malloc(models_path_len);
@@ -221,6 +222,7 @@ janus_error janus_detect(const janus_context context, const janus_image image, j
     *object_list = result;
     return JANUS_SUCCESS;
 }
+*/
 
 janus_error janus_initialize_track(janus_track *track)
 {
