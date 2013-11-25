@@ -206,37 +206,14 @@ typedef struct janus_image
 typedef enum janus_attribute
 {
     JANUS_INVALID_ATTRIBUTE   = 0, /*!< Catch-all error attribute code */
-    JANUS_FRAME               = 1, /*!< Video frame number, -1 for images */
-    JANUS_TRACKING_CONFIDENCE = 2, /*!< Object tracking confidence, -1 for
-                                        images */
-
-    JANUS_FACE_X          = 16, /*!< Face detection bounding box (pixels) */
-    JANUS_FACE_Y          = 17, /*!< Face detection bounding box (pixels) */
-    JANUS_FACE_WIDTH      = 18, /*!< Face detection bounding box (pixels) */
-    JANUS_FACE_HEIGHT     = 19, /*!< Face detection bounding box (pixels) */
-    JANUS_FACE_CONFIDENCE = 20, /*!< Face detection confidence */
-    JANUS_FACE_ROLL       = 21, /*!< Face pose (degrees) */
-    JANUS_FACE_PITCH      = 22, /*!< Face pose (degrees) */
-    JANUS_FACE_YAW        = 23, /*!< Face pose (degrees) */
+    JANUS_FRAME               = 1, /*!< Video frame number, 0 for images */
 
     JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark (pixels) */
     JANUS_RIGHT_EYE_Y         = 33, /*!< Face landmark (pixels) */
     JANUS_LEFT_EYE_X          = 34, /*!< Face landmark (pixels) */
     JANUS_LEFT_EYE_Y          = 35, /*!< Face landmark (pixels) */
     JANUS_NOSE_BASE_X         = 36, /*!< Face landmark (pixels) */
-    JANUS_NOSE_BASE_Y         = 37, /*!< Face landmark (pixels) */
-    JANUS_NOSE_BRIDGE_X       = 38, /*!< Face landmark (pixels) */
-    JANUS_NOSE_BRIDGE_Y       = 39, /*!< Face landmark (pixels) */
-    JANUS_EYE_NOSE_X          = 40, /*!< Face landmark (pixels) */
-    JANUS_EYE_NOSE_Y          = 41, /*!< Face landmark (pixels) */
-    JANUS_RIGHT_UPPER_CHEEK_X = 42, /*!< Face landmark (pixels) */
-    JANUS_RIGHT_UPPER_CHEEK_Y = 43, /*!< Face landmark (pixels) */
-    JANUS_RIGHT_LOWER_CHEEK_X = 44, /*!< Face landmark (pixels) */
-    JANUS_RIGHT_LOWER_CHEEK_Y = 45, /*!< Face landmark (pixels) */
-    JANUS_LEFT_UPPER_CHEEK_X  = 46, /*!< Face landmark (pixels) */
-    JANUS_LEFT_UPPER_CHEEK_Y  = 47, /*!< Face landmark (pixels) */
-    JANUS_LEFT_LOWER_CHEEK_X  = 48, /*!< Face landmark (pixels) */
-    JANUS_LEFT_LOWER_CHEEK_Y  = 49  /*!< Face landmark (pixels) */
+    JANUS_NOSE_BASE_Y         = 37  /*!< Face landmark (pixels) */
 } janus_attribute;
 
 /*!
