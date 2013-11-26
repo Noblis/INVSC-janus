@@ -38,6 +38,13 @@ extern "C" {
  */
 
 /*!
+ * \brief Read enrollment metadata.
+ * \param [in] file_name Path to the \c csv file.
+ * \param [out]
+ */
+JANUS_EXPORT janus_error janus_enroll_template(const char *file_name, janus_template *template_);
+
+/*!
  * \brief Read an image from disk.
  * \param[in] file_name Path to the image file.
  * \param[out] image Address to store the decoded image.

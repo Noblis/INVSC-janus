@@ -1,6 +1,6 @@
 #include "janus.h"
 
-// The implementation of these functions rely only on the C Standard Library.
+// These functions have no external dependencies
 
 const char *janus_error_to_string(janus_error error)
 {
