@@ -136,7 +136,6 @@ typedef enum janus_error
     JANUS_INVALID_VIDEO        = 9,  /*!< Could not decode video file */
     JANUS_MISSING_TEMPLATE_ID  = 10,  /*!< Expected a missing template ID */
     JANUS_MISSING_FILE_NAME    = 11, /*!< Expected a missing file name */
-    JANUS_NULL_VALUE           = 12, /*!< Value of #janus_value was 0 */
     JANUS_NULL_ATTRIBUTE_LIST  = 13, /*!< Value of #janus_attribute_list was 0 */
     JANUS_TEMPLATE_ID_MISMATCH = 14  /*!< Expected matching template IDs */
 } janus_error;
@@ -149,11 +148,11 @@ typedef enum janus_error
 JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 
 /*!
- * \brief The \c JANUS_TRY macro provides a simlpe error handling mechanism.
+ * \brief The \c JANUS_TRY macro provides a simple error handling mechanism.
  */
 #define JANUS_TRY(JANUS_API_CALL)                           \
 {                                                           \
-    janus_error error = (JANUS_API_CALL);                   \
+    const janus_error error = (JANUS_API_CALL);             \
     if (error != JANUS_SUCCESS) {                           \
         printf("Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
                janus_error_to_string(error),                \
@@ -178,28 +177,29 @@ typedef enum janus_color_space
 } janus_color_space;
 
 /*!
- * \brief Common representation for images.
+ * \brief Common representation for still images and video frames.
  *
- * \section element_access Element Access
- * Element layout in the janus_image::data buffer with respect to decreasing
- * spatial locality is \a channel, \a column, \a row.
- * Thus an element at channel \c c, column \c x, row \c y, can be
- * retrieved like:
+ * Pixels are stored \em continuously in the janus_image::data buffer.
+ * Pixel layout with respect to decreasing spatial locality is \a channel,
+ * \a column, \a row.
+ * Thus pixel intensity can be retrieved as follows:
  *
 \code
-janus_image image = foo();
-size_t xStep = (image.image_format == JANUS_COLOR ? 3 : 1);
-size_t yStep = image.columns * xStep;
-size_t index = y*yStep + x*xStep + c;
-janus_data intensity = i.data[index];
+janus_data get_intensity(janus_image image, size_t channel, size_t column, size_t row)
+{
+    const size_t columnStep = (image.image_format == JANUS_COLOR ? 3 : 1);
+    const size_t rowStep = image.columns * columnStep;
+    const size_t index = row*rowStep + column*columnStep + channel;
+    return image.data[index];
+}
 \endcode
  */
 typedef struct janus_image
 {
-    janus_data *data;                /*!< \brief Data buffer. */
-    size_t width;                /*!< \brief Column count in pixels. */
-    size_t height;               /*!< \brief Row count in pixels. */
-    janus_color_space color_space;   /*!< \brief Arrangement of #data. */
+    janus_data *data;              /*!< \brief Data buffer. */
+    size_t width;                  /*!< \brief Column count in pixels. */
+    size_t height;                 /*!< \brief Row count in pixels. */
+    janus_color_space color_space; /*!< \brief Arrangement of #data. */
 } janus_image;
 
 /*!
@@ -219,19 +219,14 @@ typedef enum janus_attribute
 } janus_attribute;
 
 /*!
- * \brief The computed value for a #janus_attribute.
- */
-typedef float janus_value;
-
-/*!
- * \brief A list of #janus_attribute and #janus_value pairs all belonging to a
- *        the same object in a particular image.
+ * \brief A list of #janus_attribute and value pairs all belonging to a the same
+ *        object in a particular image.
  */
 typedef struct janus_attribute_list
 {
     size_t size; /*!< \brief Size of #attributes and #values. */
     janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
-    janus_value *values; /*!< \brief Array of #janus_value. */
+    float *values; /*!< \brief Array of corresponding attribute values. */
 } janus_attribute_list;
 
 /*!
@@ -255,17 +250,23 @@ JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
  * \note This function should only be called once.
  * \see janus_initialize
  */
-JANUS_EXPORT void janus_finalize();
+JANUS_EXPORT janus_error janus_finalize();
 
 /*!
- * \brief Contains the partially-constructed recognition information for an
- *        object.
+ * \brief Represents a \ref janus_template under construction.
  */
-typedef struct janus_partial_template_type *janus_partial_template;
+typedef struct janus_incomplete_template_type *janus_incomplete_template;
 
 /*!
- * \brief Contains the completed representation of the recognition information
- *        for an object.
+ * \brief Contains the final representation of the recognition information for
+ *        an object.
+ *
+ * Create a new template with \ref janus_initialize_template.
+ * Add images and videos to the template using \ref janus_add_image and
+ * \ref janus_add_video.
+ * Finalize the template for comparison with \ref janus_finalize_template.
+ *
+ * \see janus_incomplete_template
  */
 typedef janus_data *janus_template;
 
@@ -276,49 +277,49 @@ typedef janus_data *janus_template;
 
 /*!
  * \brief Create an empty template for enrollment.
- * \param[in] partial_template Address of the partial template to initialize for
- *                             enrollment.
- * \see janus_add_image janus_add_video janus_finalize_template
+ * \param[in] incomplete_template The partial template to initialize for
+ *                                enrollment.
+ * \see janus_template
  */
-JANUS_EXPORT janus_error janus_initialize_template(janus_partial_template *partial_template);
+JANUS_EXPORT janus_error janus_initialize_template(janus_incomplete_template *incomplete_template);
 
 /*!
  * \brief Add information to the template.
  * \param[in] image The image containing the detected object.
  * \param[in] attributes The detected object to recognize.
- * \param[in,out] partial_template The template to contain the object's
- *                                 recognition information.
- * \see janus_initialize_template janus_add_video janus_finalize_template
+ * \param[in,out] incomplete_template The template to contain the object's
+ *                                    recognition information.
+ * \see janus_template janus_add_video
  */
 JANUS_EXPORT janus_error janus_add_image(const janus_image image,
                                          const janus_attribute_list attributes,
-                                         janus_partial_template partial_template);
+                                         janus_incomplete_template incomplete_template);
 
 /*!
  * \brief Add information to the template.
  * \param[in] frames An array of frames containing the detected object.
  * \param[in] attributes The detected and tracked object to recognize.
  * \param[in] num_frames Lenth of \em frames and \em attributes.
- * \param[in,out] partial_template The template to contain the object's
- *                                 recognition information.
- * \see janus_initialize_template janus_add_image janus_finalize_template
+ * \param[in,out] incomplete_template The template to contain the object's
+ *                                    recognition information.
+ * \see janus_template janus_add_image
  */
 JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
                                          const janus_attribute_list *attributes,
                                          const size_t num_frames,
-                                         janus_partial_template partial_template);
+                                         janus_incomplete_template incomplete_template);
 
 /*!
  * \brief Create the final template representation.
- * \param[in,out] partial_template The recognition information to contruct the
- *                                 template from. Deallocated after the template
- *                                 is constructed.
+ * \param[in,out] incomplete_template The recognition information to contruct
+ *                                    the template from. Deallocated after the
+ *                                    template is constructed.
  * \param[out] template_ A pre-allocated buffer no smaller than
  *                       #JANUS_MAX_TEMPLATE_SIZE to contain the final template.
  * \param[out] bytes Size of the buffer actually used to store the template.
- * \see janus_initialize_template janus_augment_template janus_free_template
+ * \see janus_template
  */
-JANUS_EXPORT janus_error janus_finalize_template(janus_partial_template partial_template,
+JANUS_EXPORT janus_error janus_finalize_template(janus_incomplete_template incomplete_template,
                                                  janus_template template_,
                                                  size_t *bytes);
 
@@ -353,11 +354,11 @@ JANUS_EXPORT janus_error janus_initialize_gallery(janus_partial_gallery *partial
 
 /*!
  * \brief Add information to the gallery.
- * \param[in] partial_template The template information.
+ * \param[in] incomplete_template The template information.
  * \param[in,out] partial_gallery The gallery to contain the template.
  * \see janus_initialize_gallery janus_finalize_gallery
  */
-JANUS_EXPORT janus_error janus_add_template(const janus_partial_template partial_template,
+JANUS_EXPORT janus_error janus_add_template(const janus_incomplete_template incomplete_template,
                                             janus_partial_gallery partial_gallery);
 
 /*!
@@ -387,12 +388,12 @@ JANUS_EXPORT janus_error janus_search(const janus_template template_,
 
 /*!
  * \brief Train a new model from the provided templates.
- * \param[in] partial_templates Training data to generate the model file.
- * \param[in] num_partial_templates Length of \em partial_templates.
+ * \param[in] incomplete_templates Training data to generate the model file.
+ * \param[in] num_incomplete_templates Length of \em partial_templates.
  * \param[out] model_file File path to contain the trained model.
  */
-JANUS_EXPORT janus_error janus_train(const janus_partial_template *partial_templates,
-                                     const int num_partial_templates,
+JANUS_EXPORT janus_error janus_train(const janus_incomplete_template *incomplete_templates,
+                                     const int num_incomplete_templates,
                                      const char *model_file);
 
 /*! @}*/

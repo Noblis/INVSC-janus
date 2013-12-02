@@ -17,7 +17,6 @@ const char *janus_error_to_string(janus_error error)
       case JANUS_INVALID_VIDEO:        return "Invalid video";
       case JANUS_MISSING_TEMPLATE_ID:  return "Missing field Template_ID";
       case JANUS_MISSING_FILE_NAME:    return "Missing field File_Name";
-      case JANUS_NULL_VALUE:           return "Null value";
       case JANUS_NULL_ATTRIBUTE_LIST:  return "Null attribute list";
       case JANUS_TEMPLATE_ID_MISMATCH: return "Expected matching template IDs";
       default:                         return "Unrecognized error code";

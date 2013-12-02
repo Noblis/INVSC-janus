@@ -38,13 +38,6 @@ extern "C" {
  */
 
 /*!
- * \brief Read enrollment metadata.
- * \param [in] file_name Path to the \c csv file.
- * \param [out]
- */
-JANUS_EXPORT janus_error janus_enroll_template(const char *file_name, janus_template *template_, size_t *bytes);
-
-/*!
  * \brief Read an image from disk.
  * \param[in] file_name Path to the image file.
  * \param[out] image Address to store the decoded image.
@@ -87,6 +80,15 @@ JANUS_EXPORT janus_error janus_read_frame(janus_video video, janus_image *image)
  * after the desired frames have been read.
  */
 JANUS_EXPORT void janus_close_video(janus_video video);
+
+/*!
+ * \brief High-level function for enrolling a template from a metadata file.
+ * \param [in] file_name Path to the \c csv metadata file.
+ * \param [out] template_ Constructed template.
+ * \param [out] bytes Size of template_.
+ */
+JANUS_EXPORT janus_error janus_enroll_template(const char *file_name, janus_template *template_, size_t *bytes);
+
 
 /*! @}*/
 

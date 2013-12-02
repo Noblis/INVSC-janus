@@ -21,6 +21,6 @@ int main(int argc, char *argv[])
     JANUS_TRY(janus_verify(target, target_bytes, query, query_bytes, &similarity))
     printf("Similarity: %g\n", similarity);
 
-    janus_finalize();
+    JANUS_TRY(janus_finalize())
     return 0;
 }
