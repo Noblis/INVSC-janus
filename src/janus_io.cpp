@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <limits>
 #include <string>
 #include <sstream>
@@ -20,13 +21,13 @@ vector<string> split(const string &str, char delim)
     return elems;
 }
 
-vector<janus_attribute> attributesFromStrings(const vector<string> &strings, size_t &templateIDIndex, size_t &fileNameIndex)
+vector<janus_attribute> attributesFromStrings(const vector<string> &strings, int *templateIDIndex, int *fileNameIndex)
 {
     vector<janus_attribute> attributes;
     for (size_t i=0; i<strings.size(); i++) {
         const string &str = strings[i];
-        if      (str == "Template_ID") templateIDIndex = i;
-        else if (str == "File_Name")   fileNameIndex = i;
+        if      (str == "Template_ID") *templateIDIndex = i;
+        else if (str == "File_Name")   *fileNameIndex = i;
         else if (str == "Frame")       attributes.push_back(JANUS_FRAME);
         else if (str == "Right_Eye_X") attributes.push_back(JANUS_RIGHT_EYE_X);
         else if (str == "Right_Eye_Y") attributes.push_back(JANUS_RIGHT_EYE_Y);
@@ -52,26 +53,43 @@ vector<janus_value> valuesFromStrings(const vector<string> &strings, size_t temp
     return values;
 }
 
-janus_error janus_enroll_template(const char *file_name, janus_template *template_)
+janus_error janus_enroll_template(const char *file_name, janus_template *template_, janus_size *bytes)
 {
-    string line;
+    // Open file
     ifstream file(file_name);
     if (!file.is_open())
-        return JANUS_UNKNOWN_ERROR;
+        return JANUS_OPEN_ERROR;
 
     // Parse header
+    string line;
     getline(file, line);
-    size_t templateIDIndex, fileNameIndex;
-    vector<janus_attribute> attributes = attributesFromStrings(split(line, ','), templateIDIndex, fileNameIndex);
+    int templateIDIndex = -1, fileNameIndex = -1;
+    vector<janus_attribute> attributes = attributesFromStrings(split(line, ','), &templateIDIndex, &fileNameIndex);
+    if (templateIDIndex == -1) return JANUS_MISSING_TEMPLATE_ID;
+    if (fileNameIndex == -1) return JANUS_MISSING_FILE_NAME;
 
     // Parse rows
+    int templateID;
+    vector<string> fileNames;
     vector<janus_attribute_list> attributeLists;
     while (getline(file, line)) {
-        vector<janus_value> values = valuesFromStrings(split(line, ','), templateIDIndex, fileNameIndex);
+        const vector<string> words = split(line, ',');
+
+        // Make sure all files have the same template ID
+        if (fileNames.empty()) {
+            templateID = atoi(words[templateIDIndex].c_str());
+        } else {
+            if (atoi(words[templateIDIndex].c_str()) != templateID)
+                return JANUS_TEMPLATE_ID_MISMATCH;
+        }
+
+        fileNames.push_back(words[fileNameIndex]);
+        vector<janus_value> values = valuesFromStrings(words, templateIDIndex, fileNameIndex);
         if (values.size() != attributes.size())
-            return JANUS_UNKNOWN_ERROR;
+            return JANUS_PARSE_ERROR;
         const size_t n = attributes.size();
 
+        // Construct attribute list, removing missing fields
         janus_attribute_list attributeList;
         attributeList.size = 0;
         attributeList.attributes = new janus_attribute[n];
@@ -87,6 +105,16 @@ janus_error janus_enroll_template(const char *file_name, janus_template *templat
         attributeLists.push_back(attributeList);
     }
 
-    (void) template_;
+    janus_partial_template partial_template;
+    JANUS_TRY(janus_initialize_template(&partial_template))
+
+    for (size_t i=0; i<fileNames.size(); i++) {
+        janus_image image;
+        JANUS_TRY(janus_read_image(fileNames[i].c_str(), &image))
+        JANUS_TRY(janus_add_image(image, attributeLists[i], partial_template));
+        janus_free_image(image);
+    }
+
+    JANUS_TRY(janus_finalize_template(partial_template, *template_, bytes));
     return JANUS_SUCCESS;
 }

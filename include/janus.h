@@ -123,15 +123,22 @@ extern "C" {
  */
 typedef enum janus_error
 {
-    JANUS_SUCCESS             = 0,  /*!< No error */
-    JANUS_UNKNOWN_ERROR       = 1,  /*!< Catch-all error code */
-    JANUS_OUT_OF_MEMORY       = 2,  /*!< Memorry allocation failed */
-    JANUS_INVALID_SDK_PATH    = 3,  /*!< Incorrect location provided to
+    JANUS_SUCCESS              = 0,  /*!< No error */
+    JANUS_UNKNOWN_ERROR        = 1,  /*!< Catch-all error code */
+    JANUS_OUT_OF_MEMORY        = 2,  /*!< Memorry allocation failed */
+    JANUS_INVALID_SDK_PATH     = 3,  /*!< Incorrect location provided to
                                          #janus_initialize */
-    JANUS_INVALID_IMAGE       = 4,  /*!< Could not decode image file */
-    JANUS_INVALID_VIDEO       = 5,  /*!< Could not decode video file */
-    JANUS_NULL_VALUE          = 10, /*!< Value of #janus_value was 0 */
-    JANUS_NULL_ATTRIBUTE_LIST = 11  /*!< Value of #janus_attribute_list was 0 */
+    JANUS_OPEN_ERROR           = 4,  /*!< Failed to open a file */
+    JANUS_READ_ERROR           = 5,  /*!< Failed to read from a file */
+    JANUS_WRITE_ERROR          = 6,  /*!< Failed to write to a file */
+    JANUS_PARSE_ERROR          = 7,  /*!< Failed to parse file */
+    JANUS_INVALID_IMAGE        = 8,  /*!< Could not decode image file */
+    JANUS_INVALID_VIDEO        = 9,  /*!< Could not decode video file */
+    JANUS_MISSING_TEMPLATE_ID  = 10,  /*!< Expected a missing template ID */
+    JANUS_MISSING_FILE_NAME    = 11, /*!< Expected a missing file name */
+    JANUS_NULL_VALUE           = 12, /*!< Value of #janus_value was 0 */
+    JANUS_NULL_ATTRIBUTE_LIST  = 13, /*!< Value of #janus_attribute_list was 0 */
+    JANUS_TEMPLATE_ID_MISMATCH = 14  /*!< Expected matching template IDs */
 } janus_error;
 
 /*!
