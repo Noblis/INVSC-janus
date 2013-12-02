@@ -53,7 +53,7 @@ vector<janus_value> valuesFromStrings(const vector<string> &strings, size_t temp
     return values;
 }
 
-janus_error janus_enroll_template(const char *file_name, janus_template *template_, janus_size *bytes)
+janus_error janus_enroll_template(const char *file_name, janus_template *template_, size_t *bytes)
 {
     // Open file
     ifstream file(file_name);

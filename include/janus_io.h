@@ -42,7 +42,7 @@ extern "C" {
  * \param [in] file_name Path to the \c csv file.
  * \param [out]
  */
-JANUS_EXPORT janus_error janus_enroll_template(const char *file_name, janus_template *template_, janus_size *bytes);
+JANUS_EXPORT janus_error janus_enroll_template(const char *file_name, janus_template *template_, size_t *bytes);
 
 /*!
  * \brief Read an image from disk.

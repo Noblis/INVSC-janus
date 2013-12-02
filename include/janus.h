@@ -169,11 +169,6 @@ JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 typedef uint8_t janus_data;
 
 /*!
- * \brief Data size type.
- */
-typedef uint32_t janus_size;
-
-/*!
  * \brief Supported image formats.
  */
 typedef enum janus_color_space
@@ -193,17 +188,17 @@ typedef enum janus_color_space
  *
 \code
 janus_image image = foo();
-janus_size xStep = (image.image_format == JANUS_COLOR ? 3 : 1);
-janus_size yStep = image.columns * xStep;
-janus_size index = y*yStep + x*xStep + c;
+size_t xStep = (image.image_format == JANUS_COLOR ? 3 : 1);
+size_t yStep = image.columns * xStep;
+size_t index = y*yStep + x*xStep + c;
 janus_data intensity = i.data[index];
 \endcode
  */
 typedef struct janus_image
 {
     janus_data *data;                /*!< \brief Data buffer. */
-    janus_size width;                /*!< \brief Column count in pixels. */
-    janus_size height;               /*!< \brief Row count in pixels. */
+    size_t width;                /*!< \brief Column count in pixels. */
+    size_t height;               /*!< \brief Row count in pixels. */
     janus_color_space color_space;   /*!< \brief Arrangement of #data. */
 } janus_image;
 
@@ -234,7 +229,7 @@ typedef float janus_value;
  */
 typedef struct janus_attribute_list
 {
-    janus_size size; /*!< \brief Size of #attributes and #values. */
+    size_t size; /*!< \brief Size of #attributes and #values. */
     janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
     janus_value *values; /*!< \brief Array of #janus_value. */
 } janus_attribute_list;
@@ -310,7 +305,7 @@ JANUS_EXPORT janus_error janus_add_image(const janus_image image,
  */
 JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
                                          const janus_attribute_list *attributes,
-                                         const janus_size num_frames,
+                                         const size_t num_frames,
                                          janus_partial_template partial_template);
 
 /*!
@@ -325,7 +320,7 @@ JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_partial_template partial_template,
                                                  janus_template template_,
-                                                 janus_size *bytes);
+                                                 size_t *bytes);
 
 /*!
  * \brief Return a similarity score for two templates.
@@ -337,9 +332,9 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_partial_template partial_
  * \see janus_search
  */
 JANUS_EXPORT janus_error janus_verify(const janus_template a,
-                                      const janus_size a_bytes,
+                                      const size_t a_bytes,
                                       const janus_template b,
-                                      const janus_size b_bytes,
+                                      const size_t b_bytes,
                                       float *similarity);
 
 /*!

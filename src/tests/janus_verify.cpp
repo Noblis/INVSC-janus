@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     JANUS_TRY(janus_initialize(argv[1], ""))
 
     janus_template target, query;
-    janus_size target_bytes, query_bytes;
+    size_t target_bytes, query_bytes;
     JANUS_TRY(janus_enroll_template(argv[2], &target, &target_bytes))
     JANUS_TRY(janus_enroll_template(argv[3], &query, &query_bytes))
 
