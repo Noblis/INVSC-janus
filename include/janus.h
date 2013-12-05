@@ -134,14 +134,14 @@ typedef enum janus_error
     JANUS_PARSE_ERROR          = 7,  /*!< Failed to parse file */
     JANUS_INVALID_IMAGE        = 8,  /*!< Could not decode image file */
     JANUS_INVALID_VIDEO        = 9,  /*!< Could not decode video file */
-    JANUS_MISSING_TEMPLATE_ID  = 10,  /*!< Expected a missing template ID */
+    JANUS_MISSING_TEMPLATE_ID  = 10, /*!< Expected a missing template ID */
     JANUS_MISSING_FILE_NAME    = 11, /*!< Expected a missing file name */
     JANUS_NULL_ATTRIBUTE_LIST  = 13, /*!< Value of #janus_attribute_list was 0 */
     JANUS_TEMPLATE_ID_MISMATCH = 14  /*!< Expected matching template IDs */
 } janus_error;
 
 /*!
- * \brief Returns a human-readable error message.
+ * \brief Returns the stringified error.
  * \note Memory for the return value is managed internally and should not be
  *       freed.
  */
@@ -160,7 +160,7 @@ JANUS_EXPORT const char *janus_error_to_string(janus_error error);
                __LINE__);                                   \
         abort();                                            \
     }                                                       \
-}
+} \
 
 /*!
  * \brief Data buffer type.
@@ -217,6 +217,13 @@ typedef enum janus_attribute
     JANUS_NOSE_BASE_X         = 36, /*!< Face landmark (pixels) */
     JANUS_NOSE_BASE_Y         = 37  /*!< Face landmark (pixels) */
 } janus_attribute;
+
+/*!
+ * \brief Returns the stringified attribute.
+ * \note Memory for the return value is managed internally and should not be
+ *       freed.
+ */
+JANUS_EXPORT const char *janus_attribute_to_string(janus_attribute attribute);
 
 /*!
  * \brief A list of #janus_attribute and value pairs all belonging to a the same
@@ -311,10 +318,10 @@ JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
 
 /*!
  * \brief Create the final template representation.
- * \param[in,out] incomplete_template The recognition information to contruct
- *                                    the template from. Deallocated after the
- *                                    template is constructed.
- * \param[out] template_ A pre-allocated buffer no smaller than
+ * \param[in] incomplete_template The recognition information to contruct the
+ *                                template from. Deallocated after the template
+ *                                is constructed.
+ * \param[in,out] template_ A pre-allocated buffer no smaller than
  *                       #JANUS_MAX_TEMPLATE_SIZE to contain the final template.
  * \param[out] bytes Size of the buffer actually used to store the template.
  * \see janus_template
@@ -326,16 +333,12 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_incomplete_template incom
 /*!
  * \brief Return a similarity score for two templates.
  * \param[in] a The first template to compare.
- * \param[in] a_bytes Size of template a.
  * \param[in] b The second template to compare.
- * \param[in] b_bytes Size of template b.
  * \param[out] similarity Higher values indicate greater similarity.
  * \see janus_search
  */
 JANUS_EXPORT janus_error janus_verify(const janus_template a,
-                                      const size_t a_bytes,
                                       const janus_template b,
-                                      const size_t b_bytes,
                                       float *similarity);
 
 /*!

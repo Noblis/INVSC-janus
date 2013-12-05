@@ -47,13 +47,13 @@ vector<float> valuesFromStrings(const vector<string> &strings, size_t templateID
         if ((i == templateIDIndex) || (i == fileNameIndex))
             continue;
         const string &str = strings[i];
-        if (str.empty()) values.push_back(-numeric_limits<float>::max());
+        if (str.empty()) values.push_back(numeric_limits<float>::quiet_NaN());
         else             values.push_back(atof(str.c_str()));
     }
     return values;
 }
 
-janus_error janus_enroll_template(const char *file_name, janus_template *template_, size_t *bytes)
+janus_error janus_enroll_template(const char *file_name, janus_template template_, size_t *bytes)
 {
     // Open file
     ifstream file(file_name);
@@ -95,10 +95,9 @@ janus_error janus_enroll_template(const char *file_name, janus_template *templat
         attributeList.attributes = new janus_attribute[n];
         attributeList.values = new float[n];
         for (size_t i=0; i<n; i++) {
-            if (values[n] == -numeric_limits<float>::max())
-                continue;
-            attributeList.attributes[attributeList.size] = attributes[n];
-            attributeList.values[attributeList.size] = attributes[n];
+            if (values[i] != values[i]) /* NaN */ continue;
+            attributeList.attributes[attributeList.size] = attributes[i];
+            attributeList.values[attributeList.size] = values[i];
             attributeList.size++;
         }
 
@@ -115,6 +114,6 @@ janus_error janus_enroll_template(const char *file_name, janus_template *templat
         janus_free_image(image);
     }
 
-    JANUS_TRY(janus_finalize_template(incomplete_template, *template_, bytes));
+    JANUS_TRY(janus_finalize_template(incomplete_template, template_, bytes));
     return JANUS_SUCCESS;
 }
