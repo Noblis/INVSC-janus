@@ -24,7 +24,7 @@
 #ifndef JANUS_H
 #define JANUS_H
 
-#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
