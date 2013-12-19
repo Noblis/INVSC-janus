@@ -262,17 +262,17 @@ JANUS_EXPORT janus_error janus_finalize();
 
 /*!
  * \brief Represents a \ref janus_template under construction.
+ *
+ * Create a new template with \ref janus_initialize_template.
+ * Add images and videos to the template using \ref janus_add_image and
+ * \ref janus_add_video.
+ * Finalize the template for comparison with \ref janus_finalize_template.
  */
 typedef struct janus_incomplete_template_type *janus_incomplete_template;
 
 /*!
  * \brief Contains the final representation of the recognition information for
  *        an object.
- *
- * Create a new template with \ref janus_initialize_template.
- * Add images and videos to the template using \ref janus_add_image and
- * \ref janus_add_video.
- * Finalize the template for comparison with \ref janus_finalize_template.
  *
  * \see janus_incomplete_template
  */
@@ -285,9 +285,7 @@ typedef janus_data *janus_template;
 
 /*!
  * \brief Create an empty template for enrollment.
- * \param[in] incomplete_template The partial template to initialize for
- *                                enrollment.
- * \see janus_template
+ * \param[in] incomplete_template The template to initialize for enrollment.
  */
 JANUS_EXPORT janus_error janus_initialize_template(janus_incomplete_template *incomplete_template);
 
@@ -297,7 +295,7 @@ JANUS_EXPORT janus_error janus_initialize_template(janus_incomplete_template *in
  * \param[in] attributes The detected object to recognize.
  * \param[in,out] incomplete_template The template to contain the object's
  *                                    recognition information.
- * \see janus_template janus_add_video
+ * \see janus_add_video
  */
 JANUS_EXPORT janus_error janus_add_image(const janus_image image,
                                          const janus_attribute_list attributes,
@@ -310,7 +308,7 @@ JANUS_EXPORT janus_error janus_add_image(const janus_image image,
  * \param[in] num_frames Lenth of \em frames and \em attributes.
  * \param[in,out] incomplete_template The template to contain the object's
  *                                    recognition information.
- * \see janus_template janus_add_image
+ * \see janus_add_image
  */
 JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
                                          const janus_attribute_list *attributes,
@@ -325,7 +323,6 @@ JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
  * \param[in,out] template_ A pre-allocated buffer no smaller than
  *                       #JANUS_MAX_TEMPLATE_SIZE to contain the final template.
  * \param[out] bytes Size of the buffer actually used to store the template.
- * \see janus_template
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_incomplete_template incomplete_template,
                                                  janus_template template_,
@@ -343,51 +340,61 @@ JANUS_EXPORT janus_error janus_verify(const janus_template a,
                                       float *similarity);
 
 /*!
- * \brief Contains the partially-constructed recognition information for an
- *        object.
+ * \brief Unique identifier for a \ref janus_template.
+ *
+ * Associate a template with a unique id using \ref janus_add_template.
+ * Retrieve the unique id from a search using \ref janus_search.
  */
-typedef struct janus_partial_gallery_type *janus_partial_gallery;
+typedef int janus_template_id;
+
+/*!
+ * \brief Represents a Janus gallery under construction.
+ *
+ * Create a new gallery with \ref janus_initialize_gallery.
+ * Add templates to the gallery using \ref janus_add_template.
+ * Finalize the template for comparison with \ref janus_finalize_gallery.
+ */
+typedef struct janus_incomplete_gallery_type *janus_incomplete_gallery;
 
 /*!
  * \brief Create an empty gallery for enrollment.
- * \param[in] partial_gallery Address of the partial gallery to initialize for
- *                             enrollment.
- * \see janus_augment_gallery janus_finalize_gallery
+ * \param[in] incomplete_gallery The gallery to initialize for enrollment.
  */
-JANUS_EXPORT janus_error janus_initialize_gallery(janus_partial_gallery *partial_gallery);
+JANUS_EXPORT janus_error janus_initialize_gallery(janus_incomplete_gallery *incomplete_gallery);
 
 /*!
  * \brief Add information to the gallery.
- * \param[in] incomplete_template The template information.
- * \param[in,out] partial_gallery The gallery to contain the template.
- * \see janus_initialize_gallery janus_finalize_gallery
+ * \param[in] template_ The template to add.
+ * \param[in] template_id A unique identifier for the template.
+ * \param[in] incomplete_gallery The gallery to contain the template.
  */
-JANUS_EXPORT janus_error janus_add_template(const janus_incomplete_template incomplete_template,
-                                            janus_partial_gallery partial_gallery);
+JANUS_EXPORT janus_error janus_add_template(const janus_template template_,
+                                            janus_template_id template_id,
+                                            janus_incomplete_gallery incomplete_gallery);
 
 /*!
  * \brief Create the final gallery representation.
- * \param[in,out] partial_gallery The recognition information to contruct the
- *                                 gallery from. Deallocated after the gallery
- *                                 is constructed.
- * \param[out] gallery_file File path to contain the enrolled gallery.
- * \see janus_initialize_gallery janus_add_template
+ * \param[in] incomplete_gallery The recognition information to contruct the
+ *                               gallery from. Deallocated after the gallery
+ *                               is constructed.
+ * \param[out] gallery_file File path to save the gallery to.
  */
-JANUS_EXPORT janus_error janus_finalize_gallery(janus_partial_gallery partial_gallery,
+JANUS_EXPORT janus_error janus_finalize_gallery(janus_incomplete_gallery incomplete_gallery,
                                                 const char *gallery_file);
+
 /*!
  * \brief Ranked search against a gallery for a template.
  * \param [in] template_ Probe to search for.
  * \param [in] gallery_file Gallery to search against.
  * \param [in] num_requested_returns The desired number of returned results.
- * \param [out] template_indicies Indicies of the returned templates.
- * \param [out] num_actual_returns The length of \em template_indicies.
+ * \param [out] template_ids Indicies of the returned templates.
+ * \param [out] num_actual_returns The length of \em template_ids.
  * \see janus_verify
  */
 JANUS_EXPORT janus_error janus_search(const janus_template template_,
                                       const char *gallery_file,
                                       int num_requested_returns,
-                                      int *template_indicies,
+                                      int *template_ids,
                                       int *num_actual_returns);
 
 /*!

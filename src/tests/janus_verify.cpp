@@ -30,5 +30,5 @@ int main(int argc, char *argv[])
     delete[] query;
 
     JANUS_TRY(janus_finalize())
-    return 0;
+    return EXIT_SUCCESS;
 }

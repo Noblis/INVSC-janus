@@ -83,11 +83,18 @@ JANUS_EXPORT void janus_close_video(janus_video video);
 
 /*!
  * \brief High-level function for enrolling a template from a metadata file.
- * \param [in] file_name Path to the \c csv metadata file.
+ * \param [in] metadata_file Path to the \c csv metadata file.
  * \param [in,out] template_ Constructed template with preallocated buffer.
  * \param [out] bytes Size of template_.
  */
-JANUS_EXPORT janus_error janus_enroll_template(const char *file_name, janus_template template_, size_t *bytes);
+JANUS_EXPORT janus_error janus_enroll_template(const char *metadata_file, janus_template template_, size_t *bytes);
+
+/*!
+ * \brief High-level function for enrolling a gallery from a metadata file.
+ * \param [in] metadata_file Path to the \c csv metadata file.
+ * \param [in] gallery_file File to save the gallery to.
+ */
+JANUS_EXPORT janus_error janus_enroll_gallery(const char *metadata_file, const char *gallery_file);
 
 /*! @}*/
 
