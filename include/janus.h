@@ -133,7 +133,7 @@ typedef enum janus_error
     JANUS_INVALID_VIDEO        = 9,  /*!< Could not decode video file */
     JANUS_MISSING_TEMPLATE_ID  = 10, /*!< Expected a missing template ID */
     JANUS_MISSING_FILE_NAME    = 11, /*!< Expected a missing file name */
-    JANUS_NULL_ATTRIBUTE_LIST  = 13, /*!< Value of #janus_attribute_list was 0 */
+    JANUS_NULL_ATTRIBUTE_LIST  = 13, /*!< Null #janus_attribute_list */
     JANUS_TEMPLATE_ID_MISMATCH = 14  /*!< Expected matching template IDs */
 } janus_error;
 
@@ -182,7 +182,8 @@ typedef enum janus_color_space
  * Thus pixel intensity can be retrieved as follows:
  *
 \code
-janus_data get_intensity(janus_image image, size_t channel, size_t column, size_t row)
+janus_data get_intensity(janus_image image,size_t channel, size_t column,
+                                                                     size_t row)
 {
     const size_t columnStep = (image.image_format == JANUS_COLOR ? 3 : 1);
     const size_t rowStep = image.columns * columnStep;
@@ -291,7 +292,8 @@ typedef janus_data *janus_template;
  * \brief Create an empty template for enrollment.
  * \param[in] incomplete_template The template to initialize for enrollment.
  */
-JANUS_EXPORT janus_error janus_initialize_template(janus_incomplete_template *incomplete_template);
+JANUS_EXPORT janus_error janus_initialize_template(janus_incomplete_template *
+                                                           incomplete_template);
 
 /*!
  * \brief Add information to the template.
@@ -304,7 +306,8 @@ JANUS_EXPORT janus_error janus_initialize_template(janus_incomplete_template *in
  */
 JANUS_EXPORT janus_error janus_add_image(const janus_image image,
                                          const janus_attribute_list attributes,
-                                         janus_incomplete_template incomplete_template);
+                                         janus_incomplete_template
+                                                           incomplete_template);
 
 /*!
  * \brief Add information to the template.
@@ -320,7 +323,8 @@ JANUS_EXPORT janus_error janus_add_image(const janus_image image,
 JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
                                          const janus_attribute_list *attributes,
                                          const size_t num_frames,
-                                         janus_incomplete_template incomplete_template);
+                                         janus_incomplete_template
+                                                           incomplete_template);
 
 /*!
  * \brief Create the final template representation.
@@ -331,7 +335,8 @@ JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
  *                       #JANUS_MAX_TEMPLATE_SIZE to contain the final template.
  * \param[out] bytes Size of the buffer actually used to store the template.
  */
-JANUS_EXPORT janus_error janus_finalize_template(janus_incomplete_template incomplete_template,
+JANUS_EXPORT janus_error janus_finalize_template(janus_incomplete_template
+                                                            incomplete_template,
                                                  janus_template template_,
                                                  size_t *bytes);
 
@@ -367,7 +372,8 @@ typedef struct janus_incomplete_gallery_type *janus_incomplete_gallery;
  * \brief Create an empty gallery for enrollment.
  * \param[in] incomplete_gallery The gallery to initialize for enrollment.
  */
-JANUS_EXPORT janus_error janus_initialize_gallery(janus_incomplete_gallery *incomplete_gallery);
+JANUS_EXPORT janus_error janus_initialize_gallery(janus_incomplete_gallery *
+                                                            incomplete_gallery);
 
 /*!
  * \brief Add information to the gallery.
@@ -377,7 +383,8 @@ JANUS_EXPORT janus_error janus_initialize_gallery(janus_incomplete_gallery *inco
  */
 JANUS_EXPORT janus_error janus_add_template(const janus_template template_,
                                             janus_template_id template_id,
-                                            janus_incomplete_gallery incomplete_gallery);
+                                            janus_incomplete_gallery
+                                                            incomplete_gallery);
 
 /*!
  * \brief Create the final gallery representation.
@@ -386,7 +393,8 @@ JANUS_EXPORT janus_error janus_add_template(const janus_template template_,
  *                               is constructed.
  * \param[out] gallery_file File path to save the gallery to.
  */
-JANUS_EXPORT janus_error janus_finalize_gallery(janus_incomplete_gallery incomplete_gallery,
+JANUS_EXPORT janus_error janus_finalize_gallery(janus_incomplete_gallery
+                                                             incomplete_gallery,
                                                 const char *gallery_file);
 
 /*!
@@ -395,8 +403,10 @@ JANUS_EXPORT janus_error janus_finalize_gallery(janus_incomplete_gallery incompl
  * \param [in] gallery_file Gallery to search against.
  * \param [in] num_requested_returns The desired number of returned results.
  * \param [out] template_ids Unique identifiers of the matching templates.
- * \param [out] similarities Similarity score for each of the top matching templates.
- * \param [out] num_actual_returns The length of \em template_ids and \em similarities.
+ * \param [out] similarities Similarity score for each of the top matching
+ *                           templates.
+ * \param [out] num_actual_returns The length of \em template_ids and \em
+ *                                 similarities.
  * \see janus_verify
  */
 JANUS_EXPORT janus_error janus_search(const janus_template template_,
@@ -412,7 +422,8 @@ JANUS_EXPORT janus_error janus_search(const janus_template template_,
  * \param[in] num_incomplete_templates Length of \em partial_templates.
  * \param[out] model_file File path to contain the trained model.
  */
-JANUS_EXPORT janus_error janus_train(const janus_incomplete_template *incomplete_templates,
+JANUS_EXPORT janus_error janus_train(const janus_incomplete_template *
+                                                           incomplete_templates,
                                      const int num_incomplete_templates,
                                      const char *model_file);
 
