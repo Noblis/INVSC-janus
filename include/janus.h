@@ -52,11 +52,8 @@ extern "C" {
  *
  * \subsection Feedback
  * Feedback on the API is strongly desired.
- * Please direct any questions or comments to the current maintainer listed
- * below.
- *
- * \author Joshua C. Klontz (Joshua.Klontz@noblis.org) - Current Maintainer
- * // Todo: janus-dev@noblis.org
+ * Please direct any questions or comments to Joshua.Klontz@noblis.org
+ * (TODO: janus-dev@noblis.org)
  *
  * \page more_information More Information
  * \brief Additional technical considerations.
@@ -67,10 +64,9 @@ extern "C" {
  *
  * \section notes_to_users Notes to Users
  * - Function return values are either \c void or #janus_error.
- * - Output parameters are passed by reference/pointer/address.
  * - Input parameters are passed by value.
- * - Parameters that won't be modified are marked \c const.
- * - #JANUS_TRY provides a light-weight mechanism for checking errors.
+ * - Output parameters are passed by address.
+ * - #JANUS_TRY provides a light-weight mechanism for error checking.
  *
  * \section notes_to_implementers Notes for Implementers
  * - Define \c JANUS_LIBRARY during compilation to export Janus symbols and
@@ -194,6 +190,9 @@ janus_data get_intensity(janus_image image, size_t channel, size_t column, size_
     return image.data[index];
 }
 \endcode
+ *
+ * (0, 0) corresponds to the top-left corner of the image.
+ * (width-1, height-1) corresponds to the bottom-right corner of the image.
  */
 typedef struct janus_image
 {
@@ -205,10 +204,15 @@ typedef struct janus_image
 
 /*!
  * \brief A measurement made on a #janus_image.
+ *
+ * These attributes are provided from manual annotation for Phase 1.
+ * Phases 2 and 3 will introduce API calls for automated detection.
+ * Additional attributes and training data will be added over the duration of
+ * the program.
  */
 typedef enum janus_attribute
 {
-    JANUS_INVALID_ATTRIBUTE   = 0, /*!< Catch-all error attribute code */
+    JANUS_INVALID_ATTRIBUTE   = 0, /*!< Catch-all error code */
     JANUS_FRAME               = 1, /*!< Video frame number, 0 for images */
 
     JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark (pixels) */
@@ -292,7 +296,8 @@ JANUS_EXPORT janus_error janus_initialize_template(janus_incomplete_template *in
 /*!
  * \brief Add information to the template.
  * \param[in] image The image containing the detected object.
- * \param[in] attributes The detected object to recognize.
+ * \param[in] attributes Location and metadata associated with the detected
+ *                       object to recognize.
  * \param[in,out] incomplete_template The template to contain the object's
  *                                    recognition information.
  * \see janus_add_video
@@ -304,10 +309,12 @@ JANUS_EXPORT janus_error janus_add_image(const janus_image image,
 /*!
  * \brief Add information to the template.
  * \param[in] frames An array of frames containing the detected object.
- * \param[in] attributes The detected and tracked object to recognize.
+ * \param[in] attributes Location and metadata associated with the detected and
+ *                       tracked object to recognize.
  * \param[in] num_frames Lenth of \em frames and \em attributes.
  * \param[in,out] incomplete_template The template to contain the object's
  *                                    recognition information.
+ * \note Memory constraints may require this function to be changed.
  * \see janus_add_image
  */
 JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
@@ -387,14 +394,16 @@ JANUS_EXPORT janus_error janus_finalize_gallery(janus_incomplete_gallery incompl
  * \param [in] template_ Probe to search for.
  * \param [in] gallery_file Gallery to search against.
  * \param [in] num_requested_returns The desired number of returned results.
- * \param [out] template_ids Indicies of the returned templates.
- * \param [out] num_actual_returns The length of \em template_ids.
+ * \param [out] template_ids Unique identifiers of the matching templates.
+ * \param [out] similarities Similarity score for each of the top matching templates.
+ * \param [out] num_actual_returns The length of \em template_ids and \em similarities.
  * \see janus_verify
  */
 JANUS_EXPORT janus_error janus_search(const janus_template template_,
                                       const char *gallery_file,
                                       int num_requested_returns,
-                                      int *template_ids,
+                                      janus_template_id *template_ids,
+                                      float *similarities,
                                       int *num_actual_returns);
 
 /*!
