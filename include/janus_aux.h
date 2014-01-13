@@ -32,7 +32,7 @@ extern "C" {
 
 /*!
  * \defgroup janus_aux Janus Auxiliary
- * \brief Proposed interface additions for Phases 2 & 3.
+ * \brief Proposed interface additions for Phases 2 & 3 (under construction).
  * \addtogroup janus_aux
  *  @{
  */

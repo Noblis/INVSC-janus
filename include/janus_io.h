@@ -32,7 +32,7 @@ extern "C" {
 
 /*!
  * \defgroup janus_io Janus I/O
- * \brief Image and video decoding interface.
+ * \brief Media decoding and evaluation harness.
  * \addtogroup janus_io
  *  @{
  */
@@ -82,19 +82,43 @@ JANUS_EXPORT janus_error janus_read_frame(janus_video video, janus_image *image)
 JANUS_EXPORT void janus_close_video(janus_video video);
 
 /*!
+ * \brief File name for a Janus Metadata File
+ *
+ * A *Janus Metadata File* is a *Comma-Separated Value* (CSV) text file with the following format:
+ *
+\verbatim
+Template_ID, File_Name, Frame, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
+<int>      , <string> , <int>, <double>         , <double>         , ..., <double>
+<int>      , <string> , <int>, <double>         , <double>         , ..., <double>
+...
+<int>      , <string> , <int>, <double>         , <double>         , ..., <double>
+\endverbatim
+ *
+ * Metadata files should adhere to the following "sane" conventions:
+ * - All rows associated with the same \c Template_ID should occur sequentially.
+ * - All rows associated with the same \c Template_ID and \c File_Name should occur sequentially ordered by \c Frame.
+ * - A cell should be empty when no value is available for the specified #janus_attribute.
+ *
+ * \par Examples:
+ * - [Kirchner.csv](https://raw.github.com/biometrics/janus/master/data/Kirchner.csv)
+ * - [Toledo.csv](https://raw.github.com/biometrics/janus/master/data/Toledo.csv)
+ */
+typedef const char *janus_metadata_file;
+
+/*!
  * \brief High-level function for enrolling a template from a metadata file.
- * \param [in] metadata_file Path to the \c csv metadata file.
+ * \param [in] file_name Path to a #janus_metadata_file to enroll.
  * \param [in,out] template_ Constructed template with preallocated buffer.
  * \param [out] bytes Size of template_.
  */
-JANUS_EXPORT janus_error janus_enroll_template(const char *metadata_file, janus_template template_, size_t *bytes);
+JANUS_EXPORT janus_error janus_enroll_template(janus_metadata_file file_name, janus_template template_, size_t *bytes);
 
 /*!
  * \brief High-level function for enrolling a gallery from a metadata file.
- * \param [in] metadata_file Path to the \c csv metadata file.
+ * \param [in] file_name Path to a #janus_metadata_file to enroll.
  * \param [in] gallery_file File to save the gallery to.
  */
-JANUS_EXPORT janus_error janus_enroll_gallery(const char *metadata_file, const char *gallery_file);
+JANUS_EXPORT janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gallery_file);
 
 /*! @}*/
 

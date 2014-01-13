@@ -36,11 +36,11 @@ extern "C" {
  * \mainpage
  * \section overview Overview
  *
- * Janus is a \a C API consisting of three header files:
+ * Janus is a *C* API consisting of three header files:
  *
  * Header      | Documentation  | Required | Description
  * ----------- | -------------  | -------- | -----------
- * janus.h     | \ref janus     | \b Yes   | \copybrief janus
+ * janus.h     | \ref janus     | **Yes**  | \copybrief janus
  * janus_aux.h | \ref janus_aux | No       | \copybrief janus_aux
  * janus_io.h  | \ref janus_io  | No       | \copybrief janus_io
  *
@@ -48,12 +48,12 @@ extern "C" {
  *
  * \subsection license License
  * The API is provided under a [BSD-like license](LICENSE.txt) and is
- * _free for academic and commercial use_.
+ * *free for academic and commercial use*.
  *
  * \subsection Feedback
- * Feedback on the API is strongly desired.
- * Please direct any questions or comments to Joshua.Klontz@noblis.org
- * (TODO: janus-dev@noblis.org)
+ * Feedback on the API is strongly desired, please direct any questions or
+ * comments to [janus-dev@googlegroups.com]
+ * (https://groups.google.com/forum/#!forum/janus-dev).
  *
  * \page more_information More Information
  * \brief Additional technical considerations.
@@ -157,7 +157,7 @@ JANUS_EXPORT const char *janus_error_to_string(janus_error error);
                __LINE__);                                   \
         abort();                                            \
     }                                                       \
-} \
+}                                                           \
 
 /*!
  * \brief Data buffer type.
@@ -214,7 +214,7 @@ typedef struct janus_image
 typedef enum janus_attribute
 {
     JANUS_INVALID_ATTRIBUTE   = 0, /*!< Catch-all error code */
-    JANUS_FRAME               = 1, /*!< Video frame number, 0 for images */
+    JANUS_FRAME               = 1, /*!< Video frame number, -1 for images */
 
     JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark (pixels) */
     JANUS_RIGHT_EYE_Y         = 33, /*!< Face landmark (pixels) */
@@ -239,7 +239,7 @@ typedef struct janus_attribute_list
 {
     size_t size; /*!< \brief Size of #attributes and #values. */
     janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
-    float *values; /*!< \brief Array of corresponding attribute values. */
+    double *values; /*!< \brief Array of corresponding attribute values. */
 } janus_attribute_list;
 
 /*!
@@ -343,7 +343,9 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_incomplete_template
 /*!
  * \brief Return a similarity score for two templates.
  * \param[in] a The first template to compare.
+ * \param[in] a_bytes Size of template a.
  * \param[in] b The second template to compare.
+ * \param[in] b_bytes Size of template b.
  * \param[out] similarity Higher values indicate greater similarity.
  * \see janus_search
  */
@@ -351,7 +353,7 @@ JANUS_EXPORT janus_error janus_verify(const janus_template a,
                                       const size_t a_bytes,
                                       const janus_template b,
                                       const size_t b_bytes,
-                                      float *similarity);
+                                      double *similarity);
 
 /*!
  * \brief Unique identifier for a \ref janus_template.
@@ -415,7 +417,7 @@ JANUS_EXPORT janus_error janus_search(const janus_template template_,
                                       const char *gallery_file,
                                       int num_requested_returns,
                                       janus_template_id *template_ids,
-                                      float *similarities,
+                                      double *similarities,
                                       int *num_actual_returns);
 
 /*!

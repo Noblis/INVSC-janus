@@ -40,9 +40,9 @@ vector<janus_attribute> attributesFromStrings(const vector<string> &strings, int
     return attributes;
 }
 
-vector<float> valuesFromStrings(const vector<string> &strings, size_t templateIDIndex, size_t fileNameIndex)
+vector<double> valuesFromStrings(const vector<string> &strings, size_t templateIDIndex, size_t fileNameIndex)
 {
-    vector<float> values;
+    vector<double> values;
     for (size_t i=0; i<strings.size(); i++) {
         if ((i == templateIDIndex) || (i == fileNameIndex))
             continue;
@@ -53,10 +53,10 @@ vector<float> valuesFromStrings(const vector<string> &strings, size_t templateID
     return values;
 }
 
-janus_error readMetadataFile(const char *metadata_file, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
+janus_error readMetadataFile(janus_metadata_file file_name, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
 {
     // Open file
-    ifstream file(metadata_file);
+    ifstream file(file_name);
     if (!file.is_open())
         return JANUS_OPEN_ERROR;
 
@@ -75,7 +75,7 @@ janus_error readMetadataFile(const char *metadata_file, vector<string> &fileName
         // Make sure all files have the same template ID
         fileNames.push_back(words[fileNameIndex]);
         templateIDs.push_back(atoi(words[templateIDIndex].c_str()));
-        vector<float> values = valuesFromStrings(words, templateIDIndex, fileNameIndex);
+        vector<double> values = valuesFromStrings(words, templateIDIndex, fileNameIndex);
         if (values.size() != attributes.size())
             return JANUS_PARSE_ERROR;
         const size_t n = attributes.size();
@@ -84,7 +84,7 @@ janus_error readMetadataFile(const char *metadata_file, vector<string> &fileName
         janus_attribute_list attributeList;
         attributeList.size = 0;
         attributeList.attributes = new janus_attribute[n];
-        attributeList.values = new float[n];
+        attributeList.values = new double[n];
         for (size_t i=0; i<n; i++) {
             if (values[i] != values[i]) /* NaN */ continue;
             attributeList.attributes[attributeList.size] = attributes[i];
@@ -99,12 +99,12 @@ janus_error readMetadataFile(const char *metadata_file, vector<string> &fileName
     return JANUS_SUCCESS;
 }
 
-janus_error janus_enroll_template(const char *metadata_file, janus_template template_, size_t *bytes)
+janus_error janus_enroll_template(janus_metadata_file name_file, janus_template template_, size_t *bytes)
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
-    janus_error error = readMetadataFile(metadata_file, fileNames, templateIDs, attributeLists);
+    janus_error error = readMetadataFile(name_file, fileNames, templateIDs, attributeLists);
     if (error != JANUS_SUCCESS)
         return error;
 
@@ -126,12 +126,12 @@ janus_error janus_enroll_template(const char *metadata_file, janus_template temp
     return JANUS_SUCCESS;
 }
 
-janus_error janus_enroll_gallery(const char *metadata_file, const char *gallery_file)
+janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gallery_file)
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
-    janus_error error = readMetadataFile(metadata_file, fileNames, templateIDs, attributeLists);
+    janus_error error = readMetadataFile(file_name, fileNames, templateIDs, attributeLists);
     if (error != JANUS_SUCCESS)
         return error;
 

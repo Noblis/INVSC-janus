@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     JANUS_TRY(janus_enroll_template(argv[3], query, &query_bytes))
     printf("Query bytes: %zu\n", query_bytes);
 
-    float similarity;
+    double similarity;
     JANUS_TRY(janus_verify(target, target_bytes, query, query_bytes, &similarity))
     printf("Similarity: %g\n", similarity);
 
