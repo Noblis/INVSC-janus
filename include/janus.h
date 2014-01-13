@@ -348,7 +348,9 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_incomplete_template
  * \see janus_search
  */
 JANUS_EXPORT janus_error janus_verify(const janus_template a,
+                                      const size_t a_bytes,
                                       const janus_template b,
+                                      const size_t b_bytes,
                                       float *similarity);
 
 /*!

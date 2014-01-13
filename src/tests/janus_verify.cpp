@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     printf("Query bytes: %zu\n", query_bytes);
 
     float similarity;
-    JANUS_TRY(janus_verify(target, query, &similarity))
+    JANUS_TRY(janus_verify(target, target_bytes, query, query_bytes, &similarity))
     printf("Similarity: %g\n", similarity);
 
     delete[] target;
