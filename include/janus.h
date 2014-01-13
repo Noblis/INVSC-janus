@@ -44,6 +44,8 @@ extern "C" {
  * janus_aux.h | \ref janus_aux | No       | \copybrief janus_aux
  * janus_io.h  | \ref janus_io  | No       | \copybrief janus_io
  *
+ * [<b>Source Code</b>](https://github.com/biometrics/janus)
+
  * \ref more_information
  *
  * \subsection license License
