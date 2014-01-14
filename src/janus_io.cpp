@@ -148,7 +148,7 @@ janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gall
         size_t j = i;
         while ((j < attributeLists.size()) && (templateIDs[j] == templateIDs[i]))
             j++;
-        janus_template template_ = new janus_data[JANUS_MAX_TEMPLATE_SIZE];
+        janus_template template_ = new janus_data[janus_max_template_size()];
         size_t bytes;
         enrollTemplate(vector<string>(fileNames.begin()+i, fileNames.begin()+j),
                        vector<janus_template_id>(templateIDs.begin()+i, templateIDs.begin()+j),

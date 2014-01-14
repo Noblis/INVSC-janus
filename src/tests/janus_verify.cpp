@@ -12,12 +12,12 @@ int main(int argc, char *argv[])
 
     JANUS_TRY(janus_initialize(argv[1], ""))
 
-    janus_template target = new janus_data[JANUS_MAX_TEMPLATE_SIZE];
+    janus_template target = new janus_data[janus_max_template_size()];
     size_t target_bytes;
     JANUS_TRY(janus_enroll_template(argv[2], target, &target_bytes))
     printf("Target bytes: %zu\n", target_bytes);
 
-    janus_template query = new janus_data[JANUS_MAX_TEMPLATE_SIZE];
+    janus_template query = new janus_data[janus_max_template_size()];
     size_t query_bytes;
     JANUS_TRY(janus_enroll_template(argv[3], query, &query_bytes))
     printf("Query bytes: %zu\n", query_bytes);

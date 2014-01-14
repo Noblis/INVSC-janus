@@ -2,6 +2,11 @@
 
 // These functions have no external dependencies
 
+size_t janus_max_template_size()
+{
+    return JANUS_MAX_TEMPLATE_SIZE_LIMIT;
+}
+
 #define ENUM_CASE(X) case X: return #X;
 #define ENUM_DEFAULT default: return "???";
 
