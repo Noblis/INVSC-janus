@@ -391,11 +391,13 @@ JANUS_EXPORT janus_error janus_initialize_gallery(janus_incomplete_gallery *
 /*!
  * \brief Add information to the gallery.
  * \param[in] template_ The template to add.
+ * \param[in] bytes Size of template_.
  * \param[in] template_id A unique identifier for the template.
  * \param[in] incomplete_gallery The gallery to contain the template.
  */
 JANUS_EXPORT janus_error janus_add_template(const janus_template template_,
-                                            janus_template_id template_id,
+                                            const size_t bytes,
+                                            const janus_template_id template_id,
                                             janus_incomplete_gallery
                                                             incomplete_gallery);
 
