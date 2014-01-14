@@ -87,12 +87,17 @@ JANUS_EXPORT void janus_close_video(janus_video video);
  * A *Janus Metadata File* is a *Comma-Separated Value* (CSV) text file with the following format:
  *
 \verbatim
-Template_ID, File_Name, Frame, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
-<int>      , <string> , <int>, <double>         , <double>         , ..., <double>
-<int>      , <string> , <int>, <double>         , <double>         , ..., <double>
+Template_ID        , File_Name, Frame, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
+<janus_template_id>, <string> , <int>, <double>         , <double>         , ..., <double>
+<janus_template_id>, <string> , <int>, <double>         , <double>         , ..., <double>
 ...
-<int>      , <string> , <int>, <double>         , <double>         , ..., <double>
+<janus_template_id>, <string> , <int>, <double>         , <double>         , ..., <double>
 \endverbatim
+ *
+ * Where:
+ * - [Template_ID](\ref janus_template_id) is a unique integer identifier indicating rows that belong to the same template.
+ * - \c File_Name is a path to the image or video file on disk.
+ * - \c Frame is the video frame number or -1 for still images.
  *
  * Metadata files should adhere to the following "sane" conventions:
  * - All rows associated with the same \c Template_ID should occur sequentially.

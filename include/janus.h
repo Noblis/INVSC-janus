@@ -41,8 +41,8 @@ extern "C" {
  * Header      | Documentation  | Required | Description
  * ----------- | -------------  | -------- | -----------
  * janus.h     | \ref janus     | **Yes**  | \copybrief janus
- * janus_aux.h | \ref janus_aux | No       | \copybrief janus_aux
  * janus_io.h  | \ref janus_io  | No       | \copybrief janus_io
+ * janus_aux.h | \ref janus_aux | No       | \copybrief janus_aux
  *
  * [<b>Source Code</b>](https://github.com/biometrics/janus)
 
