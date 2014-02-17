@@ -263,8 +263,8 @@ JANUS_EXPORT janus_error janus_finalize();
  * \brief Contains the recognition information for an object.
  *
  * Create a new template with \ref janus_initialize_template.
- * Add images and videos to the template using \ref janus_add_image and
- * \ref janus_set_tracking.
+ * Add images and videos to the template using \ref janus_augment and
+ * \ref janus_track.
  * Finalize the template for comparison with \ref janus_finalize_template.
  * \see janus_flat_template
  */
@@ -302,21 +302,22 @@ JANUS_EXPORT janus_error janus_initialize_template(janus_template *template_);
  *                       object to recognize.
  * \param[in,out] template_ The template to contain the object's recognition
  *                          information.
- * \see janus_set_tracking
+ * \see janus_track
  */
-JANUS_EXPORT janus_error janus_add_image(const janus_image image,
-                                         const janus_attribute_list attributes,
-                                         janus_template template_);
+JANUS_EXPORT janus_error janus_augment(const janus_image image,
+                                       const janus_attribute_list attributes,
+                                       janus_template template_);
 
 /*!
- * \brief Enable or disable object tracking.
+ * \brief Enable or disable object tracking for the template.
  * \param[in] template_ The template to contain the tracked object.
- * \param[in] enabled Subsequent calls to \ref janus_add_image will have a
- *                    temporal relationship.
- * \see janus_add_image
+ * \param[in] enabled If true, images provided in subsequent calls to
+ *                    \ref janus_augment with template_ are sequential frames in
+ *                    a video.
+ * \see janus_augment
  */
-JANUS_EXPORT janus_error janus_set_tracking(janus_template template_,
-                                            int enabled);
+JANUS_EXPORT janus_error janus_track(janus_template template_,
+                                     int enabled);
 
 /*!
  * \brief Create the final template representation.

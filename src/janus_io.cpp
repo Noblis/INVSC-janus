@@ -113,7 +113,7 @@ janus_template createTemplate(const vector<string> &fileNames,
     for (size_t i=0; i<fileNames.size(); i++) {
         janus_image image;
         JANUS_TRY(janus_read_image(fileNames[i].c_str(), &image))
-        JANUS_TRY(janus_add_image(image, attributeLists[i], template_));
+        JANUS_TRY(janus_augment(image, attributeLists[i], template_));
         janus_free_image(image);
     }
 
