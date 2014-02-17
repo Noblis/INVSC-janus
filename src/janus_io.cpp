@@ -143,6 +143,11 @@ janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gall
     if (error != JANUS_SUCCESS)
         return error;
 
+    janus_incomplete_gallery incomplete_gallery;
+    error = janus_initialize_gallery(&incomplete_gallery);
+    if (error != JANUS_SUCCESS)
+        return error;
+
     size_t i = 0;
     while (i < attributeLists.size()) {
         size_t j = i;
@@ -155,8 +160,10 @@ janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gall
                        vector<janus_attribute_list>(attributeLists.begin()+i, attributeLists.begin()+j),
                        template_,
                        &bytes);
+        error = janus_add_template(template_, bytes, templateIDs[i], incomplete_gallery);
+        if (error != JANUS_SUCCESS)
+            return error;
     }
 
-    (void) gallery_file;
-    return JANUS_SUCCESS;
+    return janus_finalize_gallery(incomplete_gallery, gallery_file);
 }
