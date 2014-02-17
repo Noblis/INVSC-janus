@@ -143,7 +143,7 @@ janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gall
     if (error != JANUS_SUCCESS)
         return error;
 
-    janus_incomplete_gallery incomplete_gallery;
+    janus_gallery incomplete_gallery;
     error = janus_initialize_gallery(&incomplete_gallery);
     if (error != JANUS_SUCCESS)
         return error;

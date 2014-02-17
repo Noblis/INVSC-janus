@@ -215,9 +215,8 @@ typedef struct janus_image
  */
 typedef enum janus_attribute
 {
-    JANUS_INVALID_ATTRIBUTE   = 0, /*!< Catch-all error code */
-    JANUS_FRAME               = 1, /*!< Video frame number, -1 for images */
-
+    JANUS_INVALID_ATTRIBUTE   = 0,  /*!< Catch-all error code */
+    JANUS_FRAME               = 1,  /*!< Video frame number, -1 for images */
     JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark (pixels) */
     JANUS_RIGHT_EYE_Y         = 33, /*!< Face landmark (pixels) */
     JANUS_LEFT_EYE_X          = 34, /*!< Face landmark (pixels) */
@@ -279,8 +278,7 @@ JANUS_EXPORT janus_error janus_finalize();
 typedef struct janus_template_type *janus_template;
 
 /*!
- * \brief A finalized representation of the recognition information for an
- *        object suitable for comparison.
+ * \brief A finalized representation of a template suitable for comparison.
  * \see janus_template
  */
 typedef janus_data *janus_flat_template;
@@ -371,44 +369,48 @@ JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
 typedef int janus_template_id;
 
 /*!
- * \brief Represents a Janus gallery under construction.
+ * \brief A set of \ref janus_template.
  *
  * Create a new gallery with \ref janus_initialize_gallery.
  * Add templates to the gallery using \ref janus_add_template.
- * Finalize the template for comparison with \ref janus_finalize_gallery.
+ * Finalize the gallery for comparison with \ref janus_finalize_gallery.
+ * \see janus_gallery_file
  */
-typedef struct janus_incomplete_gallery_type *janus_incomplete_gallery;
+typedef struct janus_gallery_type *janus_gallery;
+
+/*!
+ * \brief A finalized representation of the gallery suitable for search.
+ * \see janus_gallery
+ */
+typedef const char *janus_gallery_file;
 
 /*!
  * \brief Create an empty gallery for enrollment.
- * \param[in] incomplete_gallery The gallery to initialize for enrollment.
+ * \param[in] gallery The gallery to initialize for enrollment.
  */
-JANUS_EXPORT janus_error janus_initialize_gallery(janus_incomplete_gallery *
-                                                            incomplete_gallery);
+JANUS_EXPORT janus_error janus_initialize_gallery(janus_gallery *gallery);
 
 /*!
  * \brief Add information to the gallery.
  * \param[in] template_ The template to add.
  * \param[in] bytes Size of template_.
  * \param[in] template_id A unique identifier for the template.
- * \param[in] incomplete_gallery The gallery to contain the template.
+ * \param[in] gallery The gallery to contain the template.
  */
 JANUS_EXPORT janus_error janus_add_template(const janus_flat_template template_,
                                             const size_t bytes,
                                             const janus_template_id template_id,
-                                            janus_incomplete_gallery
-                                                            incomplete_gallery);
+                                            janus_gallery gallery);
 
 /*!
  * \brief Create the final gallery representation.
- * \param[in] incomplete_gallery The recognition information to contruct the
- *                               gallery from. Deallocated after the gallery
- *                               is constructed.
+ * \param[in] gallery The recognition information to contruct the gallery from.
+ *                    Deallocated after the gallery is constructed.
  * \param[out] gallery_file File path to save the gallery to.
  */
-JANUS_EXPORT janus_error janus_finalize_gallery(janus_incomplete_gallery
-                                                             incomplete_gallery,
-                                                const char *gallery_file);
+JANUS_EXPORT janus_error janus_finalize_gallery(janus_gallery gallery,
+                                                janus_gallery_file
+                                                                  gallery_file);
 
 /*!
  * \brief Ranked search against a gallery for a template.
@@ -423,7 +425,7 @@ JANUS_EXPORT janus_error janus_finalize_gallery(janus_incomplete_gallery
  * \see janus_verify
  */
 JANUS_EXPORT janus_error janus_search(const janus_flat_template template_,
-                                      const char *gallery_file,
+                                      janus_gallery_file gallery_file,
                                       int num_requested_returns,
                                       janus_template_id *template_ids,
                                       double *similarities,
