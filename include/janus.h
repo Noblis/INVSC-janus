@@ -331,7 +331,8 @@ JANUS_EXPORT janus_error janus_set_tracking(janus_template template_,
  *                                template from. Deallocated after the template
  *                                is constructed.
  * \param[in,out] flat_template A pre-allocated buffer no smaller than
- *                       \ref janus_max_template_size to contain the final template.
+ *                              \ref janus_max_template_size to contain the
+ *                              final template.
  * \param[out] bytes Size of the buffer actually used to store the template.
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
