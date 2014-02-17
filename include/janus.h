@@ -271,7 +271,7 @@ JANUS_EXPORT janus_error janus_finalize();
  *
  * Create a new template with \ref janus_initialize_template.
  * Add images and videos to the template using \ref janus_add_image and
- * \ref janus_add_video.
+ * \ref janus_set_tracking.
  * Finalize the template for comparison with \ref janus_finalize_template.
  * \see janus_flat_template
  */
@@ -358,7 +358,7 @@ JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
 /*!
  * \brief Unique identifier for a \ref janus_template.
  *
- * Associate a template with a unique id using \ref janus_add_template.
+ * Associate a template with a unique id using \ref janus_enroll.
  * Retrieve the unique id from a search using \ref janus_search.
  */
 typedef int janus_template_id;
@@ -367,7 +367,7 @@ typedef int janus_template_id;
  * \brief A set of \ref janus_template.
  *
  * Create a new gallery with \ref janus_initialize_gallery.
- * Add templates to the gallery using \ref janus_add_template.
+ * Add templates to the gallery using \ref janus_enroll.
  * Finalize the gallery for comparison with \ref janus_finalize_gallery.
  * \see janus_gallery_file
  */
@@ -386,16 +386,14 @@ typedef const char *janus_gallery_file;
 JANUS_EXPORT janus_error janus_initialize_gallery(janus_gallery *gallery);
 
 /*!
- * \brief Add information to the gallery.
+ * \brief Add a template to the gallery.
  * \param[in] template_ The template to add.
- * \param[in] bytes Size of template_.
  * \param[in] template_id A unique identifier for the template.
- * \param[in] gallery The gallery to contain the template.
+ * \param[in] gallery The gallery to take ownership of the template.
  */
-JANUS_EXPORT janus_error janus_add_template(const janus_flat_template template_,
-                                            const size_t bytes,
-                                            const janus_template_id template_id,
-                                            janus_gallery gallery);
+JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
+                                      const janus_template_id template_id,
+                                      janus_gallery gallery);
 
 /*!
  * \brief Create the final gallery representation.
