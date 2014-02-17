@@ -53,7 +53,7 @@ vector<double> valuesFromStrings(const vector<string> &strings, size_t templateI
     return values;
 }
 
-janus_error readMetadataFile(janus_metadata_file file_name, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
+janus_error readMetadataFile(janus_metadata file_name, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
 {
     // Open file
     ifstream file(file_name);
@@ -120,30 +120,25 @@ janus_template createTemplate(const vector<string> &fileNames,
     return template_;
 }
 
-janus_error janus_create_template(janus_metadata_file name_file, janus_flat_template flat_template, size_t *bytes)
+janus_error janus_create_template(janus_metadata metadata, janus_flat_template flat_template, size_t *bytes)
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
-    janus_error error = readMetadataFile(name_file, fileNames, templateIDs, attributeLists);
+    janus_error error = readMetadataFile(metadata, fileNames, templateIDs, attributeLists);
     if (error != JANUS_SUCCESS)
         return error;
     janus_template template_ = createTemplate(fileNames, templateIDs, attributeLists);
     return janus_finalize_template(template_, flat_template, bytes);
 }
 
-janus_error janus_create_gallery(janus_metadata_file metadata_file, janus_gallery_file gallery_file)
+janus_error janus_create_gallery(janus_metadata metadata, janus_gallery gallery)
 {
     fprintf(stderr, "Enrolling 0/?");
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
-    janus_error error = readMetadataFile(metadata_file, fileNames, templateIDs, attributeLists);
-    if (error != JANUS_SUCCESS)
-        return error;
-
-    janus_gallery gallery;
-    error = janus_initialize_gallery(&gallery);
+    janus_error error = readMetadataFile(metadata, fileNames, templateIDs, attributeLists);
     if (error != JANUS_SUCCESS)
         return error;
 
@@ -163,11 +158,11 @@ janus_error janus_create_gallery(janus_metadata_file metadata_file, janus_galler
     }
     fprintf(stderr, "\rEnrolling %zu/%zu\n", i, attributeLists.size());
 
-    return janus_finalize_gallery(gallery, gallery_file);
+    return JANUS_SUCCESS;
 }
 
-janus_error janus_create_simmat(janus_gallery_file gallery,
-                                janus_metadata_file probes,
+janus_error janus_create_simmat(janus_gallery gallery,
+                                janus_metadata probes,
                                 const char *simmat_file)
 {
     fprintf(stderr, "Searching 0/?");

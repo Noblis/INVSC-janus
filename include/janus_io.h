@@ -108,28 +108,28 @@ Template_ID        , File_Name, Frame, <janus_attribute>, <janus_attribute>, ...
  * - [Kirchner.csv](https://raw.github.com/biometrics/janus/master/data/Kirchner.csv)
  * - [Toledo.csv](https://raw.github.com/biometrics/janus/master/data/Toledo.csv)
  */
-typedef const char *janus_metadata_file;
+typedef const char *janus_metadata;
 
 /*!
  * \brief High-level function for enrolling a template from a metadata file.
- * \param [in] file_name Path to a #janus_metadata_file to enroll.
+ * \param [in] metadata #janus_metadata file to enroll.
  * \param [in,out] flat_template Constructed template with preallocated buffer.
  * \param [out] bytes Size of flat_template.
  */
-JANUS_EXPORT janus_error janus_create_template(janus_metadata_file file_name, janus_flat_template flat_template, size_t *bytes);
+JANUS_EXPORT janus_error janus_create_template(janus_metadata metadata, janus_flat_template flat_template, size_t *bytes);
 
 /*!
  * \brief High-level function for enrolling a gallery from a metadata file.
- * \param [in] metadata_file Path to a #janus_metadata_file to enroll.
- * \param [in] gallery_file File to save the gallery to.
+ * \param [in] metadata #janus_metadata to enroll.
+ * \param [in] gallery File to save the gallery to.
  */
-JANUS_EXPORT janus_error janus_create_gallery(janus_metadata_file metadata_file, janus_gallery_file gallery_file);
+JANUS_EXPORT janus_error janus_create_gallery(janus_metadata metadata, janus_gallery gallery);
 
 /*!
  * \brief High-level function to create a similarity matrix.
  */
-JANUS_EXPORT janus_error janus_create_simmat(janus_gallery_file gallery,
-                                             janus_metadata_file probes,
+JANUS_EXPORT janus_error janus_create_simmat(janus_gallery gallery,
+                                             janus_metadata probes,
                                              const char *simmat_file);
 
 /*! @}*/

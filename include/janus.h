@@ -321,12 +321,12 @@ JANUS_EXPORT janus_error janus_set_tracking(janus_template template_,
 /*!
  * \brief Create the final template representation.
  * \param[in] template_ The recognition information to contruct the
- *                                template from. Deallocated after the template
- *                                is constructed.
+ *                      template from.
  * \param[in,out] flat_template A pre-allocated buffer no smaller than
  *                              \ref janus_max_template_size to contain the
  *                              final template.
  * \param[out] bytes Size of the buffer actually used to store the template.
+ * \note template_ is deallocated by this function.
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
                                                  janus_flat_template
@@ -357,51 +357,28 @@ JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
 typedef int janus_template_id;
 
 /*!
- * \brief A set of \ref janus_template.
+ * \brief A set of \ref janus_template in a file.
  *
- * Create a new gallery with \ref janus_initialize_gallery.
  * Add templates to the gallery using \ref janus_enroll.
- * Finalize the gallery for comparison with \ref janus_finalize_gallery.
- * \see janus_gallery_file
  */
-typedef struct janus_gallery_type *janus_gallery;
-
-/*!
- * \brief A finalized representation of the gallery suitable for search.
- * \see janus_gallery
- */
-typedef const char *janus_gallery_file;
-
-/*!
- * \brief Create an empty gallery for enrollment.
- * \param[in] gallery The gallery to initialize for enrollment.
- */
-JANUS_EXPORT janus_error janus_initialize_gallery(janus_gallery *gallery);
+typedef const char *janus_gallery;
 
 /*!
  * \brief Add a template to the gallery.
  * \param[in] template_ The template to add.
  * \param[in] template_id A unique identifier for the template.
- * \param[in] gallery The gallery to take ownership of the template.
+ * \param[in] gallery The gallery to take ownership of the template. The file
+ *                    will be created if it does not already exist.
+ * \note template_ is deallocated by this function.
  */
 JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
                                       const janus_template_id template_id,
                                       janus_gallery gallery);
 
 /*!
- * \brief Create the final gallery representation.
- * \param[in] gallery The recognition information to contruct the gallery from.
- *                    Deallocated after the gallery is constructed.
- * \param[out] gallery_file File path to save the gallery to.
- */
-JANUS_EXPORT janus_error janus_finalize_gallery(janus_gallery gallery,
-                                                janus_gallery_file
-                                                                  gallery_file);
-
-/*!
  * \brief Ranked search for a template against a gallery.
  * \param [in] template_ Probe to search for.
- * \param [in] gallery_file Gallery to search against.
+ * \param [in] gallery Gallery to search against.
  * \param [in] requested_returns The desired number of returned results.
  * \param [out] template_ids Buffer to contain the unique identifiers of the top
  *                           matching templates.
@@ -415,7 +392,7 @@ JANUS_EXPORT janus_error janus_finalize_gallery(janus_gallery gallery,
  * \see janus_verify
  */
 JANUS_EXPORT janus_error janus_search(const janus_template template_,
-                                      janus_gallery_file gallery_file,
+                                      janus_gallery gallery,
                                       int requested_returns,
                                       janus_template_id *template_ids,
                                       double *similarities,
