@@ -114,16 +114,23 @@ typedef const char *janus_metadata_file;
  * \brief High-level function for enrolling a template from a metadata file.
  * \param [in] file_name Path to a #janus_metadata_file to enroll.
  * \param [in,out] flat_template Constructed template with preallocated buffer.
- * \param [out] bytes Size of template_.
+ * \param [out] bytes Size of flat_template.
  */
-JANUS_EXPORT janus_error janus_enroll_template(janus_metadata_file file_name, janus_flat_template flat_template, size_t *bytes);
+JANUS_EXPORT janus_error janus_create_template(janus_metadata_file file_name, janus_flat_template flat_template, size_t *bytes);
 
 /*!
  * \brief High-level function for enrolling a gallery from a metadata file.
  * \param [in] metadata_file Path to a #janus_metadata_file to enroll.
  * \param [in] gallery_file File to save the gallery to.
  */
-JANUS_EXPORT janus_error janus_enroll_gallery(janus_metadata_file metadata_file, janus_gallery_file gallery_file);
+JANUS_EXPORT janus_error janus_create_gallery(janus_metadata_file metadata_file, janus_gallery_file gallery_file);
+
+/*!
+ * \brief High-level function to create a similarity matrix.
+ */
+JANUS_EXPORT janus_error janus_create_simmat(janus_metadata_file target_metadata,
+                                             janus_metadata_file query_metadata,
+                                             const char *simmat_file);
 
 /*! @}*/
 

@@ -120,7 +120,7 @@ janus_template createTemplate(const vector<string> &fileNames,
     return template_;
 }
 
-janus_error janus_enroll_template(janus_metadata_file name_file, janus_flat_template flat_template, size_t *bytes)
+janus_error janus_create_template(janus_metadata_file name_file, janus_flat_template flat_template, size_t *bytes)
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
@@ -132,7 +132,7 @@ janus_error janus_enroll_template(janus_metadata_file name_file, janus_flat_temp
     return janus_finalize_template(template_, flat_template, bytes);
 }
 
-janus_error janus_enroll_gallery(janus_metadata_file metadata_file, janus_gallery_file gallery_file)
+janus_error janus_create_gallery(janus_metadata_file metadata_file, janus_gallery_file gallery_file)
 {
     fprintf(stderr, "Enrolling 0/?");
     vector<string> fileNames;
@@ -164,4 +164,14 @@ janus_error janus_enroll_gallery(janus_metadata_file metadata_file, janus_galler
     fprintf(stderr, "\rEnrolling %zu/%zu\n", i, attributeLists.size());
 
     return janus_finalize_gallery(gallery, gallery_file);
+}
+
+janus_error janus_create_simmat(janus_metadata_file target_metadata,
+                                janus_metadata_file query_metadata,
+                                const char *simmat_file)
+{
+    (void) target_metadata;
+    (void) query_metadata;
+    (void) simmat_file;
+    return JANUS_SUCCESS;
 }

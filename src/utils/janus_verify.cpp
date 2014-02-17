@@ -14,12 +14,12 @@ int main(int argc, char *argv[])
 
     janus_flat_template target = new janus_data[janus_max_template_size()];
     size_t target_bytes;
-    JANUS_TRY(janus_enroll_template(argv[2], target, &target_bytes))
+    JANUS_TRY(janus_create_template(argv[2], target, &target_bytes))
     printf("Target bytes: %zu\n", target_bytes);
 
     janus_flat_template query = new janus_data[janus_max_template_size()];
     size_t query_bytes;
-    JANUS_TRY(janus_enroll_template(argv[3], query, &query_bytes))
+    JANUS_TRY(janus_create_template(argv[3], query, &query_bytes))
     printf("Query bytes: %zu\n", query_bytes);
 
     double similarity;
