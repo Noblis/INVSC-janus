@@ -166,12 +166,36 @@ janus_error janus_create_gallery(janus_metadata_file metadata_file, janus_galler
     return janus_finalize_gallery(gallery, gallery_file);
 }
 
-janus_error janus_create_simmat(janus_metadata_file target_metadata,
-                                janus_metadata_file query_metadata,
+janus_error janus_create_simmat(janus_gallery_file gallery,
+                                janus_metadata_file probes,
                                 const char *simmat_file)
 {
-    (void) target_metadata;
-    (void) query_metadata;
+    fprintf(stderr, "Searching 0/?");
+    vector<string> fileNames;
+    vector<janus_template_id> templateIDs;
+    vector<janus_attribute_list> attributeLists;
+    janus_error error = readMetadataFile(probes, fileNames, templateIDs, attributeLists);
+    if (error != JANUS_SUCCESS)
+        return error;
+
+    size_t i = 0;
+    while (i < attributeLists.size()) {
+        fprintf(stderr, "\rSearching %zu/%zu", i, attributeLists.size());
+        size_t j = i;
+        while ((j < attributeLists.size()) && (templateIDs[j] == templateIDs[i]))
+            j++;
+        janus_template template_ = createTemplate(vector<string>(fileNames.begin()+i, fileNames.begin()+j),
+                                                  vector<janus_template_id>(templateIDs.begin()+i, templateIDs.begin()+j),
+                                                  vector<janus_attribute_list>(attributeLists.begin()+i, attributeLists.begin()+j));
+        (void) template_;
+//        error = janus_search(template_, gallery_file, )
+        if (error != JANUS_SUCCESS)
+            return error;
+        i = j;
+    }
+    fprintf(stderr, "\rSearching %zu/%zu\n", i, attributeLists.size());
+
+    (void) gallery;
     (void) simmat_file;
     return JANUS_SUCCESS;
 }
