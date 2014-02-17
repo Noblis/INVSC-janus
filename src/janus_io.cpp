@@ -102,28 +102,28 @@ janus_error readMetadataFile(janus_metadata_file file_name, vector<string> &file
 janus_error enrollTemplate(const vector<string> &fileNames,
                            const vector<janus_template_id> &templateIDs,
                            const vector<janus_attribute_list> &attributeLists,
-                           janus_template template_,
+                           janus_flat_template flat_template,
                            size_t *bytes)
 {
     for (size_t i=1; i<templateIDs.size(); i++)
         if (templateIDs[i] != templateIDs[0])
             return JANUS_TEMPLATE_ID_MISMATCH;
 
-    janus_incomplete_template incomplete_template;
-    JANUS_TRY(janus_initialize_template(&incomplete_template))
+    janus_template template_;
+    JANUS_TRY(janus_initialize_template(&template_))
 
     for (size_t i=0; i<fileNames.size(); i++) {
         janus_image image;
         JANUS_TRY(janus_read_image(fileNames[i].c_str(), &image))
-        JANUS_TRY(janus_add_image(image, attributeLists[i], incomplete_template));
+        JANUS_TRY(janus_add_image(image, attributeLists[i], template_));
         janus_free_image(image);
     }
 
-    JANUS_TRY(janus_finalize_template(incomplete_template, template_, bytes));
+    JANUS_TRY(janus_finalize_template(template_, flat_template, bytes));
     return JANUS_SUCCESS;
 }
 
-janus_error janus_enroll_template(janus_metadata_file name_file, janus_template template_, size_t *bytes)
+janus_error janus_enroll_template(janus_metadata_file name_file, janus_flat_template flat_template, size_t *bytes)
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
@@ -131,7 +131,7 @@ janus_error janus_enroll_template(janus_metadata_file name_file, janus_template 
     janus_error error = readMetadataFile(name_file, fileNames, templateIDs, attributeLists);
     if (error != JANUS_SUCCESS)
         return error;
-    return enrollTemplate(fileNames, templateIDs, attributeLists, template_, bytes);
+    return enrollTemplate(fileNames, templateIDs, attributeLists, flat_template, bytes);
 }
 
 janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gallery_file)
@@ -153,7 +153,7 @@ janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gall
         size_t j = i;
         while ((j < attributeLists.size()) && (templateIDs[j] == templateIDs[i]))
             j++;
-        janus_template template_ = new janus_data[janus_max_template_size()];
+        janus_flat_template template_ = new janus_data[janus_max_template_size()];
         size_t bytes;
         enrollTemplate(vector<string>(fileNames.begin()+i, fileNames.begin()+j),
                        vector<janus_template_id>(templateIDs.begin()+i, templateIDs.begin()+j),
