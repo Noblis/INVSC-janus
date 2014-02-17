@@ -399,23 +399,27 @@ JANUS_EXPORT janus_error janus_finalize_gallery(janus_gallery gallery,
                                                                   gallery_file);
 
 /*!
- * \brief Ranked search against a gallery for a template.
+ * \brief Ranked search for a template against a gallery.
  * \param [in] template_ Probe to search for.
  * \param [in] gallery_file Gallery to search against.
- * \param [in] num_requested_returns The desired number of returned results.
- * \param [out] template_ids Unique identifiers of the matching templates.
- * \param [out] similarities Similarity score for each of the top matching
- *                           templates.
- * \param [out] num_actual_returns The length of \em template_ids and \em
- *                                 similarities.
+ * \param [in] requested_returns The desired number of returned results.
+ * \param [out] template_ids Buffer to contain the unique identifiers of the top
+ *                           matching templates.
+ * \param [out] similarities Buffer to contain the similarity score for each of
+ *                           the top matching templates.
+ * \param [out] actual_returns The number of populated elements in template_ids
+ *                             and similarities.
+ * \note template_ids and similaries should be pre-allocated buffers large
+ *       enough to contain requested_returns elements. actual_returns will be
+ *       less than or equal to requested_returns.
  * \see janus_verify
  */
-JANUS_EXPORT janus_error janus_search(const janus_flat_template template_,
+JANUS_EXPORT janus_error janus_search(const janus_template template_,
                                       janus_gallery_file gallery_file,
-                                      int num_requested_returns,
+                                      int requested_returns,
                                       janus_template_id *template_ids,
                                       double *similarities,
-                                      int *num_actual_returns);
+                                      int *actual_returns);
 
 /*!
  * \brief Train a new model from the provided templates.
