@@ -136,6 +136,7 @@ janus_error janus_enroll_template(janus_metadata_file name_file, janus_flat_temp
 
 janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gallery_file)
 {
+    fprintf(stderr, "Enrolling 0/?");
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
@@ -143,13 +144,14 @@ janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gall
     if (error != JANUS_SUCCESS)
         return error;
 
-    janus_gallery incomplete_gallery;
-    error = janus_initialize_gallery(&incomplete_gallery);
+    janus_gallery gallery;
+    error = janus_initialize_gallery(&gallery);
     if (error != JANUS_SUCCESS)
         return error;
 
     size_t i = 0;
     while (i < attributeLists.size()) {
+        fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
         size_t j = i;
         while ((j < attributeLists.size()) && (templateIDs[j] == templateIDs[i]))
             j++;
@@ -160,10 +162,12 @@ janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gall
                        vector<janus_attribute_list>(attributeLists.begin()+i, attributeLists.begin()+j),
                        template_,
                        &bytes);
-        error = janus_add_template(template_, bytes, templateIDs[i], incomplete_gallery);
+        error = janus_add_template(template_, bytes, templateIDs[i], gallery);
         if (error != JANUS_SUCCESS)
             return error;
+        i = j;
     }
+    fprintf(stderr, "\rEnrolling %zu/%zu\n", i, attributeLists.size());
 
-    return janus_finalize_gallery(incomplete_gallery, gallery_file);
+    return janus_finalize_gallery(gallery, gallery_file);
 }
