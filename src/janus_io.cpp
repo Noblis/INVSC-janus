@@ -132,13 +132,13 @@ janus_error janus_enroll_template(janus_metadata_file name_file, janus_flat_temp
     return janus_finalize_template(template_, flat_template, bytes);
 }
 
-janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gallery_file)
+janus_error janus_enroll_gallery(janus_metadata_file metadata_file, janus_gallery_file gallery_file)
 {
     fprintf(stderr, "Enrolling 0/?");
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
-    janus_error error = readMetadataFile(file_name, fileNames, templateIDs, attributeLists);
+    janus_error error = readMetadataFile(metadata_file, fileNames, templateIDs, attributeLists);
     if (error != JANUS_SUCCESS)
         return error;
 

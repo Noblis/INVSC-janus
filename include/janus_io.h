@@ -97,7 +97,7 @@ Template_ID        , File_Name, Frame, <janus_attribute>, <janus_attribute>, ...
  * Where:
  * - [Template_ID](\ref janus_template_id) is a unique integer identifier indicating rows that belong to the same template.
  * - \c File_Name is a path to the image or video file on disk.
- * - \c Frame is the video frame number or -1 for still images.
+ * - \c Frame is the video frame number and -1 (or empty string) for still images.
  *
  * Metadata files should adhere to the following "sane" conventions:
  * - All rows associated with the same \c Template_ID should occur sequentially.
@@ -120,10 +120,10 @@ JANUS_EXPORT janus_error janus_enroll_template(janus_metadata_file file_name, ja
 
 /*!
  * \brief High-level function for enrolling a gallery from a metadata file.
- * \param [in] file_name Path to a #janus_metadata_file to enroll.
+ * \param [in] metadata_file Path to a #janus_metadata_file to enroll.
  * \param [in] gallery_file File to save the gallery to.
  */
-JANUS_EXPORT janus_error janus_enroll_gallery(janus_metadata_file file_name, const char *gallery_file);
+JANUS_EXPORT janus_error janus_enroll_gallery(janus_metadata_file metadata_file, janus_gallery_file gallery_file);
 
 /*! @}*/
 

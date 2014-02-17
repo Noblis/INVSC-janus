@@ -100,17 +100,9 @@ extern "C" {
 #  endif
 #endif
 
-///@{
-/*!
- * \anchor version
- * \name Version
- * Janus uses the <a href="http://semver.org/">Semantic Versioning</a>
- * convention for assigning and incrementing version numbers.
- */
 #define JANUS_VERSION_MAJOR 0
 #define JANUS_VERSION_MINOR 1
 #define JANUS_VERSION_PATCH 0
-///@}
 
 /*!
  * \brief Return type for functions that indicate an error status.
@@ -216,7 +208,8 @@ typedef struct janus_image
 typedef enum janus_attribute
 {
     JANUS_INVALID_ATTRIBUTE   = 0,  /*!< Catch-all error code */
-    JANUS_FRAME               = 1,  /*!< Video frame number, -1 for images */
+    JANUS_FRAME               = 1,  /*!< Video frame number, -1 (or not present)
+                                         for still images */
     JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark (pixels) */
     JANUS_RIGHT_EYE_Y         = 33, /*!< Face landmark (pixels) */
     JANUS_LEFT_EYE_X          = 34, /*!< Face landmark (pixels) */
