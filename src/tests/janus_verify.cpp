@@ -5,12 +5,12 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4) {
-        printf("Usage: janus_verify sdk_path target_csv query_csv\n");
+    if ((argc < 4) || (argc > 5)) {
+        printf("Usage: janus_verify sdk_path target_metadata_file query_metadata_file [algorithm]\n");
         return 1;
     }
 
-    JANUS_TRY(janus_initialize(argv[1], ""))
+    JANUS_TRY(janus_initialize(argv[1], argc >= 5 ? argv[4] : ""))
 
     janus_flat_template target = new janus_data[janus_max_template_size()];
     size_t target_bytes;
