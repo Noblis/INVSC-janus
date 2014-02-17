@@ -309,27 +309,21 @@ JANUS_EXPORT janus_error janus_initialize_template(janus_template *template_);
  *                       object to recognize.
  * \param[in,out] template_ The template to contain the object's recognition
  *                          information.
- * \see janus_add_video
+ * \see janus_set_tracking
  */
 JANUS_EXPORT janus_error janus_add_image(const janus_image image,
                                          const janus_attribute_list attributes,
                                          janus_template template_);
 
 /*!
- * \brief Add information to the template.
- * \param[in] frames An array of frames containing the detected object.
- * \param[in] attributes Location and metadata associated with the detected and
- *                       tracked object to recognize.
- * \param[in] num_frames Lenth of \em frames and \em attributes.
- * \param[in,out] template_ The template to contain the object's recognition
- *                          information.
- * \note Memory constraints may require this function to be changed.
+ * \brief Enable or disable object tracking.
+ * \param[in] template_ The template to contain the tracked object.
+ * \param[in] enabled Subsequent calls to \ref janus_add_image will have a
+ *                    temporal relationship.
  * \see janus_add_image
  */
-JANUS_EXPORT janus_error janus_add_video(const janus_image *frames,
-                                         const janus_attribute_list *attributes,
-                                         const size_t num_frames,
-                                         janus_template template_);
+JANUS_EXPORT janus_error janus_set_tracking(janus_template template_,
+                                            int enabled);
 
 /*!
  * \brief Create the final template representation.
