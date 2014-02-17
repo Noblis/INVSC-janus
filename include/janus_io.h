@@ -128,8 +128,9 @@ JANUS_EXPORT janus_error janus_create_gallery(janus_metadata metadata, janus_gal
 /*!
  * \brief High-level function to create a similarity matrix.
  */
-JANUS_EXPORT janus_error janus_create_simmat(janus_gallery gallery,
-                                             janus_metadata probes,
+JANUS_EXPORT janus_error janus_create_simmat(janus_metadata gallery_metadata,
+                                             janus_metadata probe_metadata,
+                                             janus_gallery gallery,
                                              const char *simmat_file);
 
 /*! @}*/
