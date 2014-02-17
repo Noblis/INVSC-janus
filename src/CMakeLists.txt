@@ -19,5 +19,5 @@ endif()
 # Janus API documentation
 add_subdirectory(doxygen)
 
-# Janus unit tests
-add_subdirectory(tests)
+# Janus command line utilities
+add_subdirectory(utils)
