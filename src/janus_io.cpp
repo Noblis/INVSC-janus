@@ -179,6 +179,13 @@ struct FlatTemplate
             delete data;
         }
     }
+
+    janus_error compareTo(const FlatTemplate &other, float *similarity) const
+    {
+        double score;
+        return janus_verify(data->flat_template, data->bytes, other.data->flat_template, other.data->bytes, &score);
+        *similarity = score;
+    }
 };
 
 static janus_error getFlatTemplates(janus_metadata metadata, vector<FlatTemplate> &flatTemplates)
@@ -196,13 +203,32 @@ static janus_error getFlatTemplates(janus_metadata metadata, vector<FlatTemplate
     return JANUS_SUCCESS;
 }
 
+static void writeMat(void *data, int rows, int columns, bool isMask, janus_metadata target, janus_metadata query, const char *matrix)
+{
+    ofstream stream(matrix);
+    stream << "S2\n"
+           << target << '\n'
+           << query << '\n'
+           << 'M' << (isMask ? 'B' : 'F') << ' '
+           << rows << ' '  << columns << ' ';
+    int endian = 0x12345678;
+    stream.write((const char*)&endian, 4);
+    stream << '\n';
+    stream.write((const char*)data, rows * columns * (isMask ? 1 : 4));
+}
+
 janus_error janus_create_simmat(janus_metadata gallery_metadata,
                                 janus_metadata probe_metadata,
-                                const char *simmat_file)
+                                const char *simmat)
 {
     vector<FlatTemplate> gallery, probe;
     JANUS_CHECK(getFlatTemplates(gallery_metadata, gallery))
     JANUS_CHECK(getFlatTemplates(probe_metadata, probe))
-    (void) simmat_file;
+    float *scores = new float[gallery.size() * probe.size()];
+    for (size_t i=0; i<probe.size(); i++)
+        for (size_t j=0; j<gallery.size(); j++)
+            JANUS_CHECK(probe[i].compareTo(gallery[j], &scores[i*gallery.size()+j]));
+    writeMat(scores, probe.size(), gallery.size(), false, gallery_metadata, probe_metadata, simmat);
+    delete[] scores;
     return JANUS_SUCCESS;
 }

@@ -130,7 +130,7 @@ JANUS_EXPORT janus_error janus_create_gallery(janus_metadata metadata, janus_gal
  */
 JANUS_EXPORT janus_error janus_create_simmat(janus_metadata gallery_metadata,
                                              janus_metadata probe_metadata,
-                                             const char *simmat_file);
+                                             const char *simmat);
 
 /*! @}*/
 
