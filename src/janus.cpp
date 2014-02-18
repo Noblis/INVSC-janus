@@ -26,7 +26,6 @@ const char *janus_error_to_string(janus_error error)
         ENUM_CASE(JANUS_MISSING_TEMPLATE_ID)
         ENUM_CASE(JANUS_MISSING_FILE_NAME)
         ENUM_CASE(JANUS_NULL_ATTRIBUTE_LIST)
-        ENUM_CASE(JANUS_TEMPLATE_ID_MISMATCH)
         ENUM_DEFAULT
     }
 }

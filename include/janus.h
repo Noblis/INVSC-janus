@@ -127,8 +127,7 @@ typedef enum janus_error
     JANUS_INVALID_VIDEO        = 9,  /*!< Could not decode video file */
     JANUS_MISSING_TEMPLATE_ID  = 10, /*!< Expected a missing template ID */
     JANUS_MISSING_FILE_NAME    = 11, /*!< Expected a missing file name */
-    JANUS_NULL_ATTRIBUTE_LIST  = 13, /*!< Null #janus_attribute_list */
-    JANUS_TEMPLATE_ID_MISMATCH = 14  /*!< Expected matching template IDs */
+    JANUS_NULL_ATTRIBUTE_LIST  = 13  /*!< Null #janus_attribute_list */
 } janus_error;
 
 /*!
@@ -139,19 +138,33 @@ typedef enum janus_error
 JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 
 /*!
- * \brief The \c JANUS_TRY macro provides a simple error handling mechanism.
+ * \brief The \c JANUS_ASSERT macro provides a simple unrecoverable error
+ *        handling mechanism.
+ * \see JANUS_CHECK
  */
-#define JANUS_TRY(JANUS_API_CALL)                           \
-{                                                           \
-    const janus_error error = (JANUS_API_CALL);             \
-    if (error != JANUS_SUCCESS) {                           \
-        printf("Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
-               janus_error_to_string(error),                \
-               __FILE__,                                    \
-               __LINE__);                                   \
-        abort();                                            \
-    }                                                       \
-}                                                           \
+#define JANUS_ASSERT(EXPRESSION)                                     \
+{                                                                    \
+    const janus_error error = (EXPRESSION);                          \
+    if (error != JANUS_SUCCESS) {                                    \
+        fprintf(stderr, "Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
+                janus_error_to_string(error),                        \
+                __FILE__,                                            \
+                __LINE__);                                           \
+        abort();                                                     \
+    }                                                                \
+}                                                                    \
+
+/*!
+ * \brief The \c JANUS_CHECK macro provides a simple recoverable error
+ *        handling mechanism
+ * \see JANUS_ASSERT
+ */
+#define JANUS_CHECK(EXPRESSION)             \
+{                                           \
+    const janus_error error = (EXPRESSION); \
+    if (error != JANUS_SUCCESS)             \
+        return error;                       \
+}                                           \
 
 /*!
  * \brief Data buffer type.

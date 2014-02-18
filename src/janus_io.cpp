@@ -1,3 +1,4 @@
+// These file is designed to have no dependencies outside the C++ Standard Library
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -9,51 +10,17 @@
 
 using namespace std;
 
-// These functions have no external dependencies
-
-vector<string> split(const string &str, char delim)
+static vector<string> split(const string &str)
 {
     vector<string> elems;
     stringstream ss(str);
     string item;
-    while (getline(ss, item, delim))
+    while (getline(ss, item, ','))
         elems.push_back(item);
     return elems;
 }
 
-vector<janus_attribute> attributesFromStrings(const vector<string> &strings, int *templateIDIndex, int *fileNameIndex)
-{
-    vector<janus_attribute> attributes;
-    for (size_t i=0; i<strings.size(); i++) {
-        const string &str = strings[i];
-        if      (str == "Template_ID") *templateIDIndex = i;
-        else if (str == "File_Name")   *fileNameIndex = i;
-        else if (str == "Frame")       attributes.push_back(JANUS_FRAME);
-        else if (str == "Right_Eye_X") attributes.push_back(JANUS_RIGHT_EYE_X);
-        else if (str == "Right_Eye_Y") attributes.push_back(JANUS_RIGHT_EYE_Y);
-        else if (str == "Left_Eye_X")  attributes.push_back(JANUS_LEFT_EYE_X);
-        else if (str == "Left_Eye_Y")  attributes.push_back(JANUS_LEFT_EYE_Y);
-        else if (str == "Nose_Base_X") attributes.push_back(JANUS_NOSE_BASE_X);
-        else if (str == "Nose_Base_Y") attributes.push_back(JANUS_NOSE_BASE_Y);
-        else                           attributes.push_back(JANUS_INVALID_ATTRIBUTE);
-    }
-    return attributes;
-}
-
-vector<double> valuesFromStrings(const vector<string> &strings, size_t templateIDIndex, size_t fileNameIndex)
-{
-    vector<double> values;
-    for (size_t i=0; i<strings.size(); i++) {
-        if ((i == templateIDIndex) || (i == fileNameIndex))
-            continue;
-        const string &str = strings[i];
-        if (str.empty()) values.push_back(numeric_limits<float>::quiet_NaN());
-        else             values.push_back(atof(str.c_str()));
-    }
-    return values;
-}
-
-janus_error readMetadataFile(janus_metadata file_name, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
+static janus_error readMetadataFile(janus_metadata file_name, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
 {
     // Open file
     ifstream file(file_name);
@@ -63,29 +30,48 @@ janus_error readMetadataFile(janus_metadata file_name, vector<string> &fileNames
     // Parse header
     string line;
     getline(file, line);
+    vector<string> attributeNames = split(line);
+    vector<janus_attribute> attributes;
     int templateIDIndex = -1, fileNameIndex = -1;
-    vector<janus_attribute> attributes = attributesFromStrings(split(line, ','), &templateIDIndex, &fileNameIndex);
+    for (size_t i=0; i<attributeNames.size(); i++) {
+        const string &attributeName = attributeNames[i];
+        if      (attributeName == "Template_ID") templateIDIndex = i;
+        else if (attributeName == "File_Name")   fileNameIndex = i;
+        else if (attributeName == "Frame")       attributes.push_back(JANUS_FRAME);
+        else if (attributeName == "Right_Eye_X") attributes.push_back(JANUS_RIGHT_EYE_X);
+        else if (attributeName == "Right_Eye_Y") attributes.push_back(JANUS_RIGHT_EYE_Y);
+        else if (attributeName == "Left_Eye_X")  attributes.push_back(JANUS_LEFT_EYE_X);
+        else if (attributeName == "Left_Eye_Y")  attributes.push_back(JANUS_LEFT_EYE_Y);
+        else if (attributeName == "Nose_Base_X") attributes.push_back(JANUS_NOSE_BASE_X);
+        else if (attributeName == "Nose_Base_Y") attributes.push_back(JANUS_NOSE_BASE_Y);
+        else                           attributes.push_back(JANUS_INVALID_ATTRIBUTE);
+    }
+
     if (templateIDIndex == -1) return JANUS_MISSING_TEMPLATE_ID;
-    if (fileNameIndex == -1) return JANUS_MISSING_FILE_NAME;
+    if (fileNameIndex   == -1) return JANUS_MISSING_FILE_NAME;
 
     // Parse rows
     while (getline(file, line)) {
-        const vector<string> words = split(line, ',');
-
-        // Make sure all files have the same template ID
+        const vector<string> words = split(line);
         fileNames.push_back(words[fileNameIndex]);
         templateIDs.push_back(atoi(words[templateIDIndex].c_str()));
-        vector<double> values = valuesFromStrings(words, templateIDIndex, fileNameIndex);
+        vector<double> values;
+        for (int i=0; i < (int)words.size(); i++) {
+            if ((i == templateIDIndex) || (i == fileNameIndex))
+                continue;
+            if (words[i].empty()) values.push_back(numeric_limits<float>::quiet_NaN());
+            else                  values.push_back(atof(words[i].c_str()));
+        }
+
         if (values.size() != attributes.size())
             return JANUS_PARSE_ERROR;
-        const size_t n = attributes.size();
 
         // Construct attribute list, removing missing fields
         janus_attribute_list attributeList;
         attributeList.size = 0;
-        attributeList.attributes = new janus_attribute[n];
-        attributeList.values = new double[n];
-        for (size_t i=0; i<n; i++) {
+        attributeList.attributes = new janus_attribute[attributes.size()];
+        attributeList.values = new double[attributes.size()];
+        for (size_t i=0; i<attributes.size(); i++) {
             if (values[i] != values[i]) /* NaN */ continue;
             attributeList.attributes[attributeList.size] = attributes[i];
             attributeList.values[attributeList.size] = values[i];
@@ -99,80 +85,69 @@ janus_error readMetadataFile(janus_metadata file_name, vector<string> &fileNames
     return JANUS_SUCCESS;
 }
 
-janus_template createTemplate(const vector<string> &fileNames,
-                              const vector<janus_template_id> &templateIDs,
-                              const vector<janus_attribute_list> &attributeLists)
-{
-    for (size_t i=1; i<templateIDs.size(); i++)
-        if (templateIDs[i] != templateIDs[0])
-            JANUS_TRY(JANUS_TEMPLATE_ID_MISMATCH)
-
-    janus_template template_;
-    JANUS_TRY(janus_initialize_template(&template_))
-
-    for (size_t i=0; i<fileNames.size(); i++) {
-        janus_image image;
-        JANUS_TRY(janus_read_image(fileNames[i].c_str(), &image))
-        JANUS_TRY(janus_augment(image, attributeLists[i], template_));
-        janus_free_image(image);
-    }
-
-    return template_;
-}
-
-janus_error janus_create_template(janus_metadata metadata, janus_flat_template flat_template, size_t *bytes)
+class TemplateIterator
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
-    janus_error error = readMetadataFile(metadata, fileNames, templateIDs, attributeLists);
-    if (error != JANUS_SUCCESS)
-        return error;
-    janus_template template_ = createTemplate(fileNames, templateIDs, attributeLists);
-    return janus_finalize_template(template_, flat_template, bytes);
+    size_t i;
+
+public:
+    janus_error error;
+
+    TemplateIterator(janus_metadata metadata)
+    {
+        fprintf(stderr, "Enrolling 0/?");
+        error = readMetadataFile(metadata, fileNames, templateIDs, attributeLists);
+        i = 0;
+    }
+
+    janus_template next(janus_template_id *templateID)
+    {
+        if (i >= attributeLists.size())
+            return NULL;
+
+        *templateID = templateIDs[i];
+        janus_template template_;
+        JANUS_ASSERT(janus_initialize_template(&template_))
+        while ((i < attributeLists.size()) && (templateIDs[i] == *templateID)) {
+            janus_image image;
+            JANUS_ASSERT(janus_read_image(fileNames[i].c_str(), &image))
+            JANUS_ASSERT(janus_augment(image, attributeLists[i], template_));
+            janus_free_image(image);
+            i++;
+            fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
+        }
+        return template_;
+    }
+};
+
+janus_error janus_create_template(janus_metadata metadata, janus_template *template_, janus_template_id *template_id)
+{
+    TemplateIterator ti(metadata);
+    *template_ = ti.next(template_id);
+    return ti.error;
 }
 
 janus_error janus_create_gallery(janus_metadata metadata, janus_gallery gallery)
 {
-    fprintf(stderr, "Enrolling 0/?");
-    vector<string> fileNames;
-    vector<janus_template_id> templateIDs;
-    vector<janus_attribute_list> attributeLists;
-    janus_error error = readMetadataFile(metadata, fileNames, templateIDs, attributeLists);
-    if (error != JANUS_SUCCESS)
-        return error;
-
-    size_t i = 0;
-    while (i < attributeLists.size()) {
-        fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
-        size_t j = i;
-        while ((j < attributeLists.size()) && (templateIDs[j] == templateIDs[i]))
-            j++;
-        janus_template template_ = createTemplate(vector<string>(fileNames.begin()+i, fileNames.begin()+j),
-                                                  vector<janus_template_id>(templateIDs.begin()+i, templateIDs.begin()+j),
-                                                  vector<janus_attribute_list>(attributeLists.begin()+i, attributeLists.begin()+j));
-        error = janus_enroll(template_, templateIDs[i], gallery);
-        if (error != JANUS_SUCCESS)
-            return error;
-        i = j;
-    }
-    fprintf(stderr, "\rEnrolling %zu/%zu\n", i, attributeLists.size());
-
+    TemplateIterator ti(metadata);
+    JANUS_CHECK(ti.error)
+    janus_template_id templateID;
+    while (janus_template template_ = ti.next(&templateID))
+        JANUS_CHECK(janus_enroll(template_, templateID, gallery))
     return JANUS_SUCCESS;
 }
 
 janus_error janus_create_simmat(janus_metadata gallery_metadata,
                                 janus_metadata probe_metadata,
-                                janus_gallery gallery,
                                 const char *simmat_file)
 {
     fprintf(stderr, "Searching 0/?");
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
-    janus_error error = readMetadataFile(probe_metadata, fileNames, templateIDs, attributeLists);
-    if (error != JANUS_SUCCESS)
-        return error;
+    JANUS_CHECK(readMetadataFile(probe_metadata, fileNames, templateIDs, attributeLists))
 
     size_t i = 0;
     while (i < attributeLists.size()) {
@@ -180,19 +155,14 @@ janus_error janus_create_simmat(janus_metadata gallery_metadata,
         size_t j = i;
         while ((j < attributeLists.size()) && (templateIDs[j] == templateIDs[i]))
             j++;
-        janus_template template_ = createTemplate(vector<string>(fileNames.begin()+i, fileNames.begin()+j),
-                                                  vector<janus_template_id>(templateIDs.begin()+i, templateIDs.begin()+j),
-                                                  vector<janus_attribute_list>(attributeLists.begin()+i, attributeLists.begin()+j));
-        (void) template_;
+//        janus_template template_ = createTemplate(vector<string>(fileNames.begin()+i, fileNames.begin()+j),
+//                                                  vector<janus_attribute_list>(attributeLists.begin()+i, attributeLists.begin()+j));
+//        (void) template_;
 //        error = janus_search(template_, gallery_file, )
-        if (error != JANUS_SUCCESS)
-            return error;
-        i = j;
     }
     fprintf(stderr, "\rSearching %zu/%zu\n", i, attributeLists.size());
 
     (void) gallery_metadata;
-    (void) gallery;
     (void) simmat_file;
     return JANUS_SUCCESS;
 }
