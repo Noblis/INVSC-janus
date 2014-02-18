@@ -10,6 +10,11 @@
 
 using namespace std;
 
+static bool endsWith(const string &str, const string &ending)
+{
+    return (str.length() >= ending.length()) && !str.compare(str.length() - ending.length(), ending.length(), ending);
+}
+
 struct TemplateIterator
 {
     vector<string> fileNames;
@@ -32,14 +37,14 @@ struct TemplateIterator
         getline(attributeNames, attributeName, ','); // File_Name
         vector<janus_attribute> attributes;
         while (getline(attributeNames, attributeName, ',')) {
-            if      (attributeName == "Frame")       attributes.push_back(JANUS_FRAME);
-            else if (attributeName == "Right_Eye_X") attributes.push_back(JANUS_RIGHT_EYE_X);
-            else if (attributeName == "Right_Eye_Y") attributes.push_back(JANUS_RIGHT_EYE_Y);
-            else if (attributeName == "Left_Eye_X")  attributes.push_back(JANUS_LEFT_EYE_X);
-            else if (attributeName == "Left_Eye_Y")  attributes.push_back(JANUS_LEFT_EYE_Y);
-            else if (attributeName == "Nose_Base_X") attributes.push_back(JANUS_NOSE_BASE_X);
-            else if (attributeName == "Nose_Base_Y") attributes.push_back(JANUS_NOSE_BASE_Y);
-            else                                     attributes.push_back(JANUS_INVALID_ATTRIBUTE);
+            if      (endsWith(attributeName, "Frame"))       attributes.push_back(JANUS_FRAME);
+            else if (endsWith(attributeName, "Right_Eye_X")) attributes.push_back(JANUS_RIGHT_EYE_X);
+            else if (endsWith(attributeName, "Right_Eye_Y")) attributes.push_back(JANUS_RIGHT_EYE_Y);
+            else if (endsWith(attributeName, "Left_Eye_X"))  attributes.push_back(JANUS_LEFT_EYE_X);
+            else if (endsWith(attributeName, "Left_Eye_Y"))  attributes.push_back(JANUS_LEFT_EYE_Y);
+            else if (endsWith(attributeName, "Nose_Base_X")) attributes.push_back(JANUS_NOSE_BASE_X);
+            else if (endsWith(attributeName, "Nose_Base_Y")) attributes.push_back(JANUS_NOSE_BASE_Y);
+            else                                             attributes.push_back(JANUS_INVALID_ATTRIBUTE);
         }
 
         // Parse rows
