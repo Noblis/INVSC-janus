@@ -10,74 +10,54 @@
 
 using namespace std;
 
-static vector<string> split(const string &str)
-{
-    vector<string> elems;
-    stringstream ss(str);
-    string item;
-    while (getline(ss, item, ','))
-        elems.push_back(item);
-    return elems;
-}
-
-static janus_error readMetadataFile(janus_metadata file_name, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
+static janus_error readMetadataFile(janus_metadata metadata, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
 {
     // Open file
-    ifstream file(file_name);
+    ifstream file(metadata);
     if (!file.is_open())
         return JANUS_OPEN_ERROR;
 
     // Parse header
     string line;
     getline(file, line);
-    vector<string> attributeNames = split(line);
+    istringstream attributeNames(line);
+    string attributeName;
+    getline(attributeNames, attributeName, ','); // Template_ID
+    getline(attributeNames, attributeName, ','); // File_Name
     vector<janus_attribute> attributes;
-    int templateIDIndex = -1, fileNameIndex = -1;
-    for (size_t i=0; i<attributeNames.size(); i++) {
-        const string &attributeName = attributeNames[i];
-        if      (attributeName == "Template_ID") templateIDIndex = i;
-        else if (attributeName == "File_Name")   fileNameIndex = i;
-        else if (attributeName == "Frame")       attributes.push_back(JANUS_FRAME);
+    while (getline(attributeNames, attributeName, ',')) {
+        if      (attributeName == "Frame")       attributes.push_back(JANUS_FRAME);
         else if (attributeName == "Right_Eye_X") attributes.push_back(JANUS_RIGHT_EYE_X);
         else if (attributeName == "Right_Eye_Y") attributes.push_back(JANUS_RIGHT_EYE_Y);
         else if (attributeName == "Left_Eye_X")  attributes.push_back(JANUS_LEFT_EYE_X);
         else if (attributeName == "Left_Eye_Y")  attributes.push_back(JANUS_LEFT_EYE_Y);
         else if (attributeName == "Nose_Base_X") attributes.push_back(JANUS_NOSE_BASE_X);
         else if (attributeName == "Nose_Base_Y") attributes.push_back(JANUS_NOSE_BASE_Y);
-        else                           attributes.push_back(JANUS_INVALID_ATTRIBUTE);
+        else                                     attributes.push_back(JANUS_INVALID_ATTRIBUTE);
     }
-
-    if (templateIDIndex == -1) return JANUS_MISSING_TEMPLATE_ID;
-    if (fileNameIndex   == -1) return JANUS_MISSING_FILE_NAME;
 
     // Parse rows
     while (getline(file, line)) {
-        const vector<string> words = split(line);
-        fileNames.push_back(words[fileNameIndex]);
-        templateIDs.push_back(atoi(words[templateIDIndex].c_str()));
-        vector<double> values;
-        for (int i=0; i < (int)words.size(); i++) {
-            if ((i == templateIDIndex) || (i == fileNameIndex))
-                continue;
-            if (words[i].empty()) values.push_back(numeric_limits<float>::quiet_NaN());
-            else                  values.push_back(atof(words[i].c_str()));
-        }
-
-        if (values.size() != attributes.size())
-            return JANUS_PARSE_ERROR;
+        istringstream attributeValues(line);
+        string templateID, fileName, attributeValue;
+        getline(attributeValues, templateID, ',');
+        getline(attributeValues, fileName, ',');
+        templateIDs.push_back(atoi(templateID.c_str()));
+        fileNames.push_back(fileName);
 
         // Construct attribute list, removing missing fields
         janus_attribute_list attributeList;
         attributeList.size = 0;
         attributeList.attributes = new janus_attribute[attributes.size()];
         attributeList.values = new double[attributes.size()];
-        for (size_t i=0; i<attributes.size(); i++) {
-            if (values[i] != values[i]) /* NaN */ continue;
+        for (int i=2; getline(attributeValues, attributeValue, ','); i++) {
+            if (attributeValue.empty())
+                continue;
+            const double value = atof(attributeValue.c_str());
             attributeList.attributes[attributeList.size] = attributes[i];
-            attributeList.values[attributeList.size] = values[i];
+            attributeList.values[attributeList.size] = value;
             attributeList.size++;
         }
-
         attributeLists.push_back(attributeList);
     }
 
