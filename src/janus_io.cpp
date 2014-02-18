@@ -10,76 +10,64 @@
 
 using namespace std;
 
-static janus_error readMetadataFile(janus_metadata metadata, vector<string> &fileNames, vector<janus_template_id> &templateIDs, vector<janus_attribute_list> &attributeLists)
-{
-    // Open file
-    ifstream file(metadata);
-    if (!file.is_open())
-        return JANUS_OPEN_ERROR;
-
-    // Parse header
-    string line;
-    getline(file, line);
-    istringstream attributeNames(line);
-    string attributeName;
-    getline(attributeNames, attributeName, ','); // Template_ID
-    getline(attributeNames, attributeName, ','); // File_Name
-    vector<janus_attribute> attributes;
-    while (getline(attributeNames, attributeName, ',')) {
-        if      (attributeName == "Frame")       attributes.push_back(JANUS_FRAME);
-        else if (attributeName == "Right_Eye_X") attributes.push_back(JANUS_RIGHT_EYE_X);
-        else if (attributeName == "Right_Eye_Y") attributes.push_back(JANUS_RIGHT_EYE_Y);
-        else if (attributeName == "Left_Eye_X")  attributes.push_back(JANUS_LEFT_EYE_X);
-        else if (attributeName == "Left_Eye_Y")  attributes.push_back(JANUS_LEFT_EYE_Y);
-        else if (attributeName == "Nose_Base_X") attributes.push_back(JANUS_NOSE_BASE_X);
-        else if (attributeName == "Nose_Base_Y") attributes.push_back(JANUS_NOSE_BASE_Y);
-        else                                     attributes.push_back(JANUS_INVALID_ATTRIBUTE);
-    }
-
-    // Parse rows
-    while (getline(file, line)) {
-        istringstream attributeValues(line);
-        string templateID, fileName, attributeValue;
-        getline(attributeValues, templateID, ',');
-        getline(attributeValues, fileName, ',');
-        templateIDs.push_back(atoi(templateID.c_str()));
-        fileNames.push_back(fileName);
-
-        // Construct attribute list, removing missing fields
-        janus_attribute_list attributeList;
-        attributeList.size = 0;
-        attributeList.attributes = new janus_attribute[attributes.size()];
-        attributeList.values = new double[attributes.size()];
-        for (int i=2; getline(attributeValues, attributeValue, ','); i++) {
-            if (attributeValue.empty())
-                continue;
-            const double value = atof(attributeValue.c_str());
-            attributeList.attributes[attributeList.size] = attributes[i];
-            attributeList.values[attributeList.size] = value;
-            attributeList.size++;
-        }
-        attributeLists.push_back(attributeList);
-    }
-
-    file.close();
-    return JANUS_SUCCESS;
-}
-
-class TemplateIterator
+struct TemplateIterator
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
     size_t i;
+    bool verbose;
 
-public:
-    janus_error error;
-
-    TemplateIterator(janus_metadata metadata)
+    TemplateIterator(janus_metadata metadata, bool verbose)
+        : i(0), verbose(verbose)
     {
-        fprintf(stderr, "Enrolling 0/?");
-        error = readMetadataFile(metadata, fileNames, templateIDs, attributeLists);
-        i = 0;
+        ifstream file(metadata);
+
+        // Parse header
+        string line;
+        getline(file, line);
+        istringstream attributeNames(line);
+        string attributeName;
+        getline(attributeNames, attributeName, ','); // Template_ID
+        getline(attributeNames, attributeName, ','); // File_Name
+        vector<janus_attribute> attributes;
+        while (getline(attributeNames, attributeName, ',')) {
+            if      (attributeName == "Frame")       attributes.push_back(JANUS_FRAME);
+            else if (attributeName == "Right_Eye_X") attributes.push_back(JANUS_RIGHT_EYE_X);
+            else if (attributeName == "Right_Eye_Y") attributes.push_back(JANUS_RIGHT_EYE_Y);
+            else if (attributeName == "Left_Eye_X")  attributes.push_back(JANUS_LEFT_EYE_X);
+            else if (attributeName == "Left_Eye_Y")  attributes.push_back(JANUS_LEFT_EYE_Y);
+            else if (attributeName == "Nose_Base_X") attributes.push_back(JANUS_NOSE_BASE_X);
+            else if (attributeName == "Nose_Base_Y") attributes.push_back(JANUS_NOSE_BASE_Y);
+            else                                     attributes.push_back(JANUS_INVALID_ATTRIBUTE);
+        }
+
+        // Parse rows
+        while (getline(file, line)) {
+            istringstream attributeValues(line);
+            string templateID, fileName, attributeValue;
+            getline(attributeValues, templateID, ',');
+            getline(attributeValues, fileName, ',');
+            templateIDs.push_back(atoi(templateID.c_str()));
+            fileNames.push_back(fileName);
+
+            // Construct attribute list, removing missing fields
+            janus_attribute_list attributeList;
+            attributeList.size = 0;
+            attributeList.attributes = new janus_attribute[attributes.size()];
+            attributeList.values = new double[attributes.size()];
+            for (int j=2; getline(attributeValues, attributeValue, ','); j++) {
+                if (attributeValue.empty())
+                    continue;
+                attributeList.attributes[attributeList.size] = attributes[j];
+                attributeList.values[attributeList.size] = atof(attributeValue.c_str());
+                attributeList.size++;
+            }
+            attributeLists.push_back(attributeList);
+        }
+
+        if (verbose)
+            fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
     }
 
     janus_error next(janus_template *template_, janus_template_id *templateID)
@@ -96,7 +84,8 @@ public:
                 JANUS_CHECK(janus_augment(image, attributeLists[i], *template_));
                 janus_free_image(image);
                 i++;
-                fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
+                if (verbose)
+                    fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
             }
         }
         return JANUS_SUCCESS;
@@ -105,14 +94,13 @@ public:
 
 janus_error janus_create_template(janus_metadata metadata, janus_template *template_, janus_template_id *template_id)
 {
-    TemplateIterator ti(metadata);
+    TemplateIterator ti(metadata, false);
     return ti.next(template_, template_id);
 }
 
 janus_error janus_create_gallery(janus_metadata metadata, janus_gallery gallery)
 {
-    TemplateIterator ti(metadata);
-    JANUS_CHECK(ti.error)
+    TemplateIterator ti(metadata, true);
     janus_template template_;
     janus_template_id templateID;
     JANUS_CHECK(ti.next(&template_, &templateID))
@@ -168,21 +156,6 @@ struct FlatTemplate
     }
 };
 
-static janus_error getFlatTemplates(janus_metadata metadata, vector<FlatTemplate> &flatTemplates)
-{
-    TemplateIterator ti(metadata);
-    JANUS_CHECK(ti.error)
-    janus_template template_;
-    janus_template_id templateID;
-    JANUS_CHECK(ti.next(&template_, &templateID))
-    while (template_ != NULL) {
-        flatTemplates.push_back(template_);
-        JANUS_CHECK(flatTemplates.back().data->error)
-        JANUS_CHECK(ti.next(&template_, &templateID))
-    }
-    return JANUS_SUCCESS;
-}
-
 static void writeMat(void *data, int rows, int columns, bool isMask, janus_metadata target, janus_metadata query, const char *matrix)
 {
     ofstream stream(matrix);
@@ -197,18 +170,57 @@ static void writeMat(void *data, int rows, int columns, bool isMask, janus_metad
     stream.write((const char*)data, rows * columns * (isMask ? 1 : 4));
 }
 
-janus_error janus_create_simmat(janus_metadata gallery_metadata,
-                                janus_metadata probe_metadata,
-                                const char *simmat)
+static vector<janus_template_id> getTemplateIDs(janus_metadata metadata)
 {
-    vector<FlatTemplate> gallery, probe;
-    JANUS_CHECK(getFlatTemplates(gallery_metadata, gallery))
-    JANUS_CHECK(getFlatTemplates(probe_metadata, probe))
-    float *scores = new float[gallery.size() * probe.size()];
-    for (size_t i=0; i<probe.size(); i++)
-        for (size_t j=0; j<gallery.size(); j++)
-            JANUS_CHECK(probe[i].compareTo(gallery[j], &scores[i*gallery.size()+j]));
-    writeMat(scores, probe.size(), gallery.size(), false, gallery_metadata, probe_metadata, simmat);
+    vector<janus_template_id> templateIDs;
+    TemplateIterator ti(metadata, false);
+    for (size_t i=0; i<ti.templateIDs.size(); i++)
+        if ((i == 0) || (templateIDs.back() != ti.templateIDs[i]))
+            templateIDs.push_back(ti.templateIDs[i]);
+    return templateIDs;
+}
+
+janus_error janus_create_mask(janus_metadata target_metadata,
+                              janus_metadata query_metadata,
+                              janus_matrix mask)
+{
+    vector<janus_template_id> target = getTemplateIDs(target_metadata);
+    vector<janus_template_id> query = getTemplateIDs(query_metadata);
+    unsigned char *truth = new unsigned char[target.size() * query.size()];
+    for (size_t i=0; i<query.size(); i++)
+        for (size_t j=0; j<target.size(); j++)
+            truth[i*target.size()+j] = (query[i] == target[j] ? 0xff : 0x7f);
+    writeMat(truth, query.size(), target.size(), true, target_metadata, query_metadata, mask);
+    delete[] truth;
+    return JANUS_SUCCESS;
+}
+
+static janus_error getFlatTemplates(janus_metadata metadata, vector<FlatTemplate> &flatTemplates)
+{
+    TemplateIterator ti(metadata, true);
+    janus_template template_;
+    janus_template_id templateID;
+    JANUS_CHECK(ti.next(&template_, &templateID))
+    while (template_ != NULL) {
+        flatTemplates.push_back(template_);
+        JANUS_CHECK(flatTemplates.back().data->error)
+        JANUS_CHECK(ti.next(&template_, &templateID))
+    }
+    return JANUS_SUCCESS;
+}
+
+janus_error janus_create_simmat(janus_metadata target_metadata,
+                                janus_metadata query_metadata,
+                                janus_matrix simmat)
+{
+    vector<FlatTemplate> target, query;
+    JANUS_CHECK(getFlatTemplates(target_metadata, target))
+    JANUS_CHECK(getFlatTemplates(query_metadata, query))
+    float *scores = new float[target.size() * query.size()];
+    for (size_t i=0; i<query.size(); i++)
+        for (size_t j=0; j<target.size(); j++)
+            JANUS_CHECK(query[i].compareTo(target[j], &scores[i*target.size()+j]));
+    writeMat(scores, query.size(), target.size(), false, target_metadata, query_metadata, simmat);
     delete[] scores;
     return JANUS_SUCCESS;
 }
