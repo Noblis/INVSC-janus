@@ -220,8 +220,9 @@ struct FlatTemplate
     janus_error compareTo(const FlatTemplate &other, float *similarity) const
     {
         double score;
-        return janus_verify(data->flat_template, data->bytes, other.data->flat_template, other.data->bytes, &score);
+        janus_error error = janus_verify(data->flat_template, data->bytes, other.data->flat_template, other.data->bytes, &score);
         *similarity = score;
+        return error;
     }
 };
 
@@ -232,7 +233,7 @@ static void writeMat(void *data, int rows, int columns, bool isMask, janus_metad
            << target << '\n'
            << query << '\n'
            << 'M' << (isMask ? 'B' : 'F') << ' '
-           << rows << ' '  << columns << ' ';
+           << rows << ' ' << columns << ' ';
     int endian = 0x12345678;
     stream.write((const char*)&endian, 4);
     stream << '\n';
