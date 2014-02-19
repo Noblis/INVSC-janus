@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -9,6 +10,79 @@
 #include "janus_io.h"
 
 using namespace std;
+
+#define ENUM_CASE(X) case JANUS_##X: return #X;
+#define ENUM_COMPARE(X,Y) if (!strcmp(#X, Y)) return JANUS_##X;
+
+const char *janus_error_to_string(janus_error error)
+{
+    switch (error) {
+        ENUM_CASE(SUCCESS)
+        ENUM_CASE(UNKNOWN_ERROR)
+        ENUM_CASE(OUT_OF_MEMORY)
+        ENUM_CASE(INVALID_SDK_PATH)
+        ENUM_CASE(OPEN_ERROR)
+        ENUM_CASE(READ_ERROR)
+        ENUM_CASE(WRITE_ERROR)
+        ENUM_CASE(PARSE_ERROR)
+        ENUM_CASE(INVALID_IMAGE)
+        ENUM_CASE(INVALID_VIDEO)
+        ENUM_CASE(MISSING_TEMPLATE_ID)
+        ENUM_CASE(MISSING_FILE_NAME)
+        ENUM_CASE(NULL_ATTRIBUTE_LIST)
+        ENUM_CASE(NUM_ERRORS)
+    }
+    return "UNKNOWN_ERROR";
+}
+
+janus_error janus_error_from_string(const char *error)
+{
+    ENUM_COMPARE(SUCCESS, error)
+    ENUM_COMPARE(UNKNOWN_ERROR, error)
+    ENUM_COMPARE(OUT_OF_MEMORY, error)
+    ENUM_COMPARE(INVALID_SDK_PATH, error)
+    ENUM_COMPARE(OPEN_ERROR, error)
+    ENUM_COMPARE(READ_ERROR, error)
+    ENUM_COMPARE(WRITE_ERROR, error)
+    ENUM_COMPARE(PARSE_ERROR, error)
+    ENUM_COMPARE(INVALID_IMAGE, error)
+    ENUM_COMPARE(INVALID_VIDEO, error)
+    ENUM_COMPARE(MISSING_TEMPLATE_ID, error)
+    ENUM_COMPARE(MISSING_FILE_NAME, error)
+    ENUM_COMPARE(NULL_ATTRIBUTE_LIST, error)
+    ENUM_COMPARE(NUM_ERRORS, error)
+    return JANUS_UNKNOWN_ERROR;
+}
+
+const char *janus_attribute_to_string(janus_attribute attribute)
+{
+    switch (attribute) {
+        ENUM_CASE(INVALID_ATTRIBUTE)
+        ENUM_CASE(FRAME)
+        ENUM_CASE(RIGHT_EYE_X)
+        ENUM_CASE(RIGHT_EYE_Y)
+        ENUM_CASE(LEFT_EYE_X)
+        ENUM_CASE(LEFT_EYE_Y)
+        ENUM_CASE(NOSE_BASE_X)
+        ENUM_CASE(NOSE_BASE_Y)
+        ENUM_CASE(NUM_ATTRIBUTES)
+    }
+    return "INVALID_ATTRIBUTE";
+}
+
+janus_attribute janus_attribute_from_string(const char *attribute)
+{
+    ENUM_COMPARE(INVALID_ATTRIBUTE, attribute)
+    ENUM_COMPARE(FRAME, attribute)
+    ENUM_COMPARE(RIGHT_EYE_X, attribute)
+    ENUM_COMPARE(RIGHT_EYE_Y, attribute)
+    ENUM_COMPARE(LEFT_EYE_X, attribute)
+    ENUM_COMPARE(LEFT_EYE_Y, attribute)
+    ENUM_COMPARE(NOSE_BASE_X, attribute)
+    ENUM_COMPARE(NOSE_BASE_Y, attribute)
+    ENUM_COMPARE(NUM_ATTRIBUTES, attribute)
+    return JANUS_INVALID_ATTRIBUTE;
+}
 
 static bool endsWith(const string &str, const string &ending)
 {

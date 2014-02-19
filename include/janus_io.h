@@ -38,6 +38,84 @@ extern "C" {
  */
 
 /*!
+ * \brief The \c JANUS_ASSERT macro provides a simple unrecoverable error
+ *        handling mechanism.
+ * \see JANUS_CHECK
+ */
+#define JANUS_ASSERT(EXPRESSION)                                     \
+{                                                                    \
+    const janus_error error = (EXPRESSION);                          \
+    if (error != JANUS_SUCCESS) {                                    \
+        fprintf(stderr, "Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
+                janus_error_to_string(error),                        \
+                __FILE__,                                            \
+                __LINE__);                                           \
+        abort();                                                     \
+    }                                                                \
+}                                                                    \
+
+/*!
+ * \brief The \c JANUS_CHECK macro provides a simple recoverable error
+ *        handling mechanism
+ * \see JANUS_ASSERT
+ */
+#define JANUS_CHECK(EXPRESSION)             \
+{                                           \
+    const janus_error error = (EXPRESSION); \
+    if (error != JANUS_SUCCESS)             \
+        return error;                       \
+}                                           \
+
+/*! \page janus_enums Enum Naming Convention
+ * #janus_attribute, #janus_color_space, #janus_error and enum values follow a
+ * \c CAPITAL_CASE naming convention. Functions #janus_attribute_to_string and
+ * #janus_error_to_string return a string for the corresponding enum by
+ * removing the leading \c JANUS_:
+ * \code
+ * janus_attribute_to_string(JANUS_RIGHT_EYE_X); // returns "RIGHT_EYE_X"
+ * \endcode
+ * Functions #janus_attribute_from_string and #janus_error_from_string provide
+ * the opposite functionality:
+ * \code
+ * janus_attribute_from_string("RIGHT_EYE_X"); // returns JANUS_RIGHT_EYE_X
+ * \endcode
+ * \note #janus_attribute_from_string is used to decode #janus_metadata
+ * files, so attribute column names should follow this naming convention.
+ */
+
+/*!
+ * \brief #janus_error to string.
+ * \param[in] error Error code to stringify.
+ * \note Memory for the return value is managed internally and should not be
+ *       freed.
+ * \see janus_enums
+ */
+JANUS_EXPORT const char *janus_error_to_string(janus_error error);
+
+/*!
+ * \brief #janus_error from string.
+ * \param[in] error String to decode.
+ * \see janus_enums
+ */
+JANUS_EXPORT janus_error janus_error_from_string(const char *error);
+
+/*!
+ * \brief #janus_attribute to string
+ * \param[in] error Attribute code to stringify.
+ * \note Memory for the return value is managed internally and should not be
+ *       freed.
+ * \see janus_enums
+ */
+JANUS_EXPORT const char *janus_attribute_to_string(janus_attribute attribute);
+
+/*!
+ * \brief #janus_attribute from string.
+ * \param[in] attribute String to decode.
+ * \see janus_enums
+ */
+JANUS_EXPORT janus_attribute janus_attribute_from_string(const char *attribute);
+
+/*!
  * \brief Read an image from disk.
  * \param[in] file_name Path to the image file.
  * \param[out] image Address to store the decoded image.

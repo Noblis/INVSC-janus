@@ -114,57 +114,22 @@ extern "C" {
  */
 typedef enum janus_error
 {
-    JANUS_SUCCESS              = 0,  /*!< No error */
-    JANUS_UNKNOWN_ERROR        = 1,  /*!< Catch-all error code */
-    JANUS_OUT_OF_MEMORY        = 2,  /*!< Memorry allocation failed */
-    JANUS_INVALID_SDK_PATH     = 3,  /*!< Incorrect location provided to
+    JANUS_SUCCESS         = 0, /*!< No error */
+    JANUS_UNKNOWN_ERROR      , /*!< Catch-all error code */
+    JANUS_OUT_OF_MEMORY      , /*!< Memorry allocation failed */
+    JANUS_INVALID_SDK_PATH   , /*!< Incorrect location provided to
                                          #janus_initialize */
-    JANUS_OPEN_ERROR           = 4,  /*!< Failed to open a file */
-    JANUS_READ_ERROR           = 5,  /*!< Failed to read from a file */
-    JANUS_WRITE_ERROR          = 6,  /*!< Failed to write to a file */
-    JANUS_PARSE_ERROR          = 7,  /*!< Failed to parse file */
-    JANUS_INVALID_IMAGE        = 8,  /*!< Could not decode image file */
-    JANUS_INVALID_VIDEO        = 9,  /*!< Could not decode video file */
-    JANUS_MISSING_TEMPLATE_ID  = 10, /*!< Expected a missing template ID */
-    JANUS_MISSING_FILE_NAME    = 11, /*!< Expected a missing file name */
-    JANUS_NULL_ATTRIBUTE_LIST  = 13  /*!< Null #janus_attribute_list */
+    JANUS_OPEN_ERROR         , /*!< Failed to open a file */
+    JANUS_READ_ERROR         , /*!< Failed to read from a file */
+    JANUS_WRITE_ERROR        , /*!< Failed to write to a file */
+    JANUS_PARSE_ERROR        , /*!< Failed to parse file */
+    JANUS_INVALID_IMAGE      , /*!< Could not decode image file */
+    JANUS_INVALID_VIDEO      , /*!< Could not decode video file */
+    JANUS_MISSING_TEMPLATE_ID, /*!< Expected a missing template ID */
+    JANUS_MISSING_FILE_NAME  , /*!< Expected a missing file name */
+    JANUS_NULL_ATTRIBUTE_LIST, /*!< Null #janus_attribute_list */
+    JANUS_NUM_ERRORS           /*!< Idiom to iterate over all errors */
 } janus_error;
-
-/*!
- * \brief Returns the stringified error.
- * \note Memory for the return value is managed internally and should not be
- *       freed.
- */
-JANUS_EXPORT const char *janus_error_to_string(janus_error error);
-
-/*!
- * \brief The \c JANUS_ASSERT macro provides a simple unrecoverable error
- *        handling mechanism.
- * \see JANUS_CHECK
- */
-#define JANUS_ASSERT(EXPRESSION)                                     \
-{                                                                    \
-    const janus_error error = (EXPRESSION);                          \
-    if (error != JANUS_SUCCESS) {                                    \
-        fprintf(stderr, "Janus error: %s\n\tFile: %s\n\tLine: %d\n", \
-                janus_error_to_string(error),                        \
-                __FILE__,                                            \
-                __LINE__);                                           \
-        abort();                                                     \
-    }                                                                \
-}                                                                    \
-
-/*!
- * \brief The \c JANUS_CHECK macro provides a simple recoverable error
- *        handling mechanism
- * \see JANUS_ASSERT
- */
-#define JANUS_CHECK(EXPRESSION)             \
-{                                           \
-    const janus_error error = (EXPRESSION); \
-    if (error != JANUS_SUCCESS)             \
-        return error;                       \
-}                                           \
 
 /*!
  * \brief Data buffer type.
@@ -176,8 +141,8 @@ typedef uint8_t janus_data;
  */
 typedef enum janus_color_space
 {
-    JANUS_GRAY8 = 0, /*!< \brief 1 channel grayscale, 8-bit depth. */
-    JANUS_BGR24 = 1  /*!< \brief 3 channel color (BGR order), 8-bit depth. */
+    JANUS_GRAY8, /*!< \brief 1 channel grayscale, 8-bit depth. */
+    JANUS_BGR24  /*!< \brief 3 channel color (BGR order), 8-bit depth. */
 } janus_color_space;
 
 /*!
@@ -220,23 +185,17 @@ typedef struct janus_image
  */
 typedef enum janus_attribute
 {
-    JANUS_INVALID_ATTRIBUTE   = 0,  /*!< Catch-all error code */
-    JANUS_FRAME               = 1,  /*!< Video frame number, -1 (or not present)
-                                         for still images */
-    JANUS_RIGHT_EYE_X         = 32, /*!< Face landmark (pixels) */
-    JANUS_RIGHT_EYE_Y         = 33, /*!< Face landmark (pixels) */
-    JANUS_LEFT_EYE_X          = 34, /*!< Face landmark (pixels) */
-    JANUS_LEFT_EYE_Y          = 35, /*!< Face landmark (pixels) */
-    JANUS_NOSE_BASE_X         = 36, /*!< Face landmark (pixels) */
-    JANUS_NOSE_BASE_Y         = 37  /*!< Face landmark (pixels) */
+    JANUS_INVALID_ATTRIBUTE = 0, /*!< Catch-all error code */
+    JANUS_FRAME                , /*!< Video frame number, -1 (or not present)
+                                      for still images */
+    JANUS_RIGHT_EYE_X          , /*!< Face landmark (pixels) */
+    JANUS_RIGHT_EYE_Y          , /*!< Face landmark (pixels) */
+    JANUS_LEFT_EYE_X           , /*!< Face landmark (pixels) */
+    JANUS_LEFT_EYE_Y           , /*!< Face landmark (pixels) */
+    JANUS_NOSE_BASE_X          , /*!< Face landmark (pixels) */
+    JANUS_NOSE_BASE_Y          , /*!< Face landmark (pixels) */
+    JANUS_NUM_ATTRIBUTES         /*!< Idiom to iterate over all attributes */
 } janus_attribute;
-
-/*!
- * \brief Returns the stringified attribute.
- * \note Memory for the return value is managed internally and should not be
- *       freed.
- */
-JANUS_EXPORT const char *janus_attribute_to_string(janus_attribute attribute);
 
 /*!
  * \brief A list of #janus_attribute and value pairs all belonging to a the same
