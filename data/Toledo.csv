@@ -1,4 +1,4 @@
-Template_ID,File_Name,Frame,Right_Eye_X,Right_Eye_Y,Left_Eye_X,Left_Eye_Y,Nose_Base_X,Nose_Base_Y
+TEMPLATE_ID,FILE_NAME,FRAME,RIGHT_EYE_X,RIGHT_EYE_Y,LEFT_EYE_X,LEFT_EYE_Y,NOSE_BASE_X,NOSE_BASE_Y
 1,Toledo0.jpg,,72,70,93,70,83,93
 1,Toledo1.jpg,,886,622,1134,568,1050,804
 1,Toledo2.jpg,,536,580,688,586,638,762

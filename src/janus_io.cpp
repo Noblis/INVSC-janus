@@ -84,11 +84,6 @@ janus_attribute janus_attribute_from_string(const char *attribute)
     return JANUS_INVALID_ATTRIBUTE;
 }
 
-static bool endsWith(const string &str, const string &ending)
-{
-    return (str.length() >= ending.length()) && !str.compare(str.length() - ending.length(), ending.length(), ending);
-}
-
 struct TemplateIterator
 {
     vector<string> fileNames;
@@ -107,19 +102,11 @@ struct TemplateIterator
         getline(file, line);
         istringstream attributeNames(line);
         string attributeName;
-        getline(attributeNames, attributeName, ','); // Template_ID
-        getline(attributeNames, attributeName, ','); // File_Name
+        getline(attributeNames, attributeName, ','); // TEMPLATE_ID
+        getline(attributeNames, attributeName, ','); // FILE_NAME
         vector<janus_attribute> attributes;
-        while (getline(attributeNames, attributeName, ',')) {
-            if      (endsWith(attributeName, "Frame"))       attributes.push_back(JANUS_FRAME);
-            else if (endsWith(attributeName, "Right_Eye_X")) attributes.push_back(JANUS_RIGHT_EYE_X);
-            else if (endsWith(attributeName, "Right_Eye_Y")) attributes.push_back(JANUS_RIGHT_EYE_Y);
-            else if (endsWith(attributeName, "Left_Eye_X"))  attributes.push_back(JANUS_LEFT_EYE_X);
-            else if (endsWith(attributeName, "Left_Eye_Y"))  attributes.push_back(JANUS_LEFT_EYE_Y);
-            else if (endsWith(attributeName, "Nose_Base_X")) attributes.push_back(JANUS_NOSE_BASE_X);
-            else if (endsWith(attributeName, "Nose_Base_Y")) attributes.push_back(JANUS_NOSE_BASE_Y);
-            else                                             attributes.push_back(JANUS_INVALID_ATTRIBUTE);
-        }
+        while (getline(attributeNames, attributeName, ','))
+            attributes.push_back(janus_attribute_from_string(attributeName.c_str()));
 
         // Parse rows
         while (getline(file, line)) {

@@ -165,7 +165,7 @@ JANUS_EXPORT void janus_close_video(janus_video video);
  * A *Janus Metadata File* is a *Comma-Separated Value* (CSV) text file with the following format:
  *
 \verbatim
-Template_ID        , File_Name, Frame, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
+TEMPLATE_ID        , FILE_NAME, FRAME, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
 <janus_template_id>, <string> , <int>, <double>         , <double>         , ..., <double>
 <janus_template_id>, <string> , <int>, <double>         , <double>         , ..., <double>
 ...
@@ -173,14 +173,13 @@ Template_ID        , File_Name, Frame, <janus_attribute>, <janus_attribute>, ...
 \endverbatim
  *
  * Where:
- * - [Template_ID](\ref janus_template_id) is a unique integer identifier indicating rows that belong to the same template.
- * - \c File_Name is a path to the image or video file on disk.
- * - \c Frame is the video frame number and -1 (or empty string) for still images.
- *
- * Metadata files should adhere to the following "sane" conventions:
- * - All rows associated with the same \c Template_ID should occur sequentially.
- * - All rows associated with the same \c Template_ID and \c File_Name should occur sequentially ordered by \c Frame.
- * - A cell should be empty when no value is available for the specified #janus_attribute.
+ * - [TEMPLATE_ID](\ref janus_template_id) is a unique integer identifier indicating rows that belong to the same template.
+ * - \c FILE_NAME is a path to the image or video file on disk.
+ * - \c FRAME is the video frame number and -1 (or empty string) for still images.
+ * - \a <janus_attribute> adheres to #janus_enum.
+ * - All rows associated with the same \c TEMPLATE_ID occur sequentially.
+ * - All rows associated with the same \c TEMPLATE_ID and \c FILE_NAME occur sequentially ordered by \c FRAME.
+ * - A cell is empty when no value is available for the specified #janus_attribute.
  *
  * \par Examples:
  * - [Kirchner.csv](https://raw.github.com/biometrics/janus/master/data/Kirchner.csv)
