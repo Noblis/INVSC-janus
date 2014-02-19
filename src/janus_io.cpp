@@ -286,9 +286,11 @@ janus_error janus_create_simmat(janus_metadata target_metadata,
     JANUS_CHECK(getFlatTemplates(target_metadata, target))
     JANUS_CHECK(getFlatTemplates(query_metadata, query))
     float *scores = new float[target.size() * query.size()];
-    for (size_t i=0; i<query.size(); i++)
+    for (size_t i=0; i<query.size(); i++) {
         for (size_t j=0; j<target.size(); j++)
             JANUS_CHECK(query[i].compareTo(target[j], &scores[i*target.size()+j]));
+        fprintf(stderr, "\rComparing %zu/%zu", i+1, query.size());
+    }
     writeMat(scores, query.size(), target.size(), false, target_metadata, query_metadata, simmat);
     delete[] scores;
     return JANUS_SUCCESS;
