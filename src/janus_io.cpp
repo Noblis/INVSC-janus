@@ -1,4 +1,5 @@
 // These file is designed to have no dependencies outside the C++ Standard Library
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -105,8 +106,10 @@ struct TemplateIterator
         getline(attributeNames, attributeName, ','); // TEMPLATE_ID
         getline(attributeNames, attributeName, ','); // FILE_NAME
         vector<janus_attribute> attributes;
-        while (getline(attributeNames, attributeName, ','))
+        while (getline(attributeNames, attributeName, ',')) {
+            attributeName.erase(remove_if(attributeName.begin(), attributeName.end(), ::isspace), attributeName.end());
             attributes.push_back(janus_attribute_from_string(attributeName.c_str()));
+        }
 
         // Parse rows
         while (getline(file, line)) {
@@ -122,7 +125,7 @@ struct TemplateIterator
             attributeList.size = 0;
             attributeList.attributes = new janus_attribute[attributes.size()];
             attributeList.values = new double[attributes.size()];
-            for (int j=2; getline(attributeValues, attributeValue, ','); j++) {
+            for (int j=0; getline(attributeValues, attributeValue, ','); j++) {
                 if (attributeValue.empty())
                     continue;
                 attributeList.attributes[attributeList.size] = attributes[j];
