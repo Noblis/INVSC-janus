@@ -66,7 +66,7 @@ extern "C" {
         return error;                       \
 }                                           \
 
-/*! \page janus_enums Enum Naming Convention
+/*! \page janus_enum Enum Naming Convention
  * #janus_attribute, #janus_color_space, #janus_error and enum values follow a
  * \c CAPITAL_CASE naming convention. Functions #janus_attribute_to_string and
  * #janus_error_to_string return a string for the corresponding enum by
@@ -88,30 +88,30 @@ extern "C" {
  * \param[in] error Error code to stringify.
  * \note Memory for the return value is managed internally and should not be
  *       freed.
- * \see janus_enums
+ * \see janus_enum
  */
 JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 
 /*!
  * \brief #janus_error from string.
  * \param[in] error String to decode.
- * \see janus_enums
+ * \see janus_enum
  */
 JANUS_EXPORT janus_error janus_error_from_string(const char *error);
 
 /*!
  * \brief #janus_attribute to string
- * \param[in] error Attribute code to stringify.
+ * \param[in] attribute Attribute code to stringify.
  * \note Memory for the return value is managed internally and should not be
  *       freed.
- * \see janus_enums
+ * \see janus_enum
  */
 JANUS_EXPORT const char *janus_attribute_to_string(janus_attribute attribute);
 
 /*!
  * \brief #janus_attribute from string.
  * \param[in] attribute String to decode.
- * \see janus_enums
+ * \see janus_enum
  */
 JANUS_EXPORT janus_attribute janus_attribute_from_string(const char *attribute);
 
@@ -176,7 +176,7 @@ TEMPLATE_ID        , FILE_NAME, FRAME, <janus_attribute>, <janus_attribute>, ...
  * - [TEMPLATE_ID](\ref janus_template_id) is a unique integer identifier indicating rows that belong to the same template.
  * - \c FILE_NAME is a path to the image or video file on disk.
  * - \c FRAME is the video frame number and -1 (or empty string) for still images.
- * - \a <janus_attribute> adheres to #janus_enum.
+ * - \a \<janus_attribute\> adheres to \ref janus_enum.
  * - All rows associated with the same \c TEMPLATE_ID occur sequentially.
  * - All rows associated with the same \c TEMPLATE_ID and \c FILE_NAME occur sequentially ordered by \c FRAME.
  * - A cell is empty when no value is available for the specified #janus_attribute.
@@ -223,6 +223,7 @@ typedef const char *janus_matrix;
 JANUS_EXPORT janus_error janus_create_mask(janus_metadata target_metadata,
                                            janus_metadata query_metadata,
                                            janus_matrix mask);
+
 /*!
  * \brief Create a similarity matrix from two galleries.
  *
