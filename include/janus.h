@@ -44,21 +44,20 @@ extern "C" {
  * janus_io.h  | \ref janus_io  | No (Implementation provided) | \copybrief janus_io
  * janus_aux.h | \ref janus_aux | No (Phases 2 & 3 only)       | \copybrief janus_aux
  *
- * [<b>Source Code</b>](https://github.com/biometrics/janus)
-
- * \ref more_information
+ * - [<b>Source Code</b>](https://github.com/biometrics/janus) [github.com]
+ * - \ref technical_considerations
  *
  * \subsection license License
  * The API is provided under a [BSD-like license](LICENSE.txt) and is
  * *free for academic and commercial use*.
  *
- * \subsection Feedback
- * Feedback on the API is strongly desired, please direct any questions or
- * comments to [janus-dev@googlegroups.com]
- * (https://groups.google.com/forum/#!forum/janus-dev).
+ * \subsection feedback Feedback
+ * \a Unclassified technical discussion regarding the API takes place on the mailing list \c janus-dev@noblis.org.
+ * - To \b subscribe and \b post, send an email to \c listserv@noblis.org with the message body <b>subscribe janus-dev</b>
+ * - To \b unsubscribe, send an email to \c listserv@noblis.org with the message body <b>unsubscribe janus-dev</b>
+ * - The list \b owner is \c joshua.klontz@noblis.org
  *
- * \page more_information More Information
- * \brief Additional technical considerations.
+ * \page technical_considerations Technical Considerations
  *
  * \section api_conventions API Conventions
  * \subsection thread_safety Thread Safety
