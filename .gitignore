@@ -1,0 +1,8 @@
+# Standard build directories
+build*
+
+# QtCreator file
+CMakeLists.txt.user
+
+# Darwin file
+*.DS_Store
