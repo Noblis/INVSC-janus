@@ -1,5 +1,6 @@
 // These file is designed to have no dependencies outside the C++ Standard Library
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <limits>
