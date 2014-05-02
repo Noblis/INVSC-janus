@@ -92,10 +92,11 @@ struct TemplateIterator
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
     size_t i;
+    string dataPath;
     bool verbose;
 
-    TemplateIterator(janus_metadata metadata, bool verbose)
-        : i(0), verbose(verbose)
+    TemplateIterator(janus_metadata metadata, string dataPath, bool verbose)
+        : i(0), dataPath(dataPath), verbose(verbose)
     {
         ifstream file(metadata);
 
@@ -150,7 +151,7 @@ struct TemplateIterator
             JANUS_CHECK(janus_initialize_template(template_))
             while ((i < attributeLists.size()) && (templateIDs[i] == *templateID)) {
                 janus_image image;
-                JANUS_CHECK(janus_read_image(fileNames[i].c_str(), &image))
+                JANUS_CHECK(janus_read_image((dataPath + fileNames[i]).c_str(), &image))
                 JANUS_CHECK(janus_augment(image, attributeLists[i], *template_));
                 janus_free_image(image);
                 i++;
@@ -164,13 +165,13 @@ struct TemplateIterator
 
 janus_error janus_create_template(janus_metadata metadata, janus_template *template_, janus_template_id *template_id)
 {
-    TemplateIterator ti(metadata, false);
+    TemplateIterator ti(metadata, "", false);
     return ti.next(template_, template_id);
 }
 
 janus_error janus_create_gallery(janus_metadata metadata, janus_gallery gallery)
 {
-    TemplateIterator ti(metadata, true);
+    TemplateIterator ti(metadata, "", true);
     janus_template template_;
     janus_template_id templateID;
     JANUS_CHECK(ti.next(&template_, &templateID))
@@ -244,7 +245,7 @@ static void writeMat(void *data, int rows, int columns, bool isMask, janus_metad
 static vector<janus_template_id> getTemplateIDs(janus_metadata metadata)
 {
     vector<janus_template_id> templateIDs;
-    TemplateIterator ti(metadata, false);
+    TemplateIterator ti(metadata, "", false);
     for (size_t i=0; i<ti.templateIDs.size(); i++)
         if ((i == 0) || (templateIDs.back() != ti.templateIDs[i]))
             templateIDs.push_back(ti.templateIDs[i]);
@@ -266,9 +267,9 @@ janus_error janus_create_mask(janus_metadata target_metadata,
     return JANUS_SUCCESS;
 }
 
-static janus_error getFlatTemplates(janus_metadata metadata, vector<FlatTemplate> &flatTemplates)
+static janus_error getFlatTemplates(janus_metadata metadata, const char *data_path, vector<FlatTemplate> &flatTemplates)
 {
-    TemplateIterator ti(metadata, true);
+    TemplateIterator ti(metadata, data_path, true);
     janus_template template_;
     janus_template_id templateID;
     JANUS_CHECK(ti.next(&template_, &templateID))
@@ -282,11 +283,12 @@ static janus_error getFlatTemplates(janus_metadata metadata, vector<FlatTemplate
 
 janus_error janus_create_simmat(janus_metadata target_metadata,
                                 janus_metadata query_metadata,
-                                janus_matrix simmat)
+                                janus_matrix simmat,
+                                const char *data_path)
 {
     vector<FlatTemplate> target, query;
-    JANUS_CHECK(getFlatTemplates(target_metadata, target))
-    JANUS_CHECK(getFlatTemplates(query_metadata, query))
+    JANUS_CHECK(getFlatTemplates(target_metadata, data_path, target))
+    JANUS_CHECK(getFlatTemplates(query_metadata, data_path, query))
     float *scores = new float[target.size() * query.size()];
     for (size_t i=0; i<query.size(); i++) {
         for (size_t j=0; j<target.size(); j++)

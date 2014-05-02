@@ -231,11 +231,13 @@ JANUS_EXPORT janus_error janus_create_mask(janus_metadata target_metadata,
  * \param[in] target_metadata Templates to constitute the columns of the matrix.
  * \param[in] query_metadata Templates to constitute the rows for the matrix.
  * \param[in] simmat Similarity matrix file to be created.
+ * \param[in] data_path Optional prefix path to image location.
  * \see janus_create_mask
  */
 JANUS_EXPORT janus_error janus_create_simmat(janus_metadata target_metadata,
                                              janus_metadata query_metadata,
-                                             janus_matrix simmat);
+                                             janus_matrix simmat,
+                                             const char *data_path);
 
 /*! @}*/
 
