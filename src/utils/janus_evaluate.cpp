@@ -15,5 +15,6 @@ int main(int argc, char *argv[])
     JANUS_ASSERT(janus_create_simmat(argv[3], argv[4], argv[6], argv[2]))
     JANUS_ASSERT(janus_finalize())
 
+    janus_print_metrics(janus_get_metrics());
     return EXIT_SUCCESS;
 }

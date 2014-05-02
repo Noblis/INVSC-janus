@@ -1,6 +1,8 @@
 // These file is designed to have no dependencies outside the C++ Standard Library
 #include <algorithm>
+#include <cmath>
 #include <cstring>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -86,6 +88,10 @@ janus_attribute janus_attribute_from_string(const char *attribute)
     return JANUS_INVALID_ATTRIBUTE;
 }
 
+// For computing metrics
+static vector<double> janus_augment_speed_samples;
+static vector<double> janus_verify_speed_samples;
+
 struct TemplateIterator
 {
     vector<string> fileNames;
@@ -153,7 +159,9 @@ struct TemplateIterator
             while ((i < attributeLists.size()) && (templateIDs[i] == *templateID)) {
                 janus_image image;
                 JANUS_CHECK(janus_read_image((dataPath + fileNames[i]).c_str(), &image))
+                const clock_t start = clock();
                 JANUS_CHECK(janus_augment(image, attributeLists[i], *template_));
+                janus_augment_speed_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
                 janus_free_image(image);
                 i++;
                 if (verbose)
@@ -223,7 +231,9 @@ struct FlatTemplate
     janus_error compareTo(const FlatTemplate &other, float *similarity) const
     {
         double score;
+        const clock_t start = clock();
         janus_error error = janus_verify(data->flat_template, data->bytes, other.data->flat_template, other.data->bytes, &score);
+        janus_verify_speed_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         *similarity = score;
         return error;
     }
@@ -300,4 +310,48 @@ janus_error janus_create_simmat(janus_metadata target_metadata,
     writeMat(scores, query.size(), target.size(), false, target_metadata, query_metadata, simmat);
     delete[] scores;
     return JANUS_SUCCESS;
+}
+
+static janus_metric calculateMetric(const vector<double> &samples)
+{
+    janus_metric metric;
+    metric.count = samples.size();
+
+    if (metric.count > 0) {
+        metric.mean = 0;
+        for (size_t i=0; i<samples.size(); i++)
+            metric.mean += samples[i];
+        metric.mean /= samples.size();
+
+        metric.stddev = 0;
+        for (size_t i=0; i<samples.size(); i++)
+            metric.stddev += pow(samples[i] - metric.mean, 2.0);
+        metric.stddev = sqrt(metric.stddev / samples.size());
+    } else {
+        metric.mean = std::numeric_limits<double>::quiet_NaN();
+        metric.stddev = std::numeric_limits<double>::quiet_NaN();
+    }
+
+    return metric;
+}
+
+janus_metrics janus_get_metrics()
+{
+    janus_metrics metrics;
+    metrics.janus_augment_speed = calculateMetric(janus_augment_speed_samples);
+    metrics.janus_verify_speed = calculateMetric(janus_verify_speed_samples);
+    return metrics;
+}
+
+static void printMetric(janus_metric metric, const char *function)
+{
+    if (metric.count > 0)
+        printf("%s\t%.2g\t%.2g\t%.2g\n", function, metric.mean, metric.stddev, double(metric.count));
+}
+
+void janus_print_metrics(janus_metrics metrics)
+{
+    printf("Function\tMean\tStdDev\tCount\n");
+    printMetric(metrics.janus_augment_speed, "janus_augment");
+    printMetric(metrics.janus_verify_speed, "janus_verify");
 }

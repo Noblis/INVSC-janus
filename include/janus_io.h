@@ -239,6 +239,35 @@ JANUS_EXPORT janus_error janus_create_simmat(janus_metadata target_metadata,
                                              janus_matrix simmat,
                                              const char *data_path);
 
+/*!
+ * \brief A statistic.
+ * \see janus_metrics
+ */
+struct janus_metric
+{
+    size_t count;
+    double mean, stddev;
+};
+
+/*!
+ * \brief All statistics.
+ * \see janus_get_metrics
+ */
+struct janus_metrics
+{
+    janus_metric janus_augment_speed; /*!< \brief calls / millisecond */
+    janus_metric janus_verify_speed;  /*!< \brief calls / millisecond */
+};
+
+/*! \brief Retrieve and reset performance metrics. */
+JANUS_EXPORT janus_metrics janus_get_metrics();
+
+/*!
+ * \brief Print metrics to stdout.
+ * \note Will only print metrics with count > 0 occurrences.
+ */
+JANUS_EXPORT void janus_print_metrics(janus_metrics metrics);
+
 /*! @}*/
 
 #ifdef __cplusplus
