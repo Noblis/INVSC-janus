@@ -146,6 +146,7 @@ struct TemplateIterator
         if (i >= attributeLists.size()) {
             *template_ = NULL;
             *templateID = -1;
+            fprintf(stderr, "\n");
         } else {
             *templateID = templateIDs[i];
             JANUS_CHECK(janus_initialize_template(template_))
@@ -295,6 +296,7 @@ janus_error janus_create_simmat(janus_metadata target_metadata,
             JANUS_CHECK(query[i].compareTo(target[j], &scores[i*target.size()+j]));
         fprintf(stderr, "\rComparing %zu/%zu", i+1, query.size());
     }
+    fprintf(stderr, "\n");
     writeMat(scores, query.size(), target.size(), false, target_metadata, query_metadata, simmat);
     delete[] scores;
     return JANUS_SUCCESS;
