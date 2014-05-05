@@ -89,8 +89,13 @@ janus_attribute janus_attribute_from_string(const char *attribute)
 }
 
 // For computing metrics
-static vector<double> janus_augment_speed_samples;
-static vector<double> janus_verify_speed_samples;
+static vector<double> janus_initialize_template_samples;
+static vector<double> janus_augment_samples;
+static vector<double> janus_finalize_template_samples;
+static vector<double> janus_read_image_samples;
+static vector<double> janus_free_image_samples;
+static vector<double> janus_verify_samples;
+static vector<double> janus_template_size_samples;
 
 struct TemplateIterator
 {
@@ -155,14 +160,26 @@ struct TemplateIterator
             fprintf(stderr, "\n");
         } else {
             *templateID = templateIDs[i];
+
+            clock_t start = clock();
             JANUS_CHECK(janus_initialize_template(template_))
+            janus_initialize_template_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
             while ((i < attributeLists.size()) && (templateIDs[i] == *templateID)) {
                 janus_image image;
+
+                start = clock();
                 JANUS_CHECK(janus_read_image((dataPath + fileNames[i]).c_str(), &image))
-                const clock_t start = clock();
+                janus_read_image_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
+                start = clock();
                 JANUS_CHECK(janus_augment(image, attributeLists[i], *template_));
-                janus_augment_speed_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+                janus_augment_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
+                start = clock();
                 janus_free_image(image);
+                janus_free_image_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
                 i++;
                 if (verbose)
                     fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
@@ -202,9 +219,18 @@ struct FlatTemplate
     FlatTemplate(janus_template template_)
     {
         data = new Data();
-        data->flat_template = new janus_data[janus_max_template_size()];
         data->ref_count = 1;
-        data->error = janus_finalize_template(template_, data->flat_template, &data->bytes);
+
+        janus_data *buffer = new janus_data[janus_max_template_size()];
+
+        const clock_t start = clock();
+        data->error = janus_finalize_template(template_, buffer, &data->bytes);
+        janus_finalize_template_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        janus_template_size_samples.push_back(data->bytes / 1024.0);
+
+        data->flat_template = new janus_data[data->bytes];
+        memcpy(data->flat_template, buffer, data->bytes);
+        delete[] buffer;
     }
 
     FlatTemplate(const FlatTemplate& other)
@@ -223,7 +249,7 @@ struct FlatTemplate
     {
         data->ref_count--;
         if (data->ref_count == 0) {
-            delete data->flat_template;
+            delete[] data->flat_template;
             delete data;
         }
     }
@@ -233,7 +259,7 @@ struct FlatTemplate
         double score;
         const clock_t start = clock();
         janus_error error = janus_verify(data->flat_template, data->bytes, other.data->flat_template, other.data->bytes, &score);
-        janus_verify_speed_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        janus_verify_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         *similarity = score;
         return error;
     }
@@ -338,20 +364,30 @@ static janus_metric calculateMetric(const vector<double> &samples)
 janus_metrics janus_get_metrics()
 {
     janus_metrics metrics;
-    metrics.janus_augment_speed = calculateMetric(janus_augment_speed_samples);
-    metrics.janus_verify_speed = calculateMetric(janus_verify_speed_samples);
+    metrics.janus_initialize_template_speed = calculateMetric(janus_initialize_template_samples);
+    metrics.janus_augment_speed = calculateMetric(janus_augment_samples);
+    metrics.janus_finalize_template_speed = calculateMetric(janus_finalize_template_samples);
+    metrics.janus_read_image_speed = calculateMetric(janus_read_image_samples);
+    metrics.janus_free_image_speed = calculateMetric(janus_free_image_samples);
+    metrics.janus_verify_speed = calculateMetric(janus_verify_samples);
+    metrics.janus_template_size = calculateMetric(janus_template_size_samples);
     return metrics;
 }
 
-static void printMetric(janus_metric metric, const char *function)
+static void printMetric(const char *name, janus_metric metric, bool speed = true)
 {
     if (metric.count > 0)
-        printf("%s\t%.2g\t%.2g\t%.2g\n", function, metric.mean, metric.stddev, double(metric.count));
+        printf("%s\t%.2g\t%.2g\t%s\t%.2g\n", name, metric.mean, metric.stddev, speed ? "ms" : "KB", double(metric.count));
 }
 
 void janus_print_metrics(janus_metrics metrics)
 {
-    printf("Function\tMean\tStdDev\tCount\n");
-    printMetric(metrics.janus_augment_speed, "janus_augment");
-    printMetric(metrics.janus_verify_speed, "janus_verify");
+    printf(     "API Symbol               \tMean\tStdDev\tUnits\tCount\n");
+    printMetric("janus_initialize_template", metrics.janus_initialize_template_speed);
+    printMetric("janus_augment            ", metrics.janus_augment_speed);
+    printMetric("janus_finalize_template  ", metrics.janus_finalize_template_speed);
+    printMetric("janus_read_image         ", metrics.janus_read_image_speed);
+    printMetric("janus_free_image         ", metrics.janus_free_image_speed);
+    printMetric("janus_verify             ", metrics.janus_verify_speed);
+    printMetric("janus_flat_template      ", metrics.janus_template_size, false);
 }
