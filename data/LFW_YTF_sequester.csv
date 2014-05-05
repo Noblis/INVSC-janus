@@ -1,4 +1,4 @@
-Template_ID,File_Name,Frame,Right_Eye_X,Right_Eye_Y,Left_Eye_X,Left_Eye_Y,Nose_Base_X,Nose_Base_Y
+TEMPLATE_ID,FILE_NAME,FRAME,RIGHT_EYE_X,RIGHT_EYE_Y,LEFT_EYE_X,LEFT_EYE_Y,NOSE_BASE_X,NOSE_BASE_Y
 2,Aaron_Patterson/Aaron_Patterson_0001.jpg,,101.988,122.656,140.165,107.103,125.689,138.51
 4,Aaron_Pena/Aaron_Pena_0001.jpg,,102.236,119.149,145.448,105.731,128.889,141.681
 10,Abdel_Madi_Shabneh/Abdel_Madi_Shabneh_0001.jpg,,104.872,112.698,145.804,116.249,123.813,145.009
