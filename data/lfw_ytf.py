@@ -32,9 +32,9 @@ testWriter = csv.writer(test, dialect = 'excel')
 probeWriter = csv.writer(probe, dialect = 'excel')
 
 # Write header row for output files
-trainWriter.writerow(['Template_ID', 'File_Name', 'Frame'])
-testWriter.writerow(['Template_ID', 'File_Name', 'Frame'])
-probeWriter.writerow(['Template_ID', 'File_Name', 'Frame'])
+trainWriter.writerow(['TEMPLATE_ID', 'FILE_NAME', 'FRAME'])
+testWriter.writerow(['TEMPLATE_ID', 'FILE_NAME', 'FRAME'])
+probeWriter.writerow(['TEMPLATE_ID', 'FILE_NAME', 'FRAME'])
 
 lfwSubjectDirectories = glob.glob(os.path.join(lfwRootdir, '*'))
 
