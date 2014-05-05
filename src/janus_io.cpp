@@ -374,7 +374,7 @@ janus_metrics janus_get_metrics()
     return metrics;
 }
 
-static void printMetric(janus_metric metric, const char *name, bool speed = true)
+static void printMetric(const char *name, janus_metric metric, bool speed = true)
 {
     if (metric.count > 0)
         printf("%s\t%.2g\t%.2g\t%s\t%.2g\n", name, metric.mean, metric.stddev, speed ? "ms" : "KB", double(metric.count));
@@ -382,12 +382,12 @@ static void printMetric(janus_metric metric, const char *name, bool speed = true
 
 void janus_print_metrics(janus_metrics metrics)
 {
-    printf("Metric\tMean\tStdDev\tUnits\tCount\n");
-    printMetric(metrics.janus_initialize_template_speed, "Initialize");
-    printMetric(metrics.janus_augment_speed, "Augment");
-    printMetric(metrics.janus_finalize_template_speed, "Finalize");
-    printMetric(metrics.janus_read_image_speed, "Read Image");
-    printMetric(metrics.janus_free_image_speed, "Free Image");
-    printMetric(metrics.janus_verify_speed, "Verify");
-    printMetric(metrics.janus_template_size, "Tmpl Size", false);
+    printf(     "API Symbol               \tMean\tStdDev\tUnits\tCount\n");
+    printMetric("janus_initialize_template", metrics.janus_initialize_template_speed);
+    printMetric("janus_augment            ", metrics.janus_augment_speed);
+    printMetric("janus_finalize_template  ", metrics.janus_finalize_template_speed);
+    printMetric("janus_read_image         ", metrics.janus_read_image_speed);
+    printMetric("janus_free_image         ", metrics.janus_free_image_speed);
+    printMetric("janus_verify             ", metrics.janus_verify_speed);
+    printMetric("janus_flat_template      ", metrics.janus_template_size, false);
 }
