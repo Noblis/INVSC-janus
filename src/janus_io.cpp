@@ -219,13 +219,18 @@ struct FlatTemplate
     FlatTemplate(janus_template template_)
     {
         data = new Data();
-        data->flat_template = new janus_data[janus_max_template_size()];
         data->ref_count = 1;
 
+        janus_data *buffer = new janus_data[janus_max_template_size()];
+
         const clock_t start = clock();
-        data->error = janus_finalize_template(template_, data->flat_template, &data->bytes);
+        data->error = janus_finalize_template(template_, buffer, &data->bytes);
         janus_finalize_template_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         janus_template_size_samples.push_back(data->bytes / 1024.0);
+
+        data->flat_template = new janus_data[data->bytes];
+        memcpy(data->flat_template, buffer, data->bytes);
+        delete[] buffer;
     }
 
     FlatTemplate(const FlatTemplate& other)
@@ -244,7 +249,7 @@ struct FlatTemplate
     {
         data->ref_count--;
         if (data->ref_count == 0) {
-            delete data->flat_template;
+            delete[] data->flat_template;
             delete data;
         }
     }
