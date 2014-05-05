@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argc >= 9 ? argv[8] : ""))
+    JANUS_ASSERT(janus_initialize(argv[1], argc >= 8 ? argv[7] : ""))
     JANUS_ASSERT(janus_create_mask(argv[3], argv[4], argv[5]))
     JANUS_ASSERT(janus_create_simmat(argv[3], argv[4], argv[6], argv[2]))
     JANUS_ASSERT(janus_finalize())

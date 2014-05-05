@@ -347,7 +347,7 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
  *                           the top matching templates.
  * \param [out] actual_returns The number of populated elements in template_ids
  *                             and similarities.
- * \note template_ids and similaries should be pre-allocated buffers large
+ * \note template_ids and similarities should be pre-allocated buffers large
  *       enough to contain requested_returns elements. actual_returns will be
  *       less than or equal to requested_returns.
  * \see janus_verify
