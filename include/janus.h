@@ -308,7 +308,7 @@ JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
                                       const size_t a_bytes,
                                       const janus_flat_template b,
                                       const size_t b_bytes,
-                                      double *similarity);
+                                      float *similarity);
 
 /*!
  * \brief Unique identifier for a \ref janus_template.
@@ -397,7 +397,7 @@ JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
  */
 JANUS_EXPORT janus_error janus_compare(janus_gallery target,
                                        janus_gallery query,
-                                       double *similarity_matrix,
+                                       float *similarity_matrix,
                                        janus_template_id *target_ids,
                                        janus_template_id *query_ids);
 

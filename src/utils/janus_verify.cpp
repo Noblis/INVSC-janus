@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     janus_flat_template query_flat = getFlatTemplate(argv[3], &query_bytes);
     printf("Query bytes: %zu\n", query_bytes);
 
-    double similarity;
+    float similarity;
     JANUS_ASSERT(janus_verify(target_flat, target_bytes, query_flat, query_bytes, &similarity))
     printf("Similarity: %g\n", similarity);
 
