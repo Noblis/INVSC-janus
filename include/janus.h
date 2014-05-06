@@ -377,7 +377,7 @@ JANUS_EXPORT janus_error janus_train(const janus_template *templates,
  * \param[out] size The number of templates in the gallery.
  */
 JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
-                                            int *size);
+                                            size_t *size);
 
 /*!
  * \brief Generate a similarity matrix.

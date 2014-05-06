@@ -256,85 +256,51 @@ struct FlatTemplate
 
     janus_error compareTo(const FlatTemplate &other, float *similarity) const
     {
-        double score;
         const clock_t start = clock();
-        janus_error error = janus_verify(data->flat_template, data->bytes, other.data->flat_template, other.data->bytes, &score);
+        janus_error error = janus_verify(data->flat_template, data->bytes, other.data->flat_template, other.data->bytes, similarity);
         janus_verify_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-        *similarity = score;
         return error;
     }
 };
 
-static void writeMat(void *data, int rows, int columns, bool isMask, janus_metadata target, janus_metadata query, const char *matrix)
+janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_gallery target, janus_gallery query, janus_matrix matrix)
 {
     ofstream stream(matrix);
     stream << "S2\n"
            << target << '\n'
            << query << '\n'
-           << 'M' << (isMask ? 'B' : 'F') << ' '
+           << 'M' << (is_mask ? 'B' : 'F') << ' '
            << rows << ' ' << columns << ' ';
     int endian = 0x12345678;
     stream.write((const char*)&endian, 4);
     stream << '\n';
-    stream.write((const char*)data, rows * columns * (isMask ? 1 : 4));
+    stream.write((const char*)data, rows * columns * (is_mask ? 1 : 4));
+    return JANUS_SUCCESS;
 }
 
-static vector<janus_template_id> getTemplateIDs(janus_metadata metadata)
+janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix mask, janus_matrix simmat)
 {
-    vector<janus_template_id> templateIDs;
-    TemplateIterator ti(metadata, "", false);
-    for (size_t i=0; i<ti.templateIDs.size(); i++)
-        if ((i == 0) || (templateIDs.back() != ti.templateIDs[i]))
-            templateIDs.push_back(ti.templateIDs[i]);
-    return templateIDs;
-}
+    size_t target_size, query_size;
+    JANUS_CHECK(janus_gallery_size(target, &target_size))
+    JANUS_CHECK(janus_gallery_size(query, &query_size))
 
-janus_error janus_create_mask(janus_metadata target_metadata,
-                              janus_metadata query_metadata,
-                              janus_matrix mask)
-{
-    vector<janus_template_id> target = getTemplateIDs(target_metadata);
-    vector<janus_template_id> query = getTemplateIDs(query_metadata);
-    unsigned char *truth = new unsigned char[target.size() * query.size()];
-    for (size_t i=0; i<query.size(); i++)
-        for (size_t j=0; j<target.size(); j++)
-            truth[i*target.size()+j] = (query[i] == target[j] ? 0xff : 0x7f);
-    writeMat(truth, query.size(), target.size(), true, target_metadata, query_metadata, mask);
+    float *similarity_matrix = new float[target_size * query_size];
+    janus_template_id *target_ids = new janus_template_id[target_size];
+    janus_template_id *query_ids = new janus_template_id[query_size];
+    JANUS_CHECK(janus_compare(target, query, similarity_matrix, target_ids, query_ids))
+
+    JANUS_CHECK(janus_write_matrix(similarity_matrix, query_size, target_size, false, target, query, simmat))
+    delete[] similarity_matrix;
+
+    unsigned char *truth = new unsigned char[target_size * query_size];
+    for (size_t i=0; i<query_size; i++)
+        for (size_t j=0; j<target_size; j++)
+            truth[i*target_size+j] = (query[i] == target[j] ? 0xff : 0x7f);
+    JANUS_CHECK(janus_write_matrix(truth, query_size, target_size, true, target, query, mask))
     delete[] truth;
-    return JANUS_SUCCESS;
-}
 
-static janus_error getFlatTemplates(janus_metadata metadata, const char *data_path, vector<FlatTemplate> &flatTemplates)
-{
-    TemplateIterator ti(metadata, data_path, true);
-    janus_template template_;
-    janus_template_id templateID;
-    JANUS_CHECK(ti.next(&template_, &templateID))
-    while (template_ != NULL) {
-        flatTemplates.push_back(template_);
-        JANUS_CHECK(flatTemplates.back().data->error)
-        JANUS_CHECK(ti.next(&template_, &templateID))
-    }
-    return JANUS_SUCCESS;
-}
-
-janus_error janus_create_simmat(janus_metadata target_metadata,
-                                janus_metadata query_metadata,
-                                janus_matrix simmat,
-                                const char *data_path)
-{
-    vector<FlatTemplate> target, query;
-    JANUS_CHECK(getFlatTemplates(target_metadata, data_path, target))
-    JANUS_CHECK(getFlatTemplates(query_metadata, data_path, query))
-    float *scores = new float[target.size() * query.size()];
-    for (size_t i=0; i<query.size(); i++) {
-        for (size_t j=0; j<target.size(); j++)
-            JANUS_CHECK(query[i].compareTo(target[j], &scores[i*target.size()+j]));
-        fprintf(stderr, "\rComparing %zu/%zu", i+1, query.size());
-    }
-    fprintf(stderr, "\n");
-    writeMat(scores, query.size(), target.size(), false, target_metadata, query_metadata, simmat);
-    delete[] scores;
+    delete[] query_ids;
+    delete[] target_ids;
     return JANUS_SUCCESS;
 }
 

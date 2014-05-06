@@ -203,41 +203,36 @@ JANUS_EXPORT janus_error janus_create_template(janus_metadata metadata, janus_te
 JANUS_EXPORT janus_error janus_create_gallery(janus_metadata metadata, janus_gallery gallery);
 
 /*!
- * \brief A dense 2D matrix file.
+ * \brief A dense binary 2D matrix file.
  *
  * Can be either the \a similarity or \a mask matrix format described in
  * <a href="http://openbiometrics.org/doxygen/latest/MBGC_file_overview.pdf#page=12">MBGC File Overview</a>.
- * \see janus_create_mask janus_create_simmat
+ * \see janus_write_matrix janus_evaluate
  */
 typedef const char *janus_matrix;
 
 /*!
- * \brief Create a mask matrix from two galleries.
- *
- * The \c Template_ID field is used to determine ground truth match/non-match.
- * \param[in] target_metadata Templates to constitute the columns of the matrix.
- * \param[in] query_metadata Templates to constitute the rows for the matrix.
- * \param[in] mask Mask matrix file to be created.
- * \see janus_create_simmat
+ * \brief Utility function for creating a \ref janus_matrix.
+ * \param[in] data Matrix data.
+ * \param[in] rows Matrix rows.
+ * \param[in] columns Matrix columns.
+ * \param[in] is_mask If non-zero, data is a uint8_t* of mask values, otherwise data is treated as a float* of similarity values.
+ * \param[in] target Target gallery file name recorded in the matrix header.
+ * \param[in] query Query gallery file name recorded in the matrix header.
+ * \param[in] matrix File to write the matrix to.
  */
-JANUS_EXPORT janus_error janus_create_mask(janus_metadata target_metadata,
-                                           janus_metadata query_metadata,
-                                           janus_matrix mask);
+JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_gallery target, janus_gallery query, janus_matrix matrix);
 
 /*!
- * \brief Create a similarity matrix from two galleries.
+ * \brief Create similarity and mask matricies from two galleries.
  *
- * Similarity scores are computed using #janus_verify.
- * \param[in] target_metadata Templates to constitute the columns of the matrix.
- * \param[in] query_metadata Templates to constitute the rows for the matrix.
+ * The \c TEMPLATE_ID field is used to determine ground truth match/non-match in the mask.
+ * \param[in] target Templates to constitute the columns of the matrix.
+ * \param[in] query Templates to constitute the rows for the matrix.
  * \param[in] simmat Similarity matrix file to be created.
- * \param[in] data_path Optional prefix path to image location.
- * \see janus_create_mask
+ * \param[in] mask Mask matrix file to be created.
  */
-JANUS_EXPORT janus_error janus_create_simmat(janus_metadata target_metadata,
-                                             janus_metadata query_metadata,
-                                             janus_matrix simmat,
-                                             const char *data_path);
+JANUS_EXPORT janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix mask, janus_matrix simmat);
 
 /*!
  * \brief A statistic.
