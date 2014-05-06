@@ -302,6 +302,7 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
  * \param[in] b_bytes Size of template b.
  * \param[out] similarity Higher values indicate greater similarity.
  * \see janus_search
+ * \see janus_compare
  */
 JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
                                       const size_t a_bytes,
@@ -351,6 +352,7 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
  *       enough to contain requested_returns elements. actual_returns will be
  *       less than or equal to requested_returns.
  * \see janus_verify
+ * \see janus_compare
  */
 JANUS_EXPORT janus_error janus_search(const janus_template template_,
                                       janus_gallery gallery,
@@ -368,6 +370,36 @@ JANUS_EXPORT janus_error janus_search(const janus_template template_,
 JANUS_EXPORT janus_error janus_train(const janus_template *templates,
                                      const int num_templates,
                                      const char *model_file);
+
+/*!
+ * \brief Retrieve the number of templates in a gallery.
+ * \param[in] gallery The gallery whose templates to count.
+ * \param[out] size The number of templates in the gallery.
+ */
+JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
+                                            int *size);
+
+/*!
+ * \brief Generate a similarity matrix.
+ *
+ * Compare all templates in the target gallery are to all templates in the query
+ * gallery.
+ * \param[in] target Templates forming the similarity matrix columns.
+ * \param[in] query Templates forming the similarity matrix rows.
+ * \param[out] similarity_matrix Buffer to contain the similarity scores in
+ *                               row-major order.
+ * \param[out] target_ids Buffer to contain the target gallery template ids.
+ * \param[out] query_ids Buffer to contain the query gallery template ids.
+ * \note Use janus_gallery_size to determine the appropriate length of the
+ *       pre-allocated buffers.
+ * \see janus_verify
+ * \see janus_search
+ */
+JANUS_EXPORT janus_error janus_compare(janus_gallery target,
+                                       janus_gallery query,
+                                       double *similarity_matrix,
+                                       janus_template_id *target_ids,
+                                       janus_template_id *query_ids);
 
 /*! @}*/
 
