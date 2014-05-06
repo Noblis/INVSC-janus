@@ -195,9 +195,9 @@ janus_error janus_create_template(janus_metadata metadata, janus_template *templ
     return ti.next(template_, template_id);
 }
 
-janus_error janus_create_gallery(janus_metadata metadata, janus_gallery gallery)
+janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery)
 {
-    TemplateIterator ti(metadata, "", true);
+    TemplateIterator ti(metadata, data_path, true);
     janus_template template_;
     janus_template_id templateID;
     JANUS_CHECK(ti.next(&template_, &templateID))

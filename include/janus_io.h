@@ -197,10 +197,11 @@ JANUS_EXPORT janus_error janus_create_template(janus_metadata metadata, janus_te
 
 /*!
  * \brief High-level function for enrolling a gallery from a metadata file.
+ * \param [in] data_path Prefix path to files in metadata.
  * \param [in] metadata #janus_metadata to enroll.
  * \param [in] gallery File to save the gallery to.
  */
-JANUS_EXPORT janus_error janus_create_gallery(janus_metadata metadata, janus_gallery gallery);
+JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery);
 
 /*!
  * \brief A dense binary 2D matrix file.
