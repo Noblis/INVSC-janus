@@ -295,7 +295,7 @@ janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matr
     unsigned char *truth = new unsigned char[target_size * query_size];
     for (size_t i=0; i<query_size; i++)
         for (size_t j=0; j<target_size; j++)
-            truth[i*target_size+j] = (query[i] == target[j] ? 0xff : 0x7f);
+            truth[i*target_size+j] = (query_ids[i] == target_ids[j] ? 0xff : 0x7f);
     JANUS_CHECK(janus_write_matrix(truth, query_size, target_size, true, target, query, mask))
     delete[] truth;
 
