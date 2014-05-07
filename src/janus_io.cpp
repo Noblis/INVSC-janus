@@ -96,6 +96,8 @@ static vector<double> janus_read_image_samples;
 static vector<double> janus_free_image_samples;
 static vector<double> janus_verify_samples;
 static vector<double> janus_template_size_samples;
+static vector<double> janus_gallery_size_samples;
+static vector<double> janus_compare_samples;
 
 struct TemplateIterator
 {
@@ -281,13 +283,21 @@ janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, j
 janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix mask, janus_matrix simmat)
 {
     size_t target_size, query_size;
+    clock_t start = clock();
     JANUS_CHECK(janus_gallery_size(target, &target_size))
+    janus_gallery_size_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
+    start = clock();
     JANUS_CHECK(janus_gallery_size(query, &query_size))
+    janus_gallery_size_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
     float *similarity_matrix = new float[target_size * query_size];
     janus_template_id *target_ids = new janus_template_id[target_size];
     janus_template_id *query_ids = new janus_template_id[query_size];
+
+    start = clock();
     JANUS_CHECK(janus_compare(target, query, similarity_matrix, target_ids, query_ids))
+    janus_compare_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
     JANUS_CHECK(janus_write_matrix(similarity_matrix, query_size, target_size, false, target, query, simmat))
     delete[] similarity_matrix;
@@ -331,12 +341,14 @@ janus_metrics janus_get_metrics()
 {
     janus_metrics metrics;
     metrics.janus_initialize_template_speed = calculateMetric(janus_initialize_template_samples);
-    metrics.janus_augment_speed = calculateMetric(janus_augment_samples);
-    metrics.janus_finalize_template_speed = calculateMetric(janus_finalize_template_samples);
-    metrics.janus_read_image_speed = calculateMetric(janus_read_image_samples);
-    metrics.janus_free_image_speed = calculateMetric(janus_free_image_samples);
-    metrics.janus_verify_speed = calculateMetric(janus_verify_samples);
-    metrics.janus_template_size = calculateMetric(janus_template_size_samples);
+    metrics.janus_augment_speed             = calculateMetric(janus_augment_samples);
+    metrics.janus_finalize_template_speed   = calculateMetric(janus_finalize_template_samples);
+    metrics.janus_read_image_speed          = calculateMetric(janus_read_image_samples);
+    metrics.janus_free_image_speed          = calculateMetric(janus_free_image_samples);
+    metrics.janus_verify_speed              = calculateMetric(janus_verify_samples);
+    metrics.janus_gallery_size_speed        = calculateMetric(janus_gallery_size_samples);
+    metrics.janus_compare_speed             = calculateMetric(janus_compare_samples);
+    metrics.janus_template_size             = calculateMetric(janus_template_size_samples);
     return metrics;
 }
 
@@ -355,5 +367,7 @@ void janus_print_metrics(janus_metrics metrics)
     printMetric("janus_read_image         ", metrics.janus_read_image_speed);
     printMetric("janus_free_image         ", metrics.janus_free_image_speed);
     printMetric("janus_verify             ", metrics.janus_verify_speed);
+    printMetric("janus_gallery_size       ", metrics.janus_gallery_size_speed);
+    printMetric("janus_compare            ", metrics.janus_compare_speed);
     printMetric("janus_flat_template      ", metrics.janus_template_size, false);
 }

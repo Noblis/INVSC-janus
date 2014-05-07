@@ -256,7 +256,9 @@ struct janus_metrics
     janus_metric janus_finalize_template_speed; /*!< \brief ms */
     janus_metric janus_read_image_speed; /*!< \brief ms */
     janus_metric janus_free_image_speed; /*!< \brief ms */
-    janus_metric janus_verify_speed;  /*!< \brief ms */
+    janus_metric janus_verify_speed; /*!< \brief ms */
+    janus_metric janus_compare_speed; /*!< \brief ms */
+    janus_metric janus_gallery_size_speed; /*!< \brief ms */
     janus_metric janus_template_size; /*!< \brief KB */
 };
 
