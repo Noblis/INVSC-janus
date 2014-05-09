@@ -11,6 +11,10 @@
 #include <sstream>
 #include <vector>
 
+#ifdef JANUS_THREADS
+#include <pthread.h>
+#endif // JANUS_THREADS
+
 #include "janus_io.h"
 
 using namespace std;
@@ -99,17 +103,20 @@ static vector<double> janus_template_size_samples;
 static vector<double> janus_gallery_size_samples;
 static vector<double> janus_compare_samples;
 
-struct TemplateIterator
+struct TemplateData
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     vector<janus_attribute_list> attributeLists;
+};
+
+struct TemplateIterator : public TemplateData
+{
     size_t i;
-    string dataPath;
     bool verbose;
 
-    TemplateIterator(janus_metadata metadata, string dataPath, bool verbose)
-        : i(0), dataPath(dataPath), verbose(verbose)
+    TemplateIterator(janus_metadata metadata, bool verbose)
+        : i(0), verbose(verbose)
     {
         ifstream file(metadata);
 
@@ -154,61 +161,91 @@ struct TemplateIterator
             fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
     }
 
-    janus_error next(janus_template *template_, janus_template_id *templateID)
+    TemplateData next()
     {
+        TemplateData templateData;
         if (i >= attributeLists.size()) {
-            *template_ = NULL;
-            *templateID = -1;
             fprintf(stderr, "\n");
         } else {
-            *templateID = templateIDs[i];
-
-            clock_t start = clock();
-            JANUS_CHECK(janus_initialize_template(template_))
-            janus_initialize_template_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-
-            while ((i < attributeLists.size()) && (templateIDs[i] == *templateID)) {
-                janus_image image;
-
-                start = clock();
-                JANUS_CHECK(janus_read_image((dataPath + fileNames[i]).c_str(), &image))
-                janus_read_image_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-
-                start = clock();
-                JANUS_CHECK(janus_augment(image, attributeLists[i], *template_));
-                janus_augment_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-
-                start = clock();
-                janus_free_image(image);
-                janus_free_image_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-
+            const janus_template_id templateID = templateIDs[i];
+            while ((i < attributeLists.size()) && (templateIDs[i] == templateID)) {
+                templateData.templateIDs.push_back(templateIDs[i]);
+                templateData.fileNames.push_back(fileNames[i]);
+                templateData.attributeLists.push_back(attributeLists[i]);
                 i++;
-                if (verbose)
-                    fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
             }
+            if (verbose)
+                fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
         }
+        return templateData;
+    }
+
+    static janus_error create(const char *data_path, const TemplateData templateData, janus_template *template_, janus_template_id *templateID)
+    {
+        clock_t start = clock();
+        JANUS_CHECK(janus_initialize_template(template_))
+        janus_initialize_template_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
+        for (size_t i=0; i<templateData.templateIDs.size(); i++) {
+            janus_image image;
+
+            start = clock();
+            JANUS_CHECK(janus_read_image((data_path + templateData.fileNames[i]).c_str(), &image))
+            janus_read_image_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
+            start = clock();
+            JANUS_CHECK(janus_augment(image, templateData.attributeLists[i], *template_));
+            janus_augment_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
+            start = clock();
+            janus_free_image(image);
+            janus_free_image_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        }
+
+        *templateID = templateData.templateIDs[0];
         return JANUS_SUCCESS;
     }
 };
 
 janus_error janus_create_template(janus_metadata metadata, janus_template *template_, janus_template_id *template_id)
 {
-    TemplateIterator ti(metadata, "", false);
-    return ti.next(template_, template_id);
+    TemplateIterator ti(metadata, false);
+    return TemplateIterator::create("", ti.next(), template_, template_id);
 }
+
+#ifdef JANUS_THREADS
 
 janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery)
 {
-    TemplateIterator ti(metadata, data_path, true);
+    TemplateIterator ti(metadata, true);
     janus_template template_;
     janus_template_id templateID;
-    JANUS_CHECK(ti.next(&template_, &templateID))
-    while (template_ != NULL) {
+    TemplateData templateData = ti.next();
+    while (!templateData.templateIDs.empty()) {
+        JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID))
         JANUS_CHECK(janus_enroll(template_, templateID, gallery))
-        JANUS_CHECK(ti.next(&template_, &templateID))
+        templateData = ti.next();
     }
     return JANUS_SUCCESS;
 }
+
+#else // !JANUS_THREADS
+
+janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery)
+{
+    TemplateIterator ti(metadata, true);
+    janus_template template_;
+    janus_template_id templateID;
+    TemplateData templateData = ti.next();
+    while (!templateData.templateIDs.empty()) {
+        JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID))
+        JANUS_CHECK(janus_enroll(template_, templateID, gallery))
+        templateData = ti.next();
+    }
+    return JANUS_SUCCESS;
+}
+
+#endif // JANUS_THREADS
 
 struct FlatTemplate
 {
