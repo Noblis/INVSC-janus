@@ -11,10 +11,6 @@
 #include <sstream>
 #include <vector>
 
-#ifdef JANUS_THREADS
-#include <pthread.h>
-#endif // JANUS_THREADS
-
 #include "janus_io.h"
 
 using namespace std;
@@ -103,6 +99,17 @@ static vector<double> janus_template_size_samples;
 static vector<double> janus_gallery_size_samples;
 static vector<double> janus_compare_samples;
 
+static void _janus_add_sample(vector<double> &samples, double sample);
+
+#ifndef JANUS_CUSTOM_ADD_SAMPLE
+
+static void _janus_add_sample(vector<double> &samples, double sample)
+{
+    samples.push_back(sample);
+}
+
+#endif // JANUS_CUSTOM_ADD_SAMPLE
+
 struct TemplateData
 {
     vector<string> fileNames;
@@ -184,22 +191,22 @@ struct TemplateIterator : public TemplateData
     {
         clock_t start = clock();
         JANUS_CHECK(janus_initialize_template(template_))
-        janus_initialize_template_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        _janus_add_sample(janus_initialize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
         for (size_t i=0; i<templateData.templateIDs.size(); i++) {
             janus_image image;
 
             start = clock();
             JANUS_CHECK(janus_read_image((data_path + templateData.fileNames[i]).c_str(), &image))
-            janus_read_image_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+            _janus_add_sample(janus_read_image_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
             start = clock();
             JANUS_CHECK(janus_augment(image, templateData.attributeLists[i], *template_));
-            janus_augment_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+            _janus_add_sample(janus_augment_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
             start = clock();
             janus_free_image(image);
-            janus_free_image_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+            _janus_add_sample(janus_free_image_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         }
 
         *templateID = templateData.templateIDs[0];
@@ -213,7 +220,7 @@ janus_error janus_create_template(janus_metadata metadata, janus_template *templ
     return TemplateIterator::create("", ti.next(), template_, template_id);
 }
 
-#ifdef JANUS_THREADS
+#ifndef JANUS_CUSTOM_CREATE_GALLERY
 
 janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery)
 {
@@ -229,23 +236,7 @@ janus_error janus_create_gallery(const char *data_path, janus_metadata metadata,
     return JANUS_SUCCESS;
 }
 
-#else // !JANUS_THREADS
-
-janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery)
-{
-    TemplateIterator ti(metadata, true);
-    janus_template template_;
-    janus_template_id templateID;
-    TemplateData templateData = ti.next();
-    while (!templateData.templateIDs.empty()) {
-        JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID))
-        JANUS_CHECK(janus_enroll(template_, templateID, gallery))
-        templateData = ti.next();
-    }
-    return JANUS_SUCCESS;
-}
-
-#endif // JANUS_THREADS
+#endif // JANUS_CUSTOM_CREATE_GALLERY
 
 struct FlatTemplate
 {
@@ -264,8 +255,8 @@ struct FlatTemplate
 
         const clock_t start = clock();
         data->error = janus_finalize_template(template_, buffer, &data->bytes);
-        janus_finalize_template_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-        janus_template_size_samples.push_back(data->bytes / 1024.0);
+        _janus_add_sample(janus_finalize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        _janus_add_sample(janus_template_size_samples, data->bytes / 1024.0);
 
         data->flat_template = new janus_data[data->bytes];
         memcpy(data->flat_template, buffer, data->bytes);
@@ -297,7 +288,7 @@ struct FlatTemplate
     {
         const clock_t start = clock();
         janus_error error = janus_verify(data->flat_template, data->bytes, other.data->flat_template, other.data->bytes, similarity);
-        janus_verify_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        _janus_add_sample(janus_verify_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         return error;
     }
 };
@@ -322,11 +313,11 @@ janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matr
     size_t target_size, query_size;
     clock_t start = clock();
     JANUS_CHECK(janus_gallery_size(target, &target_size))
-    janus_gallery_size_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+    _janus_add_sample(janus_gallery_size_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
     start = clock();
     JANUS_CHECK(janus_gallery_size(query, &query_size))
-    janus_gallery_size_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+    _janus_add_sample(janus_gallery_size_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
     float *similarity_matrix = new float[target_size * query_size];
     janus_template_id *target_ids = new janus_template_id[target_size];
@@ -334,7 +325,7 @@ janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matr
 
     start = clock();
     JANUS_CHECK(janus_compare(target, query, similarity_matrix, target_ids, query_ids))
-    janus_compare_samples.push_back(1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+    _janus_add_sample(janus_compare_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
     JANUS_CHECK(janus_write_matrix(similarity_matrix, query_size, target_size, false, target, query, simmat))
     delete[] similarity_matrix;
