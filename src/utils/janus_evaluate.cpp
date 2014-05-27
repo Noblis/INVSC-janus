@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     if ((argc < 6) || (argc > 7)) {
-        printf("Usage: janus_evaluate sdk_path target_gallery query_gallery mask simmat [algorithm]\n");
+        printf("Usage: janus_evaluate sdk_path target_gallery query_gallery simmat mask [algorithm]\n");
         return 1;
     }
 

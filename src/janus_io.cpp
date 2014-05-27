@@ -308,7 +308,7 @@ janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, j
     return JANUS_SUCCESS;
 }
 
-janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix mask, janus_matrix simmat)
+janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix simmat, janus_matrix mask)
 {
     size_t target_size, query_size;
     clock_t start = clock();

@@ -233,7 +233,7 @@ JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, i
  * \param[in] simmat Similarity matrix file to be created.
  * \param[in] mask Mask matrix file to be created.
  */
-JANUS_EXPORT janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix mask, janus_matrix simmat);
+JANUS_EXPORT janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix simmat, janus_matrix mask);
 
 /*!
  * \brief A statistic.
