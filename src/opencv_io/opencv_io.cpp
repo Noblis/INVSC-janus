@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include <opencv2/highgui/highgui.hpp>
 
 #include "janus_io.h"
@@ -20,8 +19,11 @@ static janus_image janusFromOpenCV(const Mat &mat)
 
 janus_error janus_read_image(const char *file_name, janus_image *image)
 {
-    Mat mat = imread(file_name, IMREAD_UNCHANGED);
-    if (!mat.data) return JANUS_INVALID_IMAGE;
+    const Mat mat = imread(file_name);
+    if (!mat.data) {
+        fprintf(stderr, "Warning - Janus failed to read: %s\n", file_name);
+        return JANUS_INVALID_IMAGE;
+    }
     *image = janusFromOpenCV(mat);
     return JANUS_SUCCESS;
 }
