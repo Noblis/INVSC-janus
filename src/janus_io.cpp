@@ -34,6 +34,8 @@ const char *janus_error_to_string(janus_error error)
         ENUM_CASE(MISSING_TEMPLATE_ID)
         ENUM_CASE(MISSING_FILE_NAME)
         ENUM_CASE(NULL_ATTRIBUTE_LIST)
+        ENUM_CASE(MISSING_ATTRIBUTES)
+        ENUM_CASE(FAILURE_TO_ENROLL)
         ENUM_CASE(NUM_ERRORS)
     }
     return "UNKNOWN_ERROR";
@@ -54,6 +56,8 @@ janus_error janus_error_from_string(const char *error)
     ENUM_COMPARE(MISSING_TEMPLATE_ID, error)
     ENUM_COMPARE(MISSING_FILE_NAME, error)
     ENUM_COMPARE(NULL_ATTRIBUTE_LIST, error)
+    ENUM_COMPARE(MISSING_ATTRIBUTES, error)
+    ENUM_COMPARE(FAILURE_TO_ENROLL, error)
     ENUM_COMPARE(NUM_ERRORS, error)
     return JANUS_UNKNOWN_ERROR;
 }
@@ -98,6 +102,9 @@ static vector<double> janus_verify_samples;
 static vector<double> janus_template_size_samples;
 static vector<double> janus_gallery_size_samples;
 static vector<double> janus_compare_samples;
+static int janus_missing_attributes_count = 0;
+static int janus_failure_to_enroll_count = 0;
+static int janus_other_errors_count = 0;
 
 static void _janus_add_sample(vector<double> &samples, double sample);
 
@@ -187,7 +194,7 @@ struct TemplateIterator : public TemplateData
         return templateData;
     }
 
-    static janus_error create(const char *data_path, const TemplateData templateData, janus_template *template_, janus_template_id *templateID)
+    static janus_error create(const char *data_path, const TemplateData templateData, janus_template *template_, janus_template_id *templateID, bool verbose)
     {
         clock_t start = clock();
         JANUS_CHECK(janus_initialize_template(template_))
@@ -201,7 +208,19 @@ struct TemplateIterator : public TemplateData
             _janus_add_sample(janus_read_image_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
             start = clock();
-            JANUS_CHECK(janus_augment(image, templateData.attributeLists[i], *template_));
+            const janus_error error = janus_augment(image, templateData.attributeLists[i], *template_);
+            if (error == JANUS_MISSING_ATTRIBUTES) {
+                janus_missing_attributes_count++;
+                if (verbose)
+                    printf("Missing attributes for: %s\n", templateData.fileNames[i].c_str());
+            } else if (error == JANUS_FAILURE_TO_ENROLL) {
+                janus_failure_to_enroll_count++;
+                if (verbose)
+                    printf("Failure to enroll: %s\n", templateData.fileNames[i].c_str());
+            } else if (error != JANUS_SUCCESS) {
+                janus_other_errors_count++;
+                printf("Warning: %s on: %s\n", janus_error_to_string(error),templateData.fileNames[i].c_str());
+            }
             _janus_add_sample(janus_augment_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
             start = clock();
@@ -217,7 +236,7 @@ struct TemplateIterator : public TemplateData
 janus_error janus_create_template(janus_metadata metadata, janus_template *template_, janus_template_id *template_id)
 {
     TemplateIterator ti(metadata, false);
-    return TemplateIterator::create("", ti.next(), template_, template_id);
+    return TemplateIterator::create("", ti.next(), template_, template_id, false);
 }
 
 #ifndef JANUS_CUSTOM_CREATE_GALLERY
@@ -398,4 +417,9 @@ void janus_print_metrics(janus_metrics metrics)
     printMetric("janus_gallery_size       ", metrics.janus_gallery_size_speed);
     printMetric("janus_compare            ", metrics.janus_compare_speed);
     printMetric("janus_flat_template      ", metrics.janus_template_size, false);
+    printf("\n\n");
+    printf("janus_error             \tCount");
+    printf("JANUS_MISSING_ATTRIBUTES\t%d\n", metrics.janus_missing_attributes_count);
+    printf("JANUS_FAILURE_TO_ENROLL \t%d\n", metrics.janus_failure_to_enroll_count);
+    printf("All other errors        \t%d\n", metrics.janus_other_errors_count);
 }

@@ -200,8 +200,9 @@ JANUS_EXPORT janus_error janus_create_template(janus_metadata metadata, janus_te
  * \param [in] data_path Prefix path to files in metadata.
  * \param [in] metadata #janus_metadata to enroll.
  * \param [in] gallery File to save the gallery to.
+ * \param [in] verbose Print information and warnings during gallery enrollment.
  */
-JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery);
+JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, bool verbose);
 
 /*!
  * \brief A dense binary 2D matrix file.
@@ -260,6 +261,9 @@ struct janus_metrics
     janus_metric janus_compare_speed; /*!< \brief ms */
     janus_metric janus_gallery_size_speed; /*!< \brief ms */
     janus_metric janus_template_size; /*!< \brief KB */
+    int          janus_missing_attributes_count; /*!< \brief Count of \ref JANUS_MISSING_ATTRIBUTES */
+    int          janus_failure_to_enroll_count; /*!< \brief Count of \ref JANUS_FAILURE_TO_ENROLL */
+    int          janus_other_errors_count; /*!< \brief Count of \ref JANUS_ERROR excluding \ref JANUS_MISSING_ATTRIBUTES, \ref JANUS_FAILURE_TO_ENROLL, and \ref JANUS_SUCCESS */
 };
 
 /*! \brief Retrieve and reset performance metrics. */

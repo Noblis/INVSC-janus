@@ -111,7 +111,7 @@ typedef enum janus_error
     JANUS_UNKNOWN_ERROR      , /*!< Catch-all error code */
     JANUS_OUT_OF_MEMORY      , /*!< Memorry allocation failed */
     JANUS_INVALID_SDK_PATH   , /*!< Incorrect location provided to
-                                         #janus_initialize */
+                                    #janus_initialize */
     JANUS_OPEN_ERROR         , /*!< Failed to open a file */
     JANUS_READ_ERROR         , /*!< Failed to read from a file */
     JANUS_WRITE_ERROR        , /*!< Failed to write to a file */
@@ -121,6 +121,11 @@ typedef enum janus_error
     JANUS_MISSING_TEMPLATE_ID, /*!< Expected a missing template ID */
     JANUS_MISSING_FILE_NAME  , /*!< Expected a missing file name */
     JANUS_NULL_ATTRIBUTE_LIST, /*!< Null #janus_attribute_list */
+    JANUS_MISSING_ATTRIBUTES , /*!< Not all required attributes were
+                                    provided */
+    JANUS_FAILURE_TO_ENROLL  , /*!< Could not construct a template
+                                    from the provided image and
+                                    attributes */
     JANUS_NUM_ERRORS           /*!< Idiom to iterate over all errors */
 } janus_error;
 
