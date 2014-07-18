@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     if ((argc < 5) || (argc > 7)) {
-        printf("Usage: janus_enroll sdk_path data_path metadata_file gallery_file [algorithm]\n");
+        printf("Usage: janus_enroll sdk_path data_path metadata_file gallery_file [[algorithm] verbose]\n");
         return 1;
     }
 
