@@ -396,6 +396,9 @@ janus_metrics janus_get_metrics()
     metrics.janus_gallery_size_speed        = calculateMetric(janus_gallery_size_samples);
     metrics.janus_compare_speed             = calculateMetric(janus_compare_samples);
     metrics.janus_template_size             = calculateMetric(janus_template_size_samples);
+    metrics.janus_missing_attributes_count  = janus_missing_attributes_count;
+    metrics.janus_failure_to_enroll_count   = janus_failure_to_enroll_count;
+    metrics.janus_other_errors_count        = janus_other_errors_count;
     return metrics;
 }
 
@@ -418,7 +421,7 @@ void janus_print_metrics(janus_metrics metrics)
     printMetric("janus_compare            ", metrics.janus_compare_speed);
     printMetric("janus_flat_template      ", metrics.janus_template_size, false);
     printf("\n\n");
-    printf("janus_error             \tCount");
+    printf("janus_error             \tCount\n");
     printf("JANUS_MISSING_ATTRIBUTES\t%d\n", metrics.janus_missing_attributes_count);
     printf("JANUS_FAILURE_TO_ENROLL \t%d\n", metrics.janus_failure_to_enroll_count);
     printf("All other errors        \t%d\n", metrics.janus_other_errors_count);
