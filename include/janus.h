@@ -45,8 +45,7 @@ extern "C" {
  * janus_aux.h | \ref janus_aux | No (Phases 2 & 3 only) | \copybrief janus_aux
  *
  * - [<b>Source Code</b>](https://github.com/biometrics/janus) [github.com]
- * - [<b>Program Homepage</b>](http://www.iarpa.gov/Programs/sc/Janus/janus.html
- *   ) [iarpa.gov]
+ * - [<b>Program Homepage</b>](http://www.iarpa.gov/index.php/research-programs/janus) [iarpa.gov]
  * - \ref technical_considerations
  *
  * \subsection license License
