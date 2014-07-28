@@ -45,7 +45,8 @@ extern "C" {
  * janus_aux.h | \ref janus_aux | No (Phases 2 & 3 only) | \copybrief janus_aux
  *
  * - [<b>Source Code</b>](https://github.com/biometrics/janus) [github.com]
- * - [<b>Program Homepage</b>](http://www.iarpa.gov/index.php/research-programs/janus) [iarpa.gov]
+ * - [<b>Program Homepage</b>]
+ *          (http://www.iarpa.gov/index.php/research-programs/janus) [iarpa.gov]
  * - \ref technical_considerations
  *
  * \subsection license License
@@ -53,9 +54,12 @@ extern "C" {
  * *free for academic and commercial use*.
  *
  * \subsection feedback Feedback
- * \a Unclassified technical discussion regarding the API takes place on the mailing list \c janus-dev@noblis.org.
- * - To \b subscribe and \b post, send an email to \c listserv@noblis.org with the message body <b>subscribe janus-dev</b>
- * - To \b unsubscribe, send an email to \c listserv@noblis.org with the message body <b>unsubscribe janus-dev</b>
+ * \a Unclassified technical discussion regarding the API takes place on the
+ *    mailing list \c janus-dev@noblis.org.
+ * - To \b subscribe and \b post, send an email to \c listserv@noblis.org with
+ *   the message body <b>subscribe janus-dev</b>
+ * - To \b unsubscribe, send an email to \c listserv@noblis.org with the message
+ *   body <b>unsubscribe janus-dev</b>
  * - The list \b owner is \c joshua.klontz@noblis.org
  *
  * \page technical_considerations Technical Considerations
@@ -125,6 +129,8 @@ typedef enum janus_error
     JANUS_FAILURE_TO_ENROLL  , /*!< Could not construct a template
                                     from the provided image and
                                     attributes */
+    JANUS_NOT_IMPLEMENTED    , /*!< Optional functions may return this value in
+                                    lieu of a meaninful implementation */
     JANUS_NUM_ERRORS           /*!< Idiom to iterate over all errors */
 } janus_error;
 
@@ -211,9 +217,10 @@ typedef struct janus_attribute_list
  *
  * \param[in] sdk_path Path to the \em read-only directory containing the
  *                     janus-compliant SDK as provided by the implementer.
- * \param[in] model_file Path to a trained model file created by
- *                       \ref janus_train or an empty string indicating the
- *                       default algorithm.
+ * \param[in] model_file An empty string indicating the default algorithm, an
+ *                       implementation-defined string indicating a specific
+ *                       algorithm configuration, or the path to a model file
+ *                       created by \ref janus_train.
  * \note This function should only be called once.
  * \see janus_finalize
  */
@@ -255,7 +262,15 @@ JANUS_EXPORT size_t janus_max_template_size();
 
 /*!
  * \brief Create an empty template for enrollment.
+ *
+ * \code
+ * janus_template template_;
+ * janus_error error = janus_initialize_template(&template_);
+ * assert(error == JANUS_SUCCESS);
+ * \endcode
+ *
  * \param[in] template_ The template to initialize for enrollment.
+ * \see janus_augment janus_finalize_template
  */
 JANUS_EXPORT janus_error janus_initialize_template(janus_template *template_);
 
@@ -266,7 +281,8 @@ JANUS_EXPORT janus_error janus_initialize_template(janus_template *template_);
  *                       object to recognize.
  * \param[in,out] template_ The template to contain the object's recognition
  *                          information.
- * \see janus_track
+ * \see janus_initialize_template janus_track janus_finalize_template
+ *      janus_enroll janus_search
  */
 JANUS_EXPORT janus_error janus_augment(const janus_image image,
                                        const janus_attribute_list attributes,
@@ -292,6 +308,7 @@ JANUS_EXPORT janus_error janus_track(janus_template template_,
  *                              final template.
  * \param[out] bytes Size of the buffer actually used to store the template.
  * \note template_ is deallocated by this function.
+ * \see janus_initialize_template janus_verify
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
                                                  janus_flat_template
@@ -325,6 +342,7 @@ typedef int janus_template_id;
 /*!
  * \brief A set of \ref janus_template in a file.
  *
+ * Offers persistence and (in phases 2 & 3) sub-linear retrieval time.
  * Add templates to the gallery using \ref janus_enroll.
  */
 typedef const char *janus_gallery;
@@ -370,6 +388,10 @@ JANUS_EXPORT janus_error janus_search(const janus_template template_,
  * \param[in] templates Training data to generate the model file.
  * \param[in] num_templates Length of \em partial_templates.
  * \param[out] model_file File path to contain the trained model.
+ * \note This function is optional and may return \ref JANUS_NOT_IMPLEMENTED.
+ * \todo Is the API the right level of abstraction for this function? Should
+ *       it be moved to the command line instead or a shell script instead? Is
+ *       a common interface impossible?
  */
 JANUS_EXPORT janus_error janus_train(const janus_template *templates,
                                      const int num_templates,

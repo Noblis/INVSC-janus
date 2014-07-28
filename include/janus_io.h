@@ -242,8 +242,9 @@ JANUS_EXPORT janus_error janus_evaluate(janus_gallery target, janus_gallery quer
  */
 struct janus_metric
 {
-    size_t count;
-    double mean, stddev;
+    size_t count;  /*!< \brief Number of samples. */
+    double mean;   /*!< \brief Sample average. */
+    double stddev; /*!< \brief Sample standard deviation. */
 };
 
 /*!
@@ -263,7 +264,7 @@ struct janus_metrics
     janus_metric janus_template_size; /*!< \brief KB */
     int          janus_missing_attributes_count; /*!< \brief Count of \ref JANUS_MISSING_ATTRIBUTES */
     int          janus_failure_to_enroll_count; /*!< \brief Count of \ref JANUS_FAILURE_TO_ENROLL */
-    int          janus_other_errors_count; /*!< \brief Count of \ref JANUS_ERROR excluding \ref JANUS_MISSING_ATTRIBUTES, \ref JANUS_FAILURE_TO_ENROLL, and \ref JANUS_SUCCESS */
+    int          janus_other_errors_count; /*!< \brief Count of \ref janus_error excluding \ref JANUS_MISSING_ATTRIBUTES, \ref JANUS_FAILURE_TO_ENROLL, and \ref JANUS_SUCCESS */
 };
 
 /*! \brief Retrieve and reset performance metrics. */
