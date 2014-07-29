@@ -37,6 +37,7 @@ const char *janus_error_to_string(janus_error error)
         ENUM_CASE(MISSING_ATTRIBUTES)
         ENUM_CASE(FAILURE_TO_ENROLL)
         ENUM_CASE(NUM_ERRORS)
+        ENUM_CASE(NOT_IMPLEMENTED)
     }
     return "UNKNOWN_ERROR";
 }
@@ -59,6 +60,7 @@ janus_error janus_error_from_string(const char *error)
     ENUM_COMPARE(MISSING_ATTRIBUTES, error)
     ENUM_COMPARE(FAILURE_TO_ENROLL, error)
     ENUM_COMPARE(NUM_ERRORS, error)
+    ENUM_COMPARE(NOT_IMPLEMENTED, error)
     return JANUS_UNKNOWN_ERROR;
 }
 
