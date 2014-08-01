@@ -98,6 +98,21 @@ extern "C" {
  * \brief Mandatory interface for Phase 1.
  *
  * All Janus performers should adhere to this interface.
+ *
+ * \section Overview
+ * A Janus application begins with a call to \ref janus_initialize. New
+ * templates are constructed with \ref janus_initialize_template and provided
+ * image data with \ref janus_augment.
+ *
+ * Templates can be used for verification with \ref janus_finalize_template and
+ * \ref janus_verify, and search with \ref janus_enroll and \ref janus_search.
+ * Complete similarity matrix construction is offered by \ref janus_compare.
+ *
+ * Transfer learning is optionally offered by \ref janus_train, whose model file
+ * output is then passed to \ref janus_initialize.
+ *
+ * All Janus applications end with a call to \ref janus_finalize.
+ *
  * \addtogroup janus
  * @{
  */
@@ -247,6 +262,54 @@ JANUS_EXPORT janus_error janus_finalize();
 typedef struct janus_template_type *janus_template;
 
 /*!
+ * \brief Create an empty template.
+ *
+ * Add images to it with \ref janus_augment.
+ *
+ * \code
+ * janus_template template_;
+ * janus_error error = janus_initialize_template(&template_);
+ * assert(!error);
+ * \endcode
+ *
+ * \param[in] template_ An uninitialized template.
+ */
+JANUS_EXPORT janus_error janus_initialize_template(janus_template *template_);
+
+/*!
+ * \brief Add an image to the template.
+ *
+ * For video frames, call \ref janus_track first.
+ *
+ * Augmented templates can then be passed to \ref janus_finalize_template for
+ * verification or \ref janus_enroll for gallery construction.
+ *
+ * \param[in] image The image containing the detected object to be recognized.
+ * \param[in] attributes Location and metadata associated with the detected
+ *                       object to recognize.
+ * \param[in,out] template_ The template to contain the object's recognition
+ *                          information.
+ */
+JANUS_EXPORT janus_error janus_augment(const janus_image image,
+                                       const janus_attribute_list attributes,
+                                       janus_template template_);
+
+/*!
+ * \brief Enable or disable object tracking for the template.
+ *
+ * Call this function before the first, and after the last, video frame is added
+ * with \ref janus_augment.
+ *
+ * \param[in] template_ The template to contain the tracked object.
+ * \param[in] enabled If true, images provided in subsequent calls to
+ *                    \ref janus_augment with template_ are sequential frames in
+ *                    a video.
+ * \see janus_augment
+ */
+JANUS_EXPORT janus_error janus_track(janus_template template_,
+                                     int enabled);
+
+/*!
  * \brief A finalized representation of a template suitable for comparison.
  * \see janus_template
  */
@@ -261,54 +324,15 @@ typedef janus_data *janus_flat_template;
 JANUS_EXPORT size_t janus_max_template_size();
 
 /*!
- * \brief Create an empty template for enrollment.
- *
- * \code
- * janus_template template_;
- * janus_error error = janus_initialize_template(&template_);
- * assert(error == JANUS_SUCCESS);
- * \endcode
- *
- * \param[in] template_ The template to initialize for enrollment.
- * \see janus_augment janus_finalize_template
- */
-JANUS_EXPORT janus_error janus_initialize_template(janus_template *template_);
-
-/*!
- * \brief Add information to the template.
- * \param[in] image The image containing the detected object.
- * \param[in] attributes Location and metadata associated with the detected
- *                       object to recognize.
- * \param[in,out] template_ The template to contain the object's recognition
- *                          information.
- * \see janus_initialize_template janus_track janus_finalize_template
- *      janus_enroll janus_search
- */
-JANUS_EXPORT janus_error janus_augment(const janus_image image,
-                                       const janus_attribute_list attributes,
-                                       janus_template template_);
-
-/*!
- * \brief Enable or disable object tracking for the template.
- * \param[in] template_ The template to contain the tracked object.
- * \param[in] enabled If true, images provided in subsequent calls to
- *                    \ref janus_augment with template_ are sequential frames in
- *                    a video.
- * \see janus_augment
- */
-JANUS_EXPORT janus_error janus_track(janus_template template_,
-                                     int enabled);
-
-/*!
- * \brief Create the final template representation.
+ * \brief Create a finalized template representation for verification with
+ *        \ref janus_verify.
  * \param[in] template_ The recognition information to contruct the
- *                      template from.
+ *                      finalized template from.
  * \param[in,out] flat_template A pre-allocated buffer no smaller than
  *                              \ref janus_max_template_size to contain the
- *                              final template.
+ *                              finalized template.
  * \param[out] bytes Size of the buffer actually used to store the template.
- * \note template_ is deallocated by this function.
- * \see janus_initialize_template janus_verify
+ * \note \p template_ is deallocated by this function.
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
                                                  janus_flat_template
@@ -317,13 +341,14 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
 
 /*!
  * \brief Return a similarity score for two templates.
+ *
+ * Higher scores indicate greater similarity.
  * \param[in] a The first template to compare.
  * \param[in] a_bytes Size of template a.
  * \param[in] b The second template to compare.
  * \param[in] b_bytes Size of template b.
  * \param[out] similarity Higher values indicate greater similarity.
- * \see janus_search
- * \see janus_compare
+ * \see janus_search janus_compare
  */
 JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
                                       const size_t a_bytes,
@@ -349,11 +374,21 @@ typedef const char *janus_gallery;
 
 /*!
  * \brief Add a template to the gallery.
+ *
+ * Use \ref janus_search for searching against the gallery.
+ *
+ * It is up to the user to provide unique \p template_id values. The
+ * implementation may assume that multiple templates with the same
+ * \p template_id belong to the same identity.
+ *
+ * The number of templates in the gallery can be retrieved by
+ * \ref janus_gallery_size.
+ *
  * \param[in] template_ The template to add.
  * \param[in] template_id A unique identifier for the template.
- * \param[in] gallery The gallery to take ownership of the template. The file
- *                    will be created if it does not already exist.
- * \note template_ is deallocated by this function.
+ * \param[in] gallery The gallery file to take ownership of the template. A new
+ *                    file will be created if one does not already exist.
+ * \note \p template_ is deallocated by this function.
  */
 JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
                                       const janus_template_id template_id,
@@ -364,23 +399,23 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
  * \param [in] template_ Probe to search for.
  * \param [in] gallery Gallery to search against.
  * \param [in] requested_returns The desired number of returned results.
- * \param [out] template_ids Buffer to contain the unique identifiers of the top
+ * \param [out] template_ids Buffer to contain the \ref janus_template_id of the
+ *                           top matching gallery templates.
+ * \param [out] similarities Buffer to contain the similarity scores of the top
  *                           matching templates.
- * \param [out] similarities Buffer to contain the similarity score for each of
- *                           the top matching templates.
  * \param [out] actual_returns The number of populated elements in template_ids
  *                             and similarities.
- * \note template_ids and similarities should be pre-allocated buffers large
- *       enough to contain requested_returns elements. actual_returns will be
- *       less than or equal to requested_returns.
- * \see janus_verify
- * \see janus_compare
+ * \note \p template_ids and \p similarities should be pre-allocated buffers
+ *       large enough to contain \p requested_returns elements.
+ *       \p actual_returns will be less than or equal to requested_returns,
+ *       depending on the contents of the gallery.
+ * \see janus_verify janus_compare
  */
 JANUS_EXPORT janus_error janus_search(const janus_template template_,
                                       janus_gallery gallery,
                                       int requested_returns,
                                       janus_template_id *template_ids,
-                                      double *similarities,
+                                      float *similarities,
                                       int *actual_returns);
 
 /*!
@@ -399,6 +434,11 @@ JANUS_EXPORT janus_error janus_train(const janus_template *templates,
 
 /*!
  * \brief Retrieve the number of templates in a gallery.
+ *
+ * Galleries may split or join templates based on their identity
+ * information, so the number of templates in the gallery is not necessarily
+ * equal to the number of \ref janus_enroll calls.
+ *
  * \param[in] gallery The gallery whose templates to count.
  * \param[out] size The number of templates in the gallery.
  */
@@ -416,10 +456,9 @@ JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
  *                               row-major order.
  * \param[out] target_ids Buffer to contain the target gallery template ids.
  * \param[out] query_ids Buffer to contain the query gallery template ids.
- * \note Use janus_gallery_size to determine the appropriate length of the
+ * \note Use \ref janus_gallery_size to determine the appropriate length of the
  *       pre-allocated buffers.
- * \see janus_verify
- * \see janus_search
+ * \see janus_verify janus_search
  */
 JANUS_EXPORT janus_error janus_compare(janus_gallery target,
                                        janus_gallery query,
