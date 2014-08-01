@@ -101,8 +101,9 @@ extern "C" {
  *
  * \section Overview
  * A Janus application begins with a call to \ref janus_initialize. New
- * templates are constructed with \ref janus_initialize_template and provided
- * image data with \ref janus_augment.
+ * templates are constructed with \ref janus_allocate and provided
+ * image data with \ref janus_augment. Templates are freed after use with
+ * \ref janus_free.
  *
  * Templates can be used for verification with \ref janus_finalize_template and
  * \ref janus_verify, and search with \ref janus_enroll and \ref janus_search.
@@ -253,7 +254,7 @@ JANUS_EXPORT janus_error janus_finalize();
 /*!
  * \brief Contains the recognition information for an object.
  *
- * Create a new template with \ref janus_initialize_template.
+ * Create a new template with \ref janus_allocate.
  * Add images and videos to the template using \ref janus_augment and
  * \ref janus_track.
  * Finalize the template for comparison with \ref janus_finalize_template.
@@ -262,19 +263,20 @@ JANUS_EXPORT janus_error janus_finalize();
 typedef struct janus_template_type *janus_template;
 
 /*!
- * \brief Create an empty template.
+ * \brief Allocate memory for an empty template.
  *
  * Add images to it with \ref janus_augment.
  *
  * \code
  * janus_template template_;
- * janus_error error = janus_initialize_template(&template_);
+ * janus_error error = janus_allocate(&template_);
  * assert(!error);
  * \endcode
  *
  * \param[in] template_ An uninitialized template.
+ * \see janus_free
  */
-JANUS_EXPORT janus_error janus_initialize_template(janus_template *template_);
+JANUS_EXPORT janus_error janus_allocate(janus_template *template_);
 
 /*!
  * \brief Add an image to the template.
@@ -310,6 +312,15 @@ JANUS_EXPORT janus_error janus_track(janus_template template_,
                                      int enabled);
 
 /*!
+ * \brief Free memory for a template previously allocated by \ref janus_allocate.
+ *
+ * Call this function on a template after it is no longer needed.
+ * \param[in] template_ The template to deallocate.
+ * \see janus_allocate
+ */
+ JANUS_EXPORT janus_error janus_free(janus_template template_);
+
+/*!
  * \brief A finalized representation of a template suitable for comparison.
  * \see janus_template
  */
@@ -332,7 +343,6 @@ JANUS_EXPORT size_t janus_max_template_size();
  *                              \ref janus_max_template_size to contain the
  *                              finalized template.
  * \param[out] bytes Size of the buffer actually used to store the template.
- * \note \p template_ is deallocated by this function.
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
                                                  janus_flat_template
@@ -388,7 +398,6 @@ typedef const char *janus_gallery;
  * \param[in] template_id A unique identifier for the template.
  * \param[in] gallery The gallery file to take ownership of the template. A new
  *                    file will be created if one does not already exist.
- * \note \p template_ is deallocated by this function.
  */
 JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
                                       const janus_template_id template_id,
