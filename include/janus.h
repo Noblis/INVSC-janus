@@ -47,7 +47,6 @@ extern "C" {
  * - [<b>Source Code</b>](https://github.com/biometrics/janus) [github.com]
  * - [<b>Program Homepage</b>]
  *          (http://www.iarpa.gov/index.php/research-programs/janus) [iarpa.gov]
- * - \ref technical_considerations
  *
  * \subsection license License
  * The API is provided under a [BSD-like license](LICENSE.txt) and is
@@ -61,18 +60,6 @@ extern "C" {
  * - To \b unsubscribe, send an email to \c listserv@noblis.org with the message
  *   body <b>unsubscribe janus-dev</b>
  * - The list \b owner is \c joshua.klontz@noblis.org
- *
- * \page technical_considerations Technical Considerations
- * \brief Technical considerations related to the Janus API.
- * \section thread_safety Thread Safety
- * All functions are thread-safe unless noted otherwise.
- *
- * \section notes_to_implementers Notes for Implementers
- * - Define \c JANUS_LIBRARY during compilation to export Janus symbols and
- *   compile a Unix implementation with \c \-fvisibility=hidden.
- * - Follow the <a href="http://www.pathname.com/fhs/">Filesystem Hierarchy
- *   Standard</a> by organizing the implementation into \c bin, \c include,
- *   \c lib, \c share and \c src sub-folders.
  */
 
 #if defined JANUS_LIBRARY
@@ -113,6 +100,24 @@ extern "C" {
  * output is then passed to \ref janus_initialize.
  *
  * All Janus applications end with a call to \ref janus_finalize.
+ *
+ * \section thread_safety Thread Safety
+ * All functions are marked one of:
+ * - \anchor thread_safe \par thread-safe
+ *   Can be called simultaneously from multiple threads, even when the
+ *   invocations use shared data.
+ * - \anchor reentrant \par reentrant
+ *   Can be called simultaneously from multiple threads, but only if each
+ *   invocation uses its own data.
+ * - \anchor thread_unsafe \par thread-unsafe
+ *   Can not be called simultaneously from multiple threads.
+ *
+ * \section implementer_notes Implementer Notes
+ * - Define \c JANUS_LIBRARY during compilation to export Janus symbols and
+ *   compile a Unix implementation with \c \-fvisibility=hidden.
+ * - Follow the <a href="http://www.pathname.com/fhs/">Filesystem Hierarchy
+ *   Standard</a> by organizing the implementation into \c bin, \c include,
+ *   \c lib, \c share and \c src sub-folders.
  *
  * \addtogroup janus
  * @{
@@ -237,7 +242,7 @@ typedef struct janus_attribute_list
  *                       implementation-defined string indicating a specific
  *                       algorithm configuration, or the path to a model file
  *                       created by \ref janus_train.
- * \note This function should only be called once.
+ * \remark This function is \ref thread_unsafe and should only be called once.
  * \see janus_finalize
  */
 JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
@@ -246,7 +251,7 @@ JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
 /*!
  * \brief Call once at the end of the application, after making all other calls
  * to the API.
- * \note This function should only be called once.
+ * \remark This function is \ref thread_unsafe and should only be called once.
  * \see janus_initialize
  */
 JANUS_EXPORT janus_error janus_finalize();
@@ -274,6 +279,7 @@ typedef struct janus_template_type *janus_template;
  * \endcode
  *
  * \param[in] template_ An uninitialized template.
+ * \remark This function is \ref reentrant.
  * \see janus_free
  */
 JANUS_EXPORT janus_error janus_allocate(janus_template *template_);
@@ -291,6 +297,7 @@ JANUS_EXPORT janus_error janus_allocate(janus_template *template_);
  *                       object to recognize.
  * \param[in,out] template_ The template to contain the object's recognition
  *                          information.
+ * \remark This function is \ref reentrant.
  */
 JANUS_EXPORT janus_error janus_augment(const janus_image image,
                                        const janus_attribute_list attributes,
@@ -306,6 +313,7 @@ JANUS_EXPORT janus_error janus_augment(const janus_image image,
  * \param[in] enabled If true, images provided in subsequent calls to
  *                    \ref janus_augment with template_ are sequential frames in
  *                    a video.
+ * \remark This function is \ref reentrant.
  * \see janus_augment
  */
 JANUS_EXPORT janus_error janus_track(janus_template template_,
@@ -316,6 +324,7 @@ JANUS_EXPORT janus_error janus_track(janus_template template_,
  *
  * Call this function on a template after it is no longer needed.
  * \param[in] template_ The template to deallocate.
+ * \remark This function is \ref reentrant.
  * \see janus_allocate
  */
  JANUS_EXPORT janus_error janus_free(janus_template template_);
@@ -331,6 +340,7 @@ typedef janus_data *janus_flat_template;
  *        \ref janus_finalize_template.
  *
  * Should be less than or equal to 32 MB.
+ * \remark This function is \ref thread_safe.
  */
 JANUS_EXPORT size_t janus_max_template_size();
 
@@ -343,6 +353,7 @@ JANUS_EXPORT size_t janus_max_template_size();
  *                              \ref janus_max_template_size to contain the
  *                              finalized template.
  * \param[out] bytes Size of the buffer actually used to store the template.
+ * \remark This function is \ref reentrant.
  */
 JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
                                                  janus_flat_template
@@ -358,6 +369,7 @@ JANUS_EXPORT janus_error janus_finalize_template(janus_template template_,
  * \param[in] b The second template to compare.
  * \param[in] b_bytes Size of template b.
  * \param[out] similarity Higher values indicate greater similarity.
+ * \remark This function is \ref thread_safe.
  * \see janus_search janus_compare
  */
 JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
@@ -377,7 +389,7 @@ typedef int janus_template_id;
 /*!
  * \brief A set of \ref janus_template in a file.
  *
- * Offers persistence and (in phases 2 & 3) sub-linear retrieval time.
+ * Offers persistence and (in phases 2 & 3) sub-linear search time.
  * Add templates to the gallery using \ref janus_enroll.
  */
 typedef const char *janus_gallery;
@@ -398,6 +410,7 @@ typedef const char *janus_gallery;
  * \param[in] template_id A unique identifier for the template.
  * \param[in] gallery The gallery file to take ownership of the template. A new
  *                    file will be created if one does not already exist.
+ * \remark This function is \ref reentrant.
  */
 JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
                                       const janus_template_id template_id,
@@ -405,6 +418,11 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
 
 /*!
  * \brief Ranked search for a template against a gallery.
+ *
+ * \p template_ids and \p similarities should be pre-allocated buffers large
+ * enough to contain \p requested_returns elements. \p actual_returns will be
+ * less than or equal to requested_returns, depending on the contents of the
+ * gallery.
  * \param [in] template_ Probe to search for.
  * \param [in] gallery Gallery to search against.
  * \param [in] requested_returns The desired number of returned results.
@@ -414,10 +432,7 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
  *                           matching templates.
  * \param [out] actual_returns The number of populated elements in template_ids
  *                             and similarities.
- * \note \p template_ids and \p similarities should be pre-allocated buffers
- *       large enough to contain \p requested_returns elements.
- *       \p actual_returns will be less than or equal to requested_returns,
- *       depending on the contents of the gallery.
+ * \remark This function is \ref thread_safe.
  * \see janus_verify janus_compare
  */
 JANUS_EXPORT janus_error janus_search(const janus_template template_,
@@ -429,10 +444,11 @@ JANUS_EXPORT janus_error janus_search(const janus_template template_,
 
 /*!
  * \brief Train a new model from the provided templates.
+ * \note This function is optional and may return \ref JANUS_NOT_IMPLEMENTED.
  * \param[in] templates Training data to generate the model file.
  * \param[in] num_templates Length of \em partial_templates.
  * \param[out] model_file File path to contain the trained model.
- * \note This function is optional and may return \ref JANUS_NOT_IMPLEMENTED.
+ * \remark This function is \ref thread_unsafe.
  * \todo Is the API the right level of abstraction for this function? Should
  *       it be moved to the command line instead or a shell script instead? Is
  *       a common interface impossible?
@@ -450,6 +466,7 @@ JANUS_EXPORT janus_error janus_train(const janus_template *templates,
  *
  * \param[in] gallery The gallery whose templates to count.
  * \param[out] size The number of templates in the gallery.
+ * \remark This function is \ref thread_safe.
  */
 JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
                                             size_t *size);
@@ -459,14 +476,16 @@ JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
  *
  * Compare all templates in the target gallery are to all templates in the query
  * gallery.
+ *
+ * Use \ref janus_gallery_size to determine the appropriate length of the
+ * pre-allocated buffers.
  * \param[in] target Templates forming the similarity matrix columns.
  * \param[in] query Templates forming the similarity matrix rows.
  * \param[out] similarity_matrix Buffer to contain the similarity scores in
  *                               row-major order.
  * \param[out] target_ids Buffer to contain the target gallery template ids.
  * \param[out] query_ids Buffer to contain the query gallery template ids.
- * \note Use \ref janus_gallery_size to determine the appropriate length of the
- *       pre-allocated buffers.
+ * \remark This function is \ref thread_safe.
  * \see janus_verify janus_search
  */
 JANUS_EXPORT janus_error janus_compare(janus_gallery target,
