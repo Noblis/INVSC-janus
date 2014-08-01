@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['objects',['objects',['../structjanus__object__list__type.html#aa0d04fcfc82bb000cd767e345fa47151',1,'janus_object_list_type']]]
+  ['mean',['mean',['../structjanus__metric.html#a5e6e98e632d255655d0ecf8c667d481d',1,'janus_metric']]]
 ];
