@@ -199,7 +199,7 @@ struct TemplateIterator : public TemplateData
     static janus_error create(const char *data_path, const TemplateData templateData, janus_template *template_, janus_template_id *templateID, bool verbose)
     {
         clock_t start = clock();
-        JANUS_CHECK(janus_initialize_template(template_))
+        JANUS_CHECK(janus_allocate(template_))
         _janus_add_sample(janus_initialize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
         for (size_t i=0; i<templateData.templateIDs.size(); i++) {
@@ -252,6 +252,7 @@ janus_error janus_create_gallery(const char *data_path, janus_metadata metadata,
     while (!templateData.templateIDs.empty()) {
         JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID))
         JANUS_CHECK(janus_enroll(template_, templateID, gallery))
+        JANUS_CHECK(janus_free(template_))
         templateData = ti.next();
     }
     return JANUS_SUCCESS;
@@ -276,6 +277,7 @@ struct FlatTemplate
 
         const clock_t start = clock();
         data->error = janus_finalize_template(template_, buffer, &data->bytes);
+        JANUS_ASSERT(janus_free(template_))
         _janus_add_sample(janus_finalize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         _janus_add_sample(janus_template_size_samples, data->bytes / 1024.0);
 
