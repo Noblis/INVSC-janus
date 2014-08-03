@@ -9,7 +9,7 @@ static janus_flat_template getFlatTemplate(janus_metadata metadata, size_t *byte
     janus_template_id template_id;
     JANUS_ASSERT(janus_create_template(metadata, &template_, &template_id))
     janus_flat_template flat_template = new janus_data[janus_max_template_size()];
-    JANUS_ASSERT(janus_finalize_template(template_, flat_template, bytes))
+    JANUS_ASSERT(janus_flatten(template_, flat_template, bytes))
     JANUS_ASSERT(janus_free(template_))
     return flat_template;
 }

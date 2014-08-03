@@ -276,7 +276,7 @@ struct FlatTemplate
         janus_data *buffer = new janus_data[janus_max_template_size()];
 
         const clock_t start = clock();
-        data->error = janus_finalize_template(template_, buffer, &data->bytes);
+        data->error = janus_flatten(template_, buffer, &data->bytes);
         JANUS_ASSERT(janus_free(template_))
         _janus_add_sample(janus_finalize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         _janus_add_sample(janus_template_size_samples, data->bytes / 1024.0);
