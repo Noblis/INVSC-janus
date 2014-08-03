@@ -55,8 +55,8 @@ extern "C" {
 }                                                                    \
 
 /*!
- * \brief The \c JANUS_CHECK macro provides a simple recoverable error
- *        handling mechanism
+ * \brief The \c JANUS_CHECK macro provides a simple recoverable error handling
+ *        mechanism.
  * \see JANUS_ASSERT
  */
 #define JANUS_CHECK(EXPRESSION)             \
@@ -65,23 +65,6 @@ extern "C" {
     if (error != JANUS_SUCCESS)             \
         return error;                       \
 }                                           \
-
-/*! \page janus_enum Enum Naming Convention
- * #janus_attribute, #janus_color_space, #janus_error and enum values follow a
- * \c CAPITAL_CASE naming convention. Functions #janus_attribute_to_string and
- * #janus_error_to_string return a string for the corresponding enum by
- * removing the leading \c JANUS_:
- * \code
- * janus_attribute_to_string(JANUS_RIGHT_EYE_X); // returns "RIGHT_EYE_X"
- * \endcode
- * Functions #janus_attribute_from_string and #janus_error_from_string provide
- * the opposite functionality:
- * \code
- * janus_attribute_from_string("RIGHT_EYE_X"); // returns JANUS_RIGHT_EYE_X
- * \endcode
- * \note #janus_attribute_from_string is used to decode #janus_metadata
- * files, so attribute column names should follow this naming convention.
- */
 
 /*!
  * \brief #janus_error to string.
@@ -277,6 +260,24 @@ JANUS_EXPORT janus_metrics janus_get_metrics();
 JANUS_EXPORT void janus_print_metrics(janus_metrics metrics);
 
 /*! @}*/
+
+/*!
+ * \page janus_enum Enum Naming Convention
+ * #janus_attribute, #janus_color_space, #janus_error and enum values follow a
+ * \c CAPITAL_CASE naming convention. Functions #janus_attribute_to_string and
+ * #janus_error_to_string return a string for the corresponding enum by
+ * removing the leading \c JANUS_:
+ * \code
+ * janus_attribute_to_string(JANUS_RIGHT_EYE_X); // returns "RIGHT_EYE_X"
+ * \endcode
+ * Functions #janus_attribute_from_string and #janus_error_from_string provide
+ * the opposite functionality:
+ * \code
+ * janus_attribute_from_string("RIGHT_EYE_X"); // returns JANUS_RIGHT_EYE_X
+ * \endcode
+ * \note #janus_attribute_from_string is used to decode #janus_metadata
+ * files, so attribute column names should follow this naming convention.
+ */
 
 #ifdef __cplusplus
 }
