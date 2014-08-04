@@ -1,6 +1,10 @@
 var searchData=
 [
   ['janus_5fbgr24',['JANUS_BGR24',['../group__janus.html#ggac189bebcbab53c752990509cb48ccd4ca5755eebe0c5461a890145a0ad5d68a7c',1,'janus.h']]],
+  ['janus_5fface_5fheight',['JANUS_FACE_HEIGHT',['../group__janus.html#gga8e03036cfd04011d99a61214212ebca0ae97ffb370a84608c28954014297af012',1,'janus.h']]],
+  ['janus_5fface_5fwidth',['JANUS_FACE_WIDTH',['../group__janus.html#gga8e03036cfd04011d99a61214212ebca0a670aa42a25e178360073dc3332025f96',1,'janus.h']]],
+  ['janus_5fface_5fx',['JANUS_FACE_X',['../group__janus.html#gga8e03036cfd04011d99a61214212ebca0ac7e8b7d5f7d677e66178cd66e511a681',1,'janus.h']]],
+  ['janus_5fface_5fy',['JANUS_FACE_Y',['../group__janus.html#gga8e03036cfd04011d99a61214212ebca0a305b00b5bba7b402ac743e8684fb2cee',1,'janus.h']]],
   ['janus_5ffailure_5fto_5fenroll',['JANUS_FAILURE_TO_ENROLL',['../group__janus.html#gga1b275e4dade484951b366f785597b8f6aed03c0e4fc7eb92d37277769beb3b884',1,'janus.h']]],
   ['janus_5fframe',['JANUS_FRAME',['../group__janus.html#gga8e03036cfd04011d99a61214212ebca0ae736a32c701de792e935e2ffe1e5903f',1,'janus.h']]],
   ['janus_5fgray8',['JANUS_GRAY8',['../group__janus.html#ggac189bebcbab53c752990509cb48ccd4ca6914ab831ea319e4837d0aed95cc9f45',1,'janus.h']]],
