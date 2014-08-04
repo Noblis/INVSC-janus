@@ -212,6 +212,12 @@ typedef enum janus_attribute
     JANUS_INVALID_ATTRIBUTE = 0, /*!< Catch-all error code */
     JANUS_FRAME                , /*!< Video frame number, -1 (or not present)
                                       for still images */
+    JANUS_FACE_X               , /*!< Horizontal offset to top-left corner of
+                                      face (pixels) */
+    JANUS_FACE_Y               , /*!< Vertical offset to top-left corner of
+                                      face (pixels) */
+    JANUS_FACE_WIDTH           , /*!< Face horizontal size (pixels) */
+    JANUS_FACE_HEIGHT          , /*!< Face vertical size (pixels) */
     JANUS_RIGHT_EYE_X          , /*!< Face landmark (pixels) */
     JANUS_RIGHT_EYE_Y          , /*!< Face landmark (pixels) */
     JANUS_LEFT_EYE_X           , /*!< Face landmark (pixels) */
