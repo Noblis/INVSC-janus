@@ -148,15 +148,17 @@ JANUS_EXPORT void janus_close_video(janus_video video);
  * A *Janus Metadata File* is a *Comma-Separated Value* (CSV) text file with the following format:
  *
 \verbatim
-TEMPLATE_ID        , FILE_NAME, FRAME, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
-<janus_template_id>, <string> , <int>, <double>         , <double>         , ..., <double>
-<janus_template_id>, <string> , <int>, <double>         , <double>         , ..., <double>
+TEMPLATE_ID        , SUBJECT_ID, FILE_NAME, FRAME, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
+<janus_template_id>, <int>     , <string> , <int>, <double>         , <double>         , ..., <double>
+<janus_template_id>, <int>     , <string> , <int>, <double>         , <double>         , ..., <double>
 ...
-<janus_template_id>, <string> , <int>, <double>         , <double>         , ..., <double>
+<janus_template_id>, <int>     , <string> , <int>, <double>         , <double>         , ..., <double>
 \endverbatim
  *
  * Where:
  * - [TEMPLATE_ID](\ref janus_template_id) is a unique integer identifier indicating rows that belong to the same template.
+ * - \c SUBJECT_ID is a unique integer identifier used to establish ground truth match/non-match.
+ *      For the purpose of experimentation, multiple \c TEMPLATE_ID may have the same \c SUBJECT_ID.
  * - \c FILE_NAME is a path to the image or video file on disk.
  * - \c FRAME is the video frame number and -1 (or empty string) for still images.
  * - \a \<janus_attribute\> adheres to \ref janus_enum.
@@ -215,10 +217,12 @@ JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, i
  * The \c TEMPLATE_ID field is used to determine ground truth match/non-match in the mask.
  * \param[in] target Templates to constitute the columns of the matrix.
  * \param[in] query Templates to constitute the rows for the matrix.
+ * \param[in] target_metadata metadata file for \p target.
+ * \param[in] query_metadata metadata file for \p query.
  * \param[in] simmat Similarity matrix file to be created.
  * \param[in] mask Mask matrix file to be created.
  */
-JANUS_EXPORT janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix simmat, janus_matrix mask);
+JANUS_EXPORT janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask);
 
 /*!
  * \brief A statistic.
