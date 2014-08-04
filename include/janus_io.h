@@ -165,8 +165,9 @@ TEMPLATE_ID        , FILE_NAME, FRAME, <janus_attribute>, <janus_attribute>, ...
  * - A cell is empty when no value is available for the specified #janus_attribute.
  *
  * \par Examples:
- * - [Kirchner.csv](https://raw.github.com/biometrics/janus/master/data/Kirchner.csv)
- * - [Toledo.csv](https://raw.github.com/biometrics/janus/master/data/Toledo.csv)
+ * - [meds.csv](https://raw.githubusercontent.com/biometrics/janus/master/data/meds.csv)
+ * - [Kirchner.csv](https://raw.githubusercontent.com/biometrics/janus/master/data/Kirchner.csv)
+ * - [Toledo.csv](https://raw.githubusercontent.com/biometrics/janus/master/data/Toledo.csv)
  */
 typedef const char *janus_metadata;
 
