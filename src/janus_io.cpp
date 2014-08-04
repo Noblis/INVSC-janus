@@ -131,6 +131,7 @@ struct TemplateData
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
+    map<janus_template_id, int> subjectIDLUT;
     vector<janus_attribute_list> attributeLists;
 };
 
@@ -150,6 +151,7 @@ struct TemplateIterator : public TemplateData
         istringstream attributeNames(line);
         string attributeName;
         getline(attributeNames, attributeName, ','); // TEMPLATE_ID
+        getline(attributeNames, attributeName, ','); // SUBJECT_ID
         getline(attributeNames, attributeName, ','); // FILE_NAME
         vector<janus_attribute> attributes;
         while (getline(attributeNames, attributeName, ',')) {
@@ -160,10 +162,12 @@ struct TemplateIterator : public TemplateData
         // Parse rows
         while (getline(file, line)) {
             istringstream attributeValues(line);
-            string templateID, fileName, attributeValue;
+            string templateID, subjectID, fileName, attributeValue;
             getline(attributeValues, templateID, ',');
+            getline(attributeValues, subjectID, ',');
             getline(attributeValues, fileName, ',');
             templateIDs.push_back(atoi(templateID.c_str()));
+            subjectIDLUT.insert(pair<janus_template_id,int>(atoi(templateID.c_str()), atoi(subjectID.c_str())));
             fileNames.push_back(fileName);
 
             // Construct attribute list, removing missing fields
@@ -339,7 +343,7 @@ janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, j
     return JANUS_SUCCESS;
 }
 
-janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matrix simmat, janus_matrix mask)
+janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask)
 {
     size_t target_size, query_size;
     clock_t start = clock();
@@ -354,6 +358,9 @@ janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matr
     janus_template_id *target_ids = new janus_template_id[target_size];
     janus_template_id *query_ids = new janus_template_id[query_size];
 
+    TemplateData targetMetadata = TemplateIterator(target_metadata, false);
+    TemplateData queryMetadata = TemplateIterator(query_metadata, false);
+
     start = clock();
     JANUS_CHECK(janus_compare(target, query, similarity_matrix, target_ids, query_ids))
     _janus_add_sample(janus_compare_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
@@ -364,7 +371,7 @@ janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_matr
     unsigned char *truth = new unsigned char[target_size * query_size];
     for (size_t i=0; i<query_size; i++)
         for (size_t j=0; j<target_size; j++)
-            truth[i*target_size+j] = (query_ids[i] == target_ids[j] ? 0xff : 0x7f);
+            truth[i*target_size+j] = (queryMetadata.subjectIDLUT[query_ids[i]] == targetMetadata.subjectIDLUT[target_ids[j]] ? 0xff : 0x7f);
     JANUS_CHECK(janus_write_matrix(truth, query_size, target_size, true, target, query, mask))
     delete[] truth;
 
