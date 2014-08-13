@@ -148,11 +148,11 @@ JANUS_EXPORT void janus_close_video(janus_video video);
  * A *Janus Metadata File* is a *Comma-Separated Value* (CSV) text file with the following format:
  *
 \verbatim
-TEMPLATE_ID        , SUBJECT_ID, FILE_NAME, FRAME, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
-<janus_template_id>, <int>     , <string> , <int>, <double>         , <double>         , ..., <double>
-<janus_template_id>, <int>     , <string> , <int>, <double>         , <double>         , ..., <double>
+TEMPLATE_ID        , SUBJECT_ID, FILE_NAME, MEDIA_ID, FRAME, <janus_attribute>, <janus_attribute>, ..., <janus_attribute>
+<janus_template_id>, <int>     , <string> , <int>   , <int>, <double>         , <double>         , ..., <double>
+<janus_template_id>, <int>     , <string> , <int>   , <int>, <double>         , <double>         , ..., <double>
 ...
-<janus_template_id>, <int>     , <string> , <int>, <double>         , <double>         , ..., <double>
+<janus_template_id>, <int>     , <string> , <int>   , <int>, <double>         , <double>         , ..., <double>
 \endverbatim
  *
  * Where:
@@ -160,6 +160,7 @@ TEMPLATE_ID        , SUBJECT_ID, FILE_NAME, FRAME, <janus_attribute>, <janus_att
  * - \c SUBJECT_ID is a unique integer identifier used to establish ground truth match/non-match.
  *      For the purpose of experimentation, multiple \c TEMPLATE_ID may have the same \c SUBJECT_ID.
  * - \c FILE_NAME is a path to the image or video file on disk.
+ * - \c MEDIA_ID is a unique integer identifier indicating rows that belong to the same piece of media (image or video clip).
  * - \c FRAME is the video frame number and -1 (or empty string) for still images.
  * - \a \<janus_attribute\> adheres to \ref janus_enum.
  * - All rows associated with the same \c TEMPLATE_ID occur sequentially.
