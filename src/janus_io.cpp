@@ -330,7 +330,7 @@ struct FlatTemplate
 
 janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_gallery target, janus_gallery query, janus_matrix matrix)
 {
-    ofstream stream(matrix);
+    ofstream stream(matrix, ios::out | ios::binary);
     stream << "S2\n"
            << target << '\n'
            << query << '\n'
