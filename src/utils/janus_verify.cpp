@@ -10,11 +10,11 @@ const char *get_ext(const char *filename) {
     return dot + 1;
 }
 
-static janus_flat_template getFlatTemplate(janus_metadata metadata, size_t *bytes)
+static janus_flat_template getFlatTemplate(const char *data_path, janus_metadata metadata, size_t *bytes)
 {
     janus_template template_;
     janus_template_id template_id;
-    JANUS_ASSERT(janus_create_template(metadata, &template_, &template_id))
+    JANUS_ASSERT(janus_create_template(data_path, metadata, &template_, &template_id))
     janus_flat_template flat_template = new janus_data[janus_max_template_size()];
     JANUS_ASSERT(janus_flatten(template_, flat_template, bytes))
     JANUS_ASSERT(janus_free(template_))
@@ -23,8 +23,8 @@ static janus_flat_template getFlatTemplate(janus_metadata metadata, size_t *byte
 
 int main(int argc, char *argv[])
 {
-    if ((argc < 4) || (argc > 5)) {
-        printf("Usage: janus_verify sdk_path target_metadata_file query_metadata_file [algorithm]\n");
+    if ((argc < 5) || (argc > 6)) {
+        printf("Usage: janus_verify sdk_path data_path target_metadata_file query_metadata_file [algorithm]\n");
         return 1;
     }
 
@@ -36,14 +36,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argc >= 5 ? argv[4] : ""))
+    JANUS_ASSERT(janus_initialize(argv[1], argc >= 6 ? argv[5] : ""))
 
     size_t target_bytes;
-    janus_flat_template target_flat = getFlatTemplate(argv[2], &target_bytes);
+    janus_flat_template target_flat = getFlatTemplate(argv[2], argv[3], &target_bytes);
     printf("Target bytes: %zu\n", target_bytes);
 
     size_t query_bytes;
-    janus_flat_template query_flat = getFlatTemplate(argv[3], &query_bytes);
+    janus_flat_template query_flat = getFlatTemplate(argv[2], argv[4], &query_bytes);
     printf("Query bytes: %zu\n", query_bytes);
 
     float similarity;
