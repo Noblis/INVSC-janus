@@ -1,7 +1,14 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "janus.h"
 #include "janus_io.h"
+
+const char *get_ext(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if (!dot || dot == filename) return "";
+    return dot + 1;
+}
 
 static janus_flat_template getFlatTemplate(janus_metadata metadata, size_t *bytes)
 {
@@ -18,6 +25,14 @@ int main(int argc, char *argv[])
 {
     if ((argc < 4) || (argc > 5)) {
         printf("Usage: janus_verify sdk_path target_metadata_file query_metadata_file [algorithm]\n");
+        return 1;
+    }
+
+    const char *ext1 = get_ext(argv[2]);
+    const char *ext2 = get_ext(argv[3]);
+
+    if (strcmp(ext1, "csv") != 0 || strcmp(ext2, "csv") != 0) {
+        printf("Metadata files must be \".csv\" format\n");
         return 1;
     }
 
