@@ -247,10 +247,10 @@ struct TemplateIterator : public TemplateData
     }
 };
 
-janus_error janus_create_template(janus_metadata metadata, janus_template *template_, janus_template_id *template_id)
+janus_error janus_create_template(const char *data_path, janus_metadata metadata, janus_template *template_, janus_template_id *template_id)
 {
     TemplateIterator ti(metadata, false);
-    return TemplateIterator::create("", ti.next(), template_, template_id, false);
+    return TemplateIterator::create(data_path, ti.next(), template_, template_id, false);
 }
 
 #ifndef JANUS_CUSTOM_CREATE_GALLERY
@@ -330,7 +330,7 @@ struct FlatTemplate
 
 janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_gallery target, janus_gallery query, janus_matrix matrix)
 {
-    ofstream stream(matrix);
+    ofstream stream(matrix, ios::out | ios::binary);
     stream << "S2\n"
            << target << '\n'
            << query << '\n'

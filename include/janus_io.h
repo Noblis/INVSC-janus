@@ -176,11 +176,12 @@ typedef const char *janus_metadata;
 
 /*!
  * \brief High-level function for enrolling a template from a metadata file.
+ * \param [in] data_path Prefix path to files in metadata.
  * \param [in] metadata #janus_metadata file to enroll.
  * \param [out] template_ Constructed template.
  * \param [out] template_id Template ID from metadata.
  */
-JANUS_EXPORT janus_error janus_create_template(janus_metadata metadata, janus_template *template_, janus_template_id *template_id);
+JANUS_EXPORT janus_error janus_create_template(const char *data_path, janus_metadata metadata, janus_template *template_, janus_template_id *template_id);
 
 /*!
  * \brief High-level function for enrolling a gallery from a metadata file.
