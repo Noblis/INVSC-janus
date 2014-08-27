@@ -255,14 +255,14 @@ janus_error janus_create_template(const char *data_path, janus_metadata metadata
 
 #ifndef JANUS_CUSTOM_CREATE_GALLERY
 
-janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery)
+janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, bool verbose)
 {
     TemplateIterator ti(metadata, true);
     janus_template template_;
     janus_template_id templateID;
     TemplateData templateData = ti.next();
     while (!templateData.templateIDs.empty()) {
-        JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID))
+        JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID, verbose))
         JANUS_CHECK(janus_enroll(template_, templateID, gallery))
         JANUS_CHECK(janus_free(template_))
         templateData = ti.next();
