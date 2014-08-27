@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    const char *ext1 = get_ext(argv[2]);
-    const char *ext2 = get_ext(argv[3]);
+    const char *ext1 = get_ext(argv[3]);
+    const char *ext2 = get_ext(argv[4]);
 
     if (strcmp(ext1, "csv") != 0 || strcmp(ext2, "csv") != 0) {
         printf("Metadata files must be \".csv\" format\n");
