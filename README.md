@@ -1,7 +1,7 @@
 Janus
 =====
 
-[IARPA Janus Program](http://www.iarpa.gov/Programs/sc/Janus/janus.html) API
+[IARPA Janus Program API](http://www.libjanus.org)
 
 # Build Instructions
 
