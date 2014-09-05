@@ -190,7 +190,7 @@ JANUS_EXPORT janus_error janus_create_template(const char *data_path, janus_meta
  * \param [in] gallery File to save the gallery to.
  * \param [in] verbose Print information and warnings during gallery enrollment.
  */
-JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, bool verbose);
+JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, int verbose);
 
 /*!
  * \brief A dense binary 2D matrix file.
@@ -243,28 +243,28 @@ struct janus_metric
  */
 struct janus_metrics
 {
-    janus_metric janus_initialize_template_speed; /*!< \brief ms */
-    janus_metric janus_augment_speed; /*!< \brief ms */
-    janus_metric janus_finalize_template_speed; /*!< \brief ms */
-    janus_metric janus_read_image_speed; /*!< \brief ms */
-    janus_metric janus_free_image_speed; /*!< \brief ms */
-    janus_metric janus_verify_speed; /*!< \brief ms */
-    janus_metric janus_compare_speed; /*!< \brief ms */
-    janus_metric janus_gallery_size_speed; /*!< \brief ms */
-    janus_metric janus_template_size; /*!< \brief KB */
+    struct janus_metric janus_initialize_template_speed; /*!< \brief ms */
+    struct janus_metric janus_augment_speed; /*!< \brief ms */
+    struct janus_metric janus_finalize_template_speed; /*!< \brief ms */
+    struct janus_metric janus_read_image_speed; /*!< \brief ms */
+    struct janus_metric janus_free_image_speed; /*!< \brief ms */
+    struct janus_metric janus_verify_speed; /*!< \brief ms */
+    struct janus_metric janus_compare_speed; /*!< \brief ms */
+    struct janus_metric janus_gallery_size_speed; /*!< \brief ms */
+    struct janus_metric janus_template_size; /*!< \brief KB */
     int          janus_missing_attributes_count; /*!< \brief Count of \ref JANUS_MISSING_ATTRIBUTES */
     int          janus_failure_to_enroll_count; /*!< \brief Count of \ref JANUS_FAILURE_TO_ENROLL */
     int          janus_other_errors_count; /*!< \brief Count of \ref janus_error excluding \ref JANUS_MISSING_ATTRIBUTES, \ref JANUS_FAILURE_TO_ENROLL, and \ref JANUS_SUCCESS */
 };
 
 /*! \brief Retrieve and reset performance metrics. */
-JANUS_EXPORT janus_metrics janus_get_metrics();
+JANUS_EXPORT struct janus_metrics janus_get_metrics();
 
 /*!
  * \brief Print metrics to stdout.
  * \note Will only print metrics with count > 0 occurrences.
  */
-JANUS_EXPORT void janus_print_metrics(janus_metrics metrics);
+JANUS_EXPORT void janus_print_metrics(struct janus_metrics metrics);
 
 /*! @}*/
 
