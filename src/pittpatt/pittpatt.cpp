@@ -1,6 +1,5 @@
-#include <limits.h>
-#include <stdlib.h>
-#include <string.h>
+#include <limits>
+#include <string>
 
 #include <pittpatt_errors.h>
 #include <pittpatt_license.h>
@@ -8,9 +7,18 @@
 
 #include "janus.h"
 
-#include <stdio.h>
+using namespace std;
 
 static ppr_context_type ppr_context;
+
+/* TODO:
+ * Clarify enrolling to memory or disk?
+ * Clarify janus_gallery w.r.t. ppr_gallery_type
+ * Implement enroll and create gallery
+ * Implement search
+ * Implement compare
+ * Add more ppr_error hooks
+ */
 
 static janus_error to_janus_error(ppr_error_type error)
 {
@@ -82,61 +90,49 @@ janus_error janus_initialize(const char *sdk_path, const char *model_file)
 
 janus_error janus_finalize()
 {
-    // This should be the same as above?
-    // ppr_context_type ppr_context;
-    // ppr_finalize_context(ppr_context);
-
+    ppr_finalize_context(ppr_context);
     ppr_finalize_sdk();
+
     return JANUS_SUCCESS;
 }
+
+struct janus_template_type {
+    ppr_face_type ppr_face;
+};
 
 janus_error janus_allocate(janus_template *template_)
 {
-    /*
     *template_ = new janus_template_type();
-    return JANUS_SUCCESS;*/
     return JANUS_SUCCESS;
 }
 
-typedef struct janus_template_type ppr_face_type;
-
 janus_error janus_augment(const janus_image image, const janus_attribute_list attributes, janus_template template_)
 {
+    (void) attributes;
+
     ppr_raw_image_type raw_image;
 
-    int channels;
     if (image.color_space == JANUS_BGR24) {
         ppr_raw_image_create(&raw_image, image.width, image.height, PPR_RAW_IMAGE_BGR24);
-        channels = 3;
+        memcpy(raw_image.data, image.data, 3*image.height*image.width);
     } else if (image.color_space == JANUS_GRAY8) {
         ppr_raw_image_create(&raw_image, image.width, image.height, PPR_RAW_IMAGE_GRAY8);
-        channels = 1;
+        memcpy(raw_image.data, image.data, 1*image.height*image.width);
     }
-    memcpy(raw_image.data, image.data, channels*image.height*image.width);
 
     ppr_image_type ppr_image;
     ppr_create_image(raw_image, &ppr_image);
 
-    // Set attributes with pp5_face_type (?)
     ppr_face_list_type face_list;
 
-    /*
-     * TOASK:
-     * Can you provide pittpatt with manual landmarks?
-     * If so, how?
-     * If not, how does janus augment work since it should be assigning attributes to the template?
-     * -- janus_augment should not do anything with attributes that are passed to it, simply do detection
-     */
-
     ppr_detect_faces(ppr_context, ppr_image, &face_list);
-    // Enroll to template_
     for (int i=0; i<face_list.length; i++) {
-        template_ = face_list.faces[i];
+        template_->ppr_face = face_list.faces[i];
         int extractable;
-        ppr_is_template_extractable(ppr_context, template_, &extractable);
+        ppr_is_template_extractable(ppr_context, template_->ppr_face, &extractable);
         if (!extractable) continue;
 
-        ppr_extract_face_template(ppr_context, ppr_image, &template_);
+        ppr_extract_face_template(ppr_context, ppr_image, &template_->ppr_face);
     }
 
     ppr_free_face_list(face_list);
@@ -164,7 +160,9 @@ janus_error janus_flatten(janus_template template_, janus_flat_template flat_tem
 
 janus_error janus_free(janus_template template_)
 {
-    // TODO
+    ppr_free_face(template_->ppr_face);
+    delete template_;
+    return JANUS_SUCCESS;
 }
 
 size_t janus_max_template_size()
@@ -180,12 +178,13 @@ janus_error janus_verify(const janus_flat_template a, const size_t a_bytes, cons
 
 janus_error janus_enroll(const janus_template template_, const janus_template_id template_id, janus_gallery gallery)
 {
-
+    int faceID = 0; // may need to increment this
+    return to_janus_error(ppr_add_face(ppr_context, gallery, template_->ppr_face, template_id, faceID));
 }
 
 janus_error janus_gallery_size(janus_gallery gallery, size_t *size)
 {
-
+    return to_janus_error(ppr_get_num_faces(ppr_context, gallery, size));
 }
 
 janus_error janus_search(const janus_template template_, janus_gallery gallery, int requested_returns, janus_template_id *template_ids, float *similarities, int *actual_returns)

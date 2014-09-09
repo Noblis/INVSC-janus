@@ -3,10 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <pittpatt_sdk.h>
 #include <pittpatt_raw_image_io.h>
 #include <pittpatt_video_io.h>
 
+#define JANUS_CUSTOM_CREATE_GALLERY
+
 #include "janus_io.h"
+
+extern ppr_context_type ppr_context;
 
 static janus_image janusFromPittPatt(ppr_raw_image_type *ppr_image)
 {
@@ -71,4 +76,19 @@ janus_error janus_read_frame(janus_video video, janus_image *image)
 void janus_close_video(janus_video video)
 {
     ppr_video_io_close((ppr_video_io_type)video);
+}
+
+/* TOASK:
+ * Is the expected behavior of this function to overwrite any data at the specified path?
+ */
+janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, int verbose)
+{
+    ppr_gallery_type ppr_gallery;
+    ppr_create_gallery(ppr_context, &ppr_gallery);
+
+    // Iterate through all faces, add to gallery
+        // janus_enroll(template_, templateID, gallery);
+        // janus_free(template_);
+
+    ppr_write_gallery(ppr_context, gallery, ppr_gallery);
 }
