@@ -21,8 +21,8 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  ******************************************************************************/
 
-#ifndef JANUS_H
-#define JANUS_H
+#ifndef IARPA_JANUS_H
+#define IARPA_JANUS_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -36,21 +36,69 @@ extern "C" {
  * \mainpage
  * \section overview Overview
  *
- * Janus is a *C* API consisting of three header files:
+ * *libjanus* is a *C* API for the IARPA Janus program consisting of three
+ * header files:
  *
- * Header      | Documentation  | Required               | Description
- * ----------- | -------------  | ---------------------- | -----------
- * janus.h     | \ref janus     | **Yes**                | \copybrief janus
- * janus_io.h  | \ref janus_io  | No (Provided)          | \copybrief janus_io
- * janus_aux.h | \ref janus_aux | No (Phases 2 & 3 only) | \copybrief janus_aux
+ * Header            | Documentation  | Required               | Description
+ * ----------------- | -------------  | ---------------------- | -----------
+ * iarpa_janus.h     | \ref janus     | **Yes**                | \copybrief janus
+ * iarpa_janus_io.h  | \ref janus_io  | No (Provided)          | \copybrief janus_io
+ * iarpa_janus_aux.h | \ref janus_aux | No (Phases 2 & 3 only) | \copybrief janus_aux
  *
  * - [<b>Source Code</b>](https://github.com/biometrics/janus) [github.com]
  * - [<b>Program Homepage</b>]
  *          (http://www.iarpa.gov/index.php/research-programs/janus) [iarpa.gov]
  *
+ * \subsection about About
+ * Intelligence analysts often rely on facial images to assist in establishing
+ * the identity of an individual, but too often, just examining the sheer volume
+ * of possibly relevant images and videos can be daunting. While biometric tools
+ * like automated face recognition could assist analysts in this task, current
+ * tools perform best on the well-posed, frontal facial photos taken for
+ * identification purposes. IARPA’s Janus program aims to dramatically improve
+ * the current performance of face recognition tools by fusing the rich spatial,
+ * temporal, and contextual information available from the multiple views
+ * captured by today’s “media in the wild”. The program will move beyond largely
+ * two-dimensional image matching methods used currently into more model-based
+ * matching that fuses all views from whatever video and stills are available.
+ * Data volume now becomes an integral part of the solution instead of an
+ * oppressive burden.
+ *
+ * The program is seeking to fund rigorous, high-quality research which uses
+ * innovative and promising approaches drawn from a variety of fields to develop
+ * novel representational models capable of encoding the shape, texture, and
+ * dynamics of a face. Instead of relying on a “single best frame approach,”
+ * these representations must address the challenges of Aging, Pose,
+ * Illumination, and Expression (A-PIE) by exploiting all available imagery.
+ * Technologies must support analysts working with partial information by
+ * addressing the uncertainties which arise when working with possibly
+ * incomplete, erroneous, and ambiguous data. The goal of the program is to test
+ * and validate techniques which have the potential to significantly improve the
+ * performance of biometric recognition in unconstrained imagery, to that end,
+ * the program will involve empirical testing of recognition performance across
+ * unconstrained videos, camera stills, and scanned photos exhibiting a broad
+ * range of real-world imaging conditions.
+ *
+ * It is anticipated that successful teams will transcend conventional
+ * approaches to biometric recognition by drawing on the multidisciplinary
+ * expertise of researchers from the fields of pattern recognition and machine
+ * learning; computer vision and image processing; computer graphics and
+ * animation; mathematical statistics and modeling; and data visualization and
+ * analytics.
+ *
  * \subsection license License
  * The API is provided under a [BSD-like license](LICENSE.txt) and is
  * *free for academic and commercial use*.
+ *
+ * \subsection atribution Atribution
+ * This research is based upon work supported by the Office of the Director of
+ * National Intelligence (ODNI), Intelligence Advanced Research Projects
+ * Activity (IARPA), via the Army Research Laboratory. The views and conclusions
+ * contained herein are those of the authors and should not be interpreted as
+ * necessarily representing the official policies or endorsements, either
+ * expressed or implied, of ODNI, IARPA, or the U.S. Government. The U.S.
+ * Government is authorized to reproduce and distribute reprints for
+ * Governmental purposes notwithstanding any copyright annotation thereon.
  */
 
 #if defined JANUS_LIBRARY
@@ -528,4 +576,4 @@ JANUS_EXPORT janus_error janus_compare(const janus_flat_gallery target,
 }
 #endif
 
-#endif /* JANUS_H */
+#endif /* IARPA_JANUS_H */

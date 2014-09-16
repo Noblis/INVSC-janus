@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "janus.h"
-#include "janus_io.h"
+#include "iarpa_janus.h"
+#include "iarpa_janus_io.h"
 
 const char *get_ext(const char *filename) {
 	const char *dot = strrchr(filename, '.');

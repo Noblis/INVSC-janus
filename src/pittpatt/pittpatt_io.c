@@ -6,7 +6,7 @@
 #include <pittpatt_raw_image_io.h>
 #include <pittpatt_video_io.h>
 
-#include "janus_io.h"
+#include "iarpa_janus_io.h"
 
 static janus_image janus_from_pittpatt(ppr_raw_image_type *ppr_image)
 {
