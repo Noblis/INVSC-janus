@@ -316,7 +316,9 @@ typedef struct janus_template_type *janus_template;
 /*!
  * \brief Allocate memory for an empty template.
  *
- * Add images to it with \ref janus_augment.
+ * Memory is managed by the implementation and guaranteed until \ref janus_free.
+ *
+ * Add images to the template with \ref janus_augment.
  *
  * \code
  * janus_template template_;
@@ -326,7 +328,6 @@ typedef struct janus_template_type *janus_template;
  *
  * \param[in] template_ An uninitialized template.
  * \remark This function is \ref reentrant.
- * \see janus_free
  */
 JANUS_EXPORT janus_error janus_allocate(janus_template *template_);
 
@@ -377,6 +378,10 @@ JANUS_EXPORT janus_error janus_track(janus_template template_,
 
 /*!
  * \brief A finalized representation of a template suitable for comparison.
+ *
+ * Ideally comparison should occur directly against the janus_flat_template.
+ * Alternatively, the implementation may temporarily unmarshall this buffer into
+ * a more suitable data structure.
  * \see janus_template
  */
 typedef janus_data *janus_flat_template;
@@ -395,9 +400,9 @@ JANUS_EXPORT size_t janus_max_template_size();
  *        \ref janus_verify.
  * \param[in] template_ The recognition information to construct the
  *                      finalized template from.
- * \param[in,out] flat_template A pre-allocated buffer no smaller than
- *                              \ref janus_max_template_size to contain the
- *                              finalized template.
+ * \param[in,out] flat_template A pre-allocated buffer provided by the user no
+ *                              smaller than \ref janus_max_template_size to
+ *                              contain the finalized template.
  * \param[out] bytes Size of the buffer actually used to store the template.
  * \remark This function is \ref reentrant.
  */
@@ -441,9 +446,11 @@ typedef int janus_template_id;
 typedef const char *janus_gallery;
 
 /*!
- * \brief A finalized representation of a gallery suitable for search.
+ * \brief A finalized representation of a gallery suitable for comparison.
  *
- * An optimized representation for search using \ref janus_search.
+ * Ideally comparison should occur directly against the janus_flat_gallery.
+ * Alternatively, the implementation may temporarily unmarshall this buffer into
+ * a more suitable data structure.
  * \see janus_gallery
  */
 typedef janus_data *janus_flat_gallery;
@@ -475,8 +482,8 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
  *        \ref janus_search.
  * \param[in] gallery The recognition information to construct the
  *                    finalized gallery from.
- * \param[in,out] flat_gallery A pre-allocated buffer no smaller than
- *                             \ref janus_max_template_size *
+ * \param[in,out] flat_gallery A pre-allocated buffer provided by the user no
+ *                             smaller than \ref janus_max_template_size *
  *                             \ref janus_gallery_size to contain the finalized
  *                             gallery.
  * \param[out] bytes Size of the buffer actually used to store the gallery.
