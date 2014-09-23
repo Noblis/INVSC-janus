@@ -106,6 +106,7 @@ janus_attribute janus_attribute_from_string(const char *attribute)
 static vector<double> janus_initialize_template_samples;
 static vector<double> janus_augment_samples;
 static vector<double> janus_finalize_template_samples;
+static vector<double> janus_finalize_gallery_samples;
 static vector<double> janus_read_image_samples;
 static vector<double> janus_free_image_samples;
 static vector<double> janus_verify_samples;
@@ -288,7 +289,7 @@ struct FlatTemplate
         janus_data *buffer = new janus_data[janus_max_template_size()];
 
         const clock_t start = clock();
-        data->error = janus_flatten(template_, buffer, &data->bytes);
+        data->error = janus_flatten_template(template_, buffer, &data->bytes);
         JANUS_ASSERT(janus_free(template_))
         _janus_add_sample(janus_finalize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         _janus_add_sample(janus_template_size_samples, data->bytes / 1024.0);
@@ -328,6 +329,52 @@ struct FlatTemplate
     }
 };
 
+struct FlatGallery
+{
+    struct Data {
+        janus_flat_gallery flat_gallery;
+        size_t bytes, ref_count;
+        janus_error error;
+    } *data;
+
+    FlatGallery(janus_gallery gallery)
+    {
+        data = new Data();
+        data->ref_count = 1;
+        size_t *size;
+        janus_gallery_size(gallery, size);
+        janus_data *buffer = new janus_data[janus_max_template_size() * (size_t)size];
+
+        const clock_t start = clock();
+        data->error = janus_flatten_gallery(gallery, buffer, &data->bytes);
+        _janus_add_sample(janus_finalize_gallery_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        _janus_add_sample(janus_gallery_size_samples, data->bytes);
+
+        data->flat_gallery = new janus_data[data->bytes];
+        memcpy(data->flat_gallery, buffer, data->bytes);
+        delete[] buffer;
+    }
+
+    FlatGallery(const FlatGallery& other)
+    {
+        *this = other;
+    }
+
+    ~FlatGallery()
+    {
+        data->ref_count--;
+        if (data->ref_count == 0) {
+            delete[] data->flat_gallery;
+            delete data;
+        }
+    }
+
+    janus_error compareTo(const FlatGallery &other, float *similarity) const
+    {
+        return JANUS_SUCCESS;
+    }
+};
+
 janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_gallery target, janus_gallery query, janus_matrix matrix)
 {
     ofstream stream(matrix, ios::out | ios::binary);
@@ -354,6 +401,8 @@ janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_meta
     JANUS_CHECK(janus_gallery_size(query, &query_size))
     _janus_add_sample(janus_gallery_size_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
+    FlatGallery flat_target(target), flat_query(query);
+
     float *similarity_matrix = new float[target_size * query_size];
     janus_template_id *target_ids = new janus_template_id[target_size];
     janus_template_id *query_ids = new janus_template_id[query_size];
@@ -362,7 +411,7 @@ janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_meta
     TemplateData queryMetadata = TemplateIterator(query_metadata, false);
 
     start = clock();
-    JANUS_CHECK(janus_compare(target, query, similarity_matrix, target_ids, query_ids))
+    JANUS_CHECK(janus_compare(flat_target.data->flat_gallery, flat_target.data->bytes, flat_query.data->flat_gallery, flat_query.data->bytes, similarity_matrix, target_ids, query_ids))
     _janus_add_sample(janus_compare_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
     JANUS_CHECK(janus_write_matrix(similarity_matrix, query_size, target_size, false, target, query, simmat))
