@@ -21,8 +21,8 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  ******************************************************************************/
 
-#ifndef JANUS_H
-#define JANUS_H
+#ifndef IARPA_JANUS_H
+#define IARPA_JANUS_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -36,21 +36,69 @@ extern "C" {
  * \mainpage
  * \section overview Overview
  *
- * Janus is a *C* API consisting of three header files:
+ * *libjanus* is a *C* API for the IARPA Janus program consisting of three
+ * header files:
  *
- * Header      | Documentation  | Required               | Description
- * ----------- | -------------  | ---------------------- | -----------
- * janus.h     | \ref janus     | **Yes**                | \copybrief janus
- * janus_io.h  | \ref janus_io  | No (Provided)          | \copybrief janus_io
- * janus_aux.h | \ref janus_aux | No (Phases 2 & 3 only) | \copybrief janus_aux
+ * Header            | Documentation  | Required               | Description
+ * ----------------- | -------------  | ---------------------- | -----------
+ * iarpa_janus.h     | \ref janus     | **Yes**                | \copybrief janus
+ * iarpa_janus_io.h  | \ref janus_io  | No (Provided)          | \copybrief janus_io
+ * iarpa_janus_aux.h | \ref janus_aux | No (Phases 2 & 3 only) | \copybrief janus_aux
  *
  * - [<b>Source Code</b>](https://github.com/biometrics/janus) [github.com]
  * - [<b>Program Homepage</b>]
  *          (http://www.iarpa.gov/index.php/research-programs/janus) [iarpa.gov]
  *
+ * \subsection about About
+ * Intelligence analysts often rely on facial images to assist in establishing
+ * the identity of an individual, but too often, just examining the sheer volume
+ * of possibly relevant images and videos can be daunting. While biometric tools
+ * like automated face recognition could assist analysts in this task, current
+ * tools perform best on the well-posed, frontal facial photos taken for
+ * identification purposes. IARPA’s Janus program aims to dramatically improve
+ * the current performance of face recognition tools by fusing the rich spatial,
+ * temporal, and contextual information available from the multiple views
+ * captured by today’s “media in the wild”. The program will move beyond largely
+ * two-dimensional image matching methods used currently into more model-based
+ * matching that fuses all views from whatever video and stills are available.
+ * Data volume now becomes an integral part of the solution instead of an
+ * oppressive burden.
+ *
+ * The program is seeking to fund rigorous, high-quality research which uses
+ * innovative and promising approaches drawn from a variety of fields to develop
+ * novel representational models capable of encoding the shape, texture, and
+ * dynamics of a face. Instead of relying on a “single best frame approach,”
+ * these representations must address the challenges of Aging, Pose,
+ * Illumination, and Expression (A-PIE) by exploiting all available imagery.
+ * Technologies must support analysts working with partial information by
+ * addressing the uncertainties which arise when working with possibly
+ * incomplete, erroneous, and ambiguous data. The goal of the program is to test
+ * and validate techniques which have the potential to significantly improve the
+ * performance of biometric recognition in unconstrained imagery, to that end,
+ * the program will involve empirical testing of recognition performance across
+ * unconstrained videos, camera stills, and scanned photos exhibiting a broad
+ * range of real-world imaging conditions.
+ *
+ * It is anticipated that successful teams will transcend conventional
+ * approaches to biometric recognition by drawing on the multidisciplinary
+ * expertise of researchers from the fields of pattern recognition and machine
+ * learning; computer vision and image processing; computer graphics and
+ * animation; mathematical statistics and modeling; and data visualization and
+ * analytics.
+ *
  * \subsection license License
  * The API is provided under a [BSD-like license](LICENSE.txt) and is
  * *free for academic and commercial use*.
+ *
+ * \subsection atribution Atribution
+ * This research is based upon work supported by the Office of the Director of
+ * National Intelligence (ODNI), Intelligence Advanced Research Projects
+ * Activity (IARPA), via the Army Research Laboratory. The views and conclusions
+ * contained herein are those of the authors and should not be interpreted as
+ * necessarily representing the official policies or endorsements, either
+ * expressed or implied, of ODNI, IARPA, or the U.S. Government. The U.S.
+ * Government is authorized to reproduce and distribute reprints for
+ * Governmental purposes notwithstanding any copyright annotation thereon.
  */
 
 #if defined JANUS_LIBRARY
@@ -68,7 +116,7 @@ extern "C" {
 #endif
 
 #define JANUS_VERSION_MAJOR 0
-#define JANUS_VERSION_MINOR 1
+#define JANUS_VERSION_MINOR 2
 #define JANUS_VERSION_PATCH 0
 
 /*!
@@ -83,8 +131,9 @@ extern "C" {
  * image data with \ref janus_augment. Templates are freed after use with
  * \ref janus_free.
  *
- * Templates can be used for verification with \ref janus_flatten and
- * \ref janus_verify, and search with \ref janus_enroll and \ref janus_search.
+ * Templates can be used for verification with \ref janus_flatten_template and
+ * \ref janus_verify, or search with \ref janus_enroll,
+ * \ref janus_flatten_gallery and \ref janus_search.
  * Complete similarity matrix construction is offered by \ref janus_compare.
  *
  * Transfer learning is optionally offered by \ref janus_train, whose model file
@@ -259,7 +308,7 @@ JANUS_EXPORT janus_error janus_finalize();
  * Create a new template with \ref janus_allocate.
  * Add images and videos to the template using \ref janus_augment and
  * \ref janus_track.
- * Finalize the template for comparison with \ref janus_flatten.
+ * Finalize the template for comparison with \ref janus_flatten_template.
  * \see janus_flat_template
  */
 typedef struct janus_template_type *janus_template;
@@ -267,7 +316,9 @@ typedef struct janus_template_type *janus_template;
 /*!
  * \brief Allocate memory for an empty template.
  *
- * Add images to it with \ref janus_augment.
+ * Memory is managed by the implementation and guaranteed until \ref janus_free.
+ *
+ * Add images to the template with \ref janus_augment.
  *
  * \code
  * janus_template template_;
@@ -277,7 +328,6 @@ typedef struct janus_template_type *janus_template;
  *
  * \param[in] template_ An uninitialized template.
  * \remark This function is \ref reentrant.
- * \see janus_free
  */
 JANUS_EXPORT janus_error janus_allocate(janus_template *template_);
 
@@ -286,8 +336,8 @@ JANUS_EXPORT janus_error janus_allocate(janus_template *template_);
  *
  * For video frames, call \ref janus_track first.
  *
- * Augmented templates can then be passed to \ref janus_flatten for verification
- * or \ref janus_enroll for gallery construction.
+ * Augmented templates can then be passed to \ref janus_flatten_template for
+ * verification or \ref janus_enroll for gallery construction.
  *
  * \param[in] image The image containing the detected object to be recognized.
  * \param[in] attributes Location and metadata associated with the detected
@@ -328,12 +378,17 @@ JANUS_EXPORT janus_error janus_track(janus_template template_,
 
 /*!
  * \brief A finalized representation of a template suitable for comparison.
+ *
+ * Ideally comparison should occur directly against the janus_flat_template.
+ * Alternatively, the implementation may temporarily unmarshall this buffer into
+ * a more suitable data structure.
  * \see janus_template
  */
 typedef janus_data *janus_flat_template;
 
 /*!
- * \brief The maximum size of templates generated by \ref janus_flatten.
+ * \brief The maximum size of templates generated by
+ *        \ref janus_flatten_template and \ref janus_flatten_gallery.
  *
  * Should be less than or equal to 32 MB.
  * \remark This function is \ref thread_safe.
@@ -343,17 +398,18 @@ JANUS_EXPORT size_t janus_max_template_size();
 /*!
  * \brief Create a finalized template representation for verification with
  *        \ref janus_verify.
- * \param[in] template_ The recognition information to contruct the
+ * \param[in] template_ The recognition information to construct the
  *                      finalized template from.
- * \param[in,out] flat_template A pre-allocated buffer no smaller than
- *                              \ref janus_max_template_size to contain the
- *                              finalized template.
+ * \param[in,out] flat_template A pre-allocated buffer provided by the user no
+ *                              smaller than \ref janus_max_template_size to
+ *                              contain the finalized template.
  * \param[out] bytes Size of the buffer actually used to store the template.
  * \remark This function is \ref reentrant.
  */
-JANUS_EXPORT janus_error janus_flatten(janus_template template_,
-                                       janus_flat_template flat_template,
-                                       size_t *bytes);
+JANUS_EXPORT janus_error janus_flatten_template(const janus_template template_,
+                                                janus_flat_template
+                                                                  flat_template,
+                                                size_t *bytes);
 
 /*!
  * \brief Return a similarity score for two templates.
@@ -384,10 +440,20 @@ typedef int janus_template_id;
 /*!
  * \brief A set of \ref janus_template in a file.
  *
- * Offers persistence and (in phases 2 & 3) sub-linear search time.
- * Add templates to the gallery using \ref janus_enroll.
+ * A persistent representation that can be extended with additional templates
+ * using \ref janus_enroll.
  */
 typedef const char *janus_gallery;
+
+/*!
+ * \brief A finalized representation of a gallery suitable for comparison.
+ *
+ * Ideally comparison should occur directly against the janus_flat_gallery.
+ * Alternatively, the implementation may temporarily unmarshall this buffer into
+ * a more suitable data structure.
+ * \see janus_gallery
+ */
+typedef janus_data *janus_flat_gallery;
 
 /*!
  * \brief Add a template to the gallery.
@@ -412,14 +478,31 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
                                       janus_gallery gallery);
 
 /*!
+ * \brief Create a finalized gallery representation for search with
+ *        \ref janus_search.
+ * \param[in] gallery The recognition information to construct the
+ *                    finalized gallery from.
+ * \param[in,out] flat_gallery A pre-allocated buffer provided by the user no
+ *                             smaller than \ref janus_max_template_size *
+ *                             \ref janus_gallery_size to contain the finalized
+ *                             gallery.
+ * \param[out] bytes Size of the buffer actually used to store the gallery.
+ * \remark This function is \ref reentrant.
+ */
+JANUS_EXPORT janus_error janus_flatten_gallery(const janus_gallery gallery,
+                                               janus_flat_gallery flat_gallery,
+                                               size_t *bytes);
+
+/*!
  * \brief Ranked search for a template against a gallery.
  *
  * \p template_ids and \p similarities should be pre-allocated buffers large
  * enough to contain \p requested_returns elements. \p actual_returns will be
  * less than or equal to requested_returns, depending on the contents of the
  * gallery.
- * \param [in] template_ Probe to search for.
+ * \param [in] probe Probe to search for.
  * \param [in] gallery Gallery to search against.
+ * \param [in] gallery_bytes Size of gallery.
  * \param [in] requested_returns The desired number of returned results.
  * \param [out] template_ids Buffer to contain the \ref janus_template_id of the
  *                           top matching gallery templates.
@@ -430,8 +513,9 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
  * \remark This function is \ref thread_safe.
  * \see janus_verify janus_compare
  */
-JANUS_EXPORT janus_error janus_search(const janus_template template_,
-                                      janus_gallery gallery,
+JANUS_EXPORT janus_error janus_search(const janus_template probe,
+                                      const janus_flat_gallery gallery,
+                                      const size_t gallery_bytes,
                                       int requested_returns,
                                       janus_template_id *template_ids,
                                       float *similarities,
@@ -463,7 +547,7 @@ JANUS_EXPORT janus_error janus_train(const janus_template *templates,
  * \param[out] size The number of templates in the gallery.
  * \remark This function is \ref thread_safe.
  */
-JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
+JANUS_EXPORT janus_error janus_gallery_size(const janus_gallery gallery,
                                             size_t *size);
 
 /*!
@@ -475,7 +559,9 @@ JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
  * Use \ref janus_gallery_size to determine the appropriate length of the
  * pre-allocated buffers.
  * \param[in] target Templates forming the similarity matrix columns.
+ * \param[in] target_bytes Size of target gallery.
  * \param[in] query Templates forming the similarity matrix rows.
+ * \param[in] query_bytes Size of query gallery.
  * \param[out] similarity_matrix Buffer to contain the similarity scores in
  *                               row-major order.
  * \param[out] target_ids Buffer to contain the target gallery template ids.
@@ -483,8 +569,10 @@ JANUS_EXPORT janus_error janus_gallery_size(janus_gallery gallery,
  * \remark This function is \ref thread_safe.
  * \see janus_verify janus_search
  */
-JANUS_EXPORT janus_error janus_compare(janus_gallery target,
-                                       janus_gallery query,
+JANUS_EXPORT janus_error janus_compare(const janus_flat_gallery target,
+                                       const size_t target_bytes,
+                                       const janus_flat_gallery query,
+                                       const size_t query_bytes,
                                        float *similarity_matrix,
                                        janus_template_id *target_ids,
                                        janus_template_id *query_ids);
@@ -495,4 +583,4 @@ JANUS_EXPORT janus_error janus_compare(janus_gallery target,
 }
 #endif
 
-#endif /* JANUS_H */
+#endif /* IARPA_JANUS_H */

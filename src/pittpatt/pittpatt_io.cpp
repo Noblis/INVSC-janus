@@ -7,7 +7,7 @@
 #include <pittpatt_raw_image_io.h>
 #include <pittpatt_video_io.h>
 
-#include "janus_io.h"
+#include "iarpa_janus_io.h"
 #include "../janus_io.cpp"
 
 extern ppr_context_type ppr_context;

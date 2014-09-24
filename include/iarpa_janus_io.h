@@ -21,10 +21,10 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  ******************************************************************************/
 
-#ifndef JANUS_IO_H
-#define JANUS_IO_H
+#ifndef IARPA_JANUS_IO_H
+#define IARPA_JANUS_IO_H
 
-#include <janus.h>
+#include <iarpa_janus.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -290,4 +290,4 @@ JANUS_EXPORT void janus_print_metrics(struct janus_metrics metrics);
 }
 #endif
 
-#endif /* JANUS_IO_H */
+#endif /* IARPA_JANUS_IO_H */

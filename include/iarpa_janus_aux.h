@@ -21,10 +21,10 @@
  * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  ******************************************************************************/
 
-#ifndef JANUS_AUX_H
-#define JANUS_AUX_H
+#ifndef IARPA_JANUS_AUX_H
+#define IARPA_JANUS_AUX_H
 
-#include <janus.h>
+#include <iarpa_janus.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,4 +145,4 @@ JANUS_EXPORT janus_error janus_finalize_track(janus_track track,
 }
 #endif
 
-#endif /* JANUS_AUX_H */
+#endif /* IARPA_JANUS_AUX_H */
