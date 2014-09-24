@@ -10,7 +10,7 @@
 #include <pittpatt_license.h>
 #include <pittpatt_sdk.h>
 
-#include "janus.h"
+#include "iarpa_janus.h"
 
 using namespace std;
 
@@ -106,7 +106,6 @@ struct janus_template_type {
 janus_error janus_allocate(janus_template *template_)
 {
     *template_ = new janus_template_type();
-
     return JANUS_SUCCESS;
 }
 
@@ -149,7 +148,7 @@ janus_error janus_augment(const janus_image image, const janus_attribute_list at
     return JANUS_SUCCESS;
 }
 
-janus_error janus_flatten(janus_template template_, janus_flat_template flat_template, size_t *bytes)
+janus_error janus_flatten_template(janus_template template_, janus_flat_template flat_template, size_t *bytes)
 {
     ppr_flat_data_type flat_data;
 
