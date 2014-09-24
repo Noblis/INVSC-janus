@@ -7,8 +7,8 @@
 #include <pittpatt_raw_image_io.h>
 #include <pittpatt_video_io.h>
 
-#include "iarpa_janus_io.h"
 #include "../janus_io.cpp"
+#include "iarpa_janus_io.h"
 
 extern ppr_context_type ppr_context;
 
@@ -61,6 +61,8 @@ janus_error janus_open_video(const char *file_name, janus_video *video)
 
 janus_error janus_read_frame(janus_video video, janus_image *image)
 {
+    (void) video;
+    (void) image;
     /*
     ppr_raw_image_type ppr_frame;
     ppr_video_io_error_type error = ppr_video_io_get_frame((ppr_video_io_type)video, &ppr_frame);
@@ -68,8 +70,8 @@ janus_error janus_read_frame(janus_video video, janus_image *image)
     if (error != PPR_VIDEO_IO_SUCCESS)
         return JANUS_INVALID_VIDEO;
     *image = janus_from_pittpatt(&ppr_frame);
-    ppr_raw_image_free(ppr_frame);
-    return JANUS_SUCCESS;*/
+    ppr_raw_image_free(ppr_frame);*/
+    return JANUS_SUCCESS;
 }
 
 void janus_close_video(janus_video video)
