@@ -341,9 +341,9 @@ struct FlatGallery
     {
         data = new Data();
         data->ref_count = 1;
-        size_t *size;
-        janus_gallery_size(gallery, size);
-        janus_data *buffer = new janus_data[janus_max_template_size() * (size_t)size];
+        size_t size;
+        janus_gallery_size(gallery, &size);
+        janus_data *buffer = new janus_data[janus_max_template_size() * size];
 
         const clock_t start = clock();
         data->error = janus_flatten_gallery(gallery, buffer, &data->bytes);
