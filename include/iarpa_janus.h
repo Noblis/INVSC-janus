@@ -284,6 +284,9 @@ typedef struct janus_attribute_list
  *
  * \param[in] sdk_path Path to the \em read-only directory containing the
  *                     janus-compliant SDK as provided by the implementer.
+ * \param[in] temp_path Path to an existing empty \em read-write directory for
+ *                      use as temporary file storage by the implementation.
+ *                      This path is guaranteed until \ref janus_finalize.
  * \param[in] model_file An empty string indicating the default algorithm, an
  *                       implementation-defined string indicating a specific
  *                       algorithm configuration, or the path to a model file
@@ -292,6 +295,7 @@ typedef struct janus_attribute_list
  * \see janus_finalize
  */
 JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
+                                          const char *temp_path,
                                           const char *model_file);
 
 /*!
