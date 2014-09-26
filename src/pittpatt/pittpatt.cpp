@@ -67,9 +67,10 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context)
     return ppr_initialize_context(settings, context);
 }
 
-janus_error janus_initialize(const char *sdk_path, const char *model_file)
+janus_error janus_initialize(const char *sdk_path, const char *temp_path, const char *model_file)
 {
     (void) model_file;
+    (void) temp_path;
     const char *models = "/models/";
     const size_t models_path_len = strlen(sdk_path) + strlen(models);
     char *models_path = new char[models_path_len];
