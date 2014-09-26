@@ -23,27 +23,27 @@ static janus_flat_template getFlatTemplate(const char *data_path, janus_metadata
 
 int main(int argc, char *argv[])
 {
-    if ((argc < 5) || (argc > 6)) {
-        printf("Usage: janus_verify sdk_path data_path target_metadata_file query_metadata_file [algorithm]\n");
+    if ((argc < 6) || (argc > 7)) {
+        printf("Usage: janus_verify sdk_path temp_path data_path target_metadata_file query_metadata_file [algorithm]\n");
         return 1;
     }
 
-    const char *ext1 = get_ext(argv[3]);
-    const char *ext2 = get_ext(argv[4]);
+    const char *ext1 = get_ext(argv[4]);
+    const char *ext2 = get_ext(argv[5]);
 
     if (strcmp(ext1, "csv") != 0 || strcmp(ext2, "csv") != 0) {
         printf("Metadata files must be \".csv\" format\n");
         return 1;
     }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argc >= 6 ? argv[5] : ""))
+    JANUS_ASSERT(janus_initialize(argv[1], argv[2], argc >= 7 ? argv[6] : ""))
 
     size_t target_bytes;
-    janus_flat_template target_flat = getFlatTemplate(argv[2], argv[3], &target_bytes);
+    janus_flat_template target_flat = getFlatTemplate(argv[3], argv[4], &target_bytes);
     printf("Target bytes: %zu\n", target_bytes);
 
     size_t query_bytes;
-    janus_flat_template query_flat = getFlatTemplate(argv[2], argv[4], &query_bytes);
+    janus_flat_template query_flat = getFlatTemplate(argv[3], argv[5], &query_bytes);
     printf("Query bytes: %zu\n", query_bytes);
 
     float similarity;
