@@ -54,7 +54,7 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context)
     settings.detection.use_serial_face_detection = 1;
     settings.detection.num_threads = 1;
     settings.detection.search_pruning_aggressiveness = 0;
-    settings.detection.detect_best_face_only = 0;
+    settings.detection.detect_best_face_only = 1;
     settings.landmarks.enable = 1;
     settings.landmarks.landmark_range = PPR_LANDMARK_RANGE_COMPREHENSIVE;
     settings.landmarks.manually_detect_landmarks = 0;
