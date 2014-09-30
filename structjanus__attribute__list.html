@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>IARPA Janus: Main Page</title>
+<title>IARPA Janus: janus_attribute_list Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -45,10 +45,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
-      <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
-      <li><a href="annotated.html"><span>Classes</span></a></li>
+      <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -68,7 +68,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
-</div><!-- top -->
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
+      <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
+    </ul>
+  </div>
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -83,40 +89,42 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
+</div><!-- top -->
 <div class="header">
+  <div class="summary">
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="structjanus__attribute__list-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">IARPA Janus Documentation</div>  </div>
+<div class="title">janus_attribute_list Struct Reference<div class="ingroups"><a class="el" href="group__janus.html">Janus</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1><a class="anchor" id="overview"></a>
-Overview</h1>
-<p><em>libjanus</em> is a <em>C</em> API for the IARPA Janus program consisting of three header files:</p>
-<table class="doxtable">
-<tr>
-<th>Header </th><th>Documentation </th><th>Required </th><th>Description  </th></tr>
-<tr>
-<td><a class="el" href="iarpa__janus_8h_source.html">iarpa_janus.h</a> </td><td><a class="el" href="group__janus.html">Janus</a> </td><td><b>Yes</b> </td><td>Mandatory interface for Phase 1. </td></tr>
-<tr>
-<td><a class="el" href="iarpa__janus__io_8h_source.html">iarpa_janus_io.h</a> </td><td><a class="el" href="group__janus__io.html">Janus I/O</a> </td><td>No (Provided) </td><td>Media decoding and evaluation harness. </td></tr>
-<tr>
-<td><a class="el" href="iarpa__janus__aux_8h_source.html">iarpa_janus_aux.h</a> </td><td><a class="el" href="group__janus__aux.html">Janus Auxiliary</a> </td><td>No (Phases 2 &amp; 3 only) </td><td>Proposed API additions (under construction). </td></tr>
+
+<p>A list of <a class="el" href="group__janus.html#ga4f864ed6e7e6dbefb737a33a336ca368" title="A measurement made on a janus_image. ">janus_attribute</a> and value pairs all belonging to a the same object in a particular image.  
+ <a href="structjanus__attribute__list.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="iarpa__janus_8h_source.html">iarpa_janus.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:acb3c04c2a2153085315da15fd3b41fff"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acb3c04c2a2153085315da15fd3b41fff"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjanus__attribute__list.html#acb3c04c2a2153085315da15fd3b41fff">size</a></td></tr>
+<tr class="memdesc:acb3c04c2a2153085315da15fd3b41fff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of <a class="el" href="structjanus__attribute__list.html#a61874dc5d3ac1ece7ba59e3e7276f85b" title="Array of janus_attribute. ">attributes</a> and <a class="el" href="structjanus__attribute__list.html#a4217914d5c3108d73bcfb6ad494e75d1" title="Array of corresponding attribute values. ">values</a>. <br /></td></tr>
+<tr class="separator:acb3c04c2a2153085315da15fd3b41fff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61874dc5d3ac1ece7ba59e3e7276f85b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a61874dc5d3ac1ece7ba59e3e7276f85b"></a>
+<a class="el" href="group__janus.html#ga8e03036cfd04011d99a61214212ebca0">janus_attribute</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjanus__attribute__list.html#a61874dc5d3ac1ece7ba59e3e7276f85b">attributes</a></td></tr>
+<tr class="memdesc:a61874dc5d3ac1ece7ba59e3e7276f85b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of <a class="el" href="group__janus.html#ga4f864ed6e7e6dbefb737a33a336ca368" title="A measurement made on a janus_image. ">janus_attribute</a>. <br /></td></tr>
+<tr class="separator:a61874dc5d3ac1ece7ba59e3e7276f85b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4217914d5c3108d73bcfb6ad494e75d1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4217914d5c3108d73bcfb6ad494e75d1"></a>
+double *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjanus__attribute__list.html#a4217914d5c3108d73bcfb6ad494e75d1">values</a></td></tr>
+<tr class="memdesc:a4217914d5c3108d73bcfb6ad494e75d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of corresponding attribute values. <br /></td></tr>
+<tr class="separator:a4217914d5c3108d73bcfb6ad494e75d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<ul>
-<li><a href="https://github.com/biometrics/janus"><b>Source Code</b></a> [github.com]</li>
-<li><a href="http://www.iarpa.gov/index.php/research-programs/janus"><b>Program Homepage</b></a> [iarpa.gov]</li>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A list of <a class="el" href="group__janus.html#ga4f864ed6e7e6dbefb737a33a336ca368" title="A measurement made on a janus_image. ">janus_attribute</a> and value pairs all belonging to a the same object in a particular image. </p>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<li>/Users/m29396/openbr/openbr/janus/include/<a class="el" href="iarpa__janus_8h_source.html">iarpa_janus.h</a></li>
 </ul>
-<h2><a class="anchor" id="about"></a>
-About</h2>
-<p>Intelligence analysts often rely on facial images to assist in establishing the identity of an individual, but too often, just examining the sheer volume of possibly relevant images and videos can be daunting. While biometric tools like automated face recognition could assist analysts in this task, current tools perform best on the well-posed, frontal facial photos taken for identification purposes. IARPA’s Janus program aims to dramatically improve the current performance of face recognition tools by fusing the rich spatial, temporal, and contextual information available from the multiple views captured by today’s “media in the wild”. The program will move beyond largely two-dimensional image matching methods used currently into more model-based matching that fuses all views from whatever video and stills are available. Data volume now becomes an integral part of the solution instead of an oppressive burden.</p>
-<p>The program is seeking to fund rigorous, high-quality research which uses innovative and promising approaches drawn from a variety of fields to develop novel representational models capable of encoding the shape, texture, and dynamics of a face. Instead of relying on a “single best frame approach,” these representations must address the challenges of Aging, Pose, Illumination, and Expression (A-PIE) by exploiting all available imagery. Technologies must support analysts working with partial information by addressing the uncertainties which arise when working with possibly incomplete, erroneous, and ambiguous data. The goal of the program is to test and validate techniques which have the potential to significantly improve the performance of biometric recognition in unconstrained imagery, to that end, the program will involve empirical testing of recognition performance across unconstrained videos, camera stills, and scanned photos exhibiting a broad range of real-world imaging conditions.</p>
-<p>It is anticipated that successful teams will transcend conventional approaches to biometric recognition by drawing on the multidisciplinary expertise of researchers from the fields of pattern recognition and machine learning; computer vision and image processing; computer graphics and animation; mathematical statistics and modeling; and data visualization and analytics.</p>
-<h2><a class="anchor" id="license"></a>
-License</h2>
-<p>The API is provided under a <a href="LICENSE.txt">BSD-like license</a> and is <em>free for academic and commercial use</em>.</p>
-<h2><a class="anchor" id="atribution"></a>
-Atribution</h2>
-<p>This research is based upon work supported by the Office of the Director of National Intelligence (ODNI), Intelligence Advanced Research Projects Activity (IARPA), via the Army Research Laboratory. The views and conclusions contained herein are those of the authors and should not be interpreted as necessarily representing the official policies or endorsements, either expressed or implied, of ODNI, IARPA, or the U.S. Government. The U.S. Government is authorized to reproduce and distribute reprints for Governmental purposes notwithstanding any copyright annotation thereon. </p>
-</div></div><!-- contents -->
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated on Tue Sep 30 2014 09:57:36 for IARPA Janus by &#160;<a href="http://www.doxygen.org/index.html">

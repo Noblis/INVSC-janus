@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>IARPA Janus: Main Page</title>
+<title>IARPA Janus: Enum Naming Convention</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -45,8 +45,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
-      <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
-      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li class="current"><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
@@ -68,7 +68,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
-</div><!-- top -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -83,39 +82,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
+</div><!-- top -->
 <div class="header">
   <div class="headertitle">
-<div class="title">IARPA Janus Documentation</div>  </div>
+<div class="title">Enum Naming Convention </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1><a class="anchor" id="overview"></a>
-Overview</h1>
-<p><em>libjanus</em> is a <em>C</em> API for the IARPA Janus program consisting of three header files:</p>
-<table class="doxtable">
-<tr>
-<th>Header </th><th>Documentation </th><th>Required </th><th>Description  </th></tr>
-<tr>
-<td><a class="el" href="iarpa__janus_8h_source.html">iarpa_janus.h</a> </td><td><a class="el" href="group__janus.html">Janus</a> </td><td><b>Yes</b> </td><td>Mandatory interface for Phase 1. </td></tr>
-<tr>
-<td><a class="el" href="iarpa__janus__io_8h_source.html">iarpa_janus_io.h</a> </td><td><a class="el" href="group__janus__io.html">Janus I/O</a> </td><td>No (Provided) </td><td>Media decoding and evaluation harness. </td></tr>
-<tr>
-<td><a class="el" href="iarpa__janus__aux_8h_source.html">iarpa_janus_aux.h</a> </td><td><a class="el" href="group__janus__aux.html">Janus Auxiliary</a> </td><td>No (Phases 2 &amp; 3 only) </td><td>Proposed API additions (under construction). </td></tr>
-</table>
-<ul>
-<li><a href="https://github.com/biometrics/janus"><b>Source Code</b></a> [github.com]</li>
-<li><a href="http://www.iarpa.gov/index.php/research-programs/janus"><b>Program Homepage</b></a> [iarpa.gov]</li>
-</ul>
-<h2><a class="anchor" id="about"></a>
-About</h2>
-<p>Intelligence analysts often rely on facial images to assist in establishing the identity of an individual, but too often, just examining the sheer volume of possibly relevant images and videos can be daunting. While biometric tools like automated face recognition could assist analysts in this task, current tools perform best on the well-posed, frontal facial photos taken for identification purposes. IARPA’s Janus program aims to dramatically improve the current performance of face recognition tools by fusing the rich spatial, temporal, and contextual information available from the multiple views captured by today’s “media in the wild”. The program will move beyond largely two-dimensional image matching methods used currently into more model-based matching that fuses all views from whatever video and stills are available. Data volume now becomes an integral part of the solution instead of an oppressive burden.</p>
-<p>The program is seeking to fund rigorous, high-quality research which uses innovative and promising approaches drawn from a variety of fields to develop novel representational models capable of encoding the shape, texture, and dynamics of a face. Instead of relying on a “single best frame approach,” these representations must address the challenges of Aging, Pose, Illumination, and Expression (A-PIE) by exploiting all available imagery. Technologies must support analysts working with partial information by addressing the uncertainties which arise when working with possibly incomplete, erroneous, and ambiguous data. The goal of the program is to test and validate techniques which have the potential to significantly improve the performance of biometric recognition in unconstrained imagery, to that end, the program will involve empirical testing of recognition performance across unconstrained videos, camera stills, and scanned photos exhibiting a broad range of real-world imaging conditions.</p>
-<p>It is anticipated that successful teams will transcend conventional approaches to biometric recognition by drawing on the multidisciplinary expertise of researchers from the fields of pattern recognition and machine learning; computer vision and image processing; computer graphics and animation; mathematical statistics and modeling; and data visualization and analytics.</p>
-<h2><a class="anchor" id="license"></a>
-License</h2>
-<p>The API is provided under a <a href="LICENSE.txt">BSD-like license</a> and is <em>free for academic and commercial use</em>.</p>
-<h2><a class="anchor" id="atribution"></a>
-Atribution</h2>
-<p>This research is based upon work supported by the Office of the Director of National Intelligence (ODNI), Intelligence Advanced Research Projects Activity (IARPA), via the Army Research Laboratory. The views and conclusions contained herein are those of the authors and should not be interpreted as necessarily representing the official policies or endorsements, either expressed or implied, of ODNI, IARPA, or the U.S. Government. The U.S. Government is authorized to reproduce and distribute reprints for Governmental purposes notwithstanding any copyright annotation thereon. </p>
+<div class="textblock"><p><a class="el" href="group__janus.html#ga4f864ed6e7e6dbefb737a33a336ca368" title="A measurement made on a janus_image. ">janus_attribute</a>, <a class="el" href="group__janus.html#ga79a4a3c22a3476037a952d37eeb1a73f" title="Supported image formats. ">janus_color_space</a>, <a class="el" href="group__janus.html#ga8d1da4647fdb996401e33bc8c40ea773" title="Return type for functions that indicate an error status. ">janus_error</a> and enum values follow a <code>CAPITAL_CASE</code> naming convention. Functions <a class="el" href="group__janus__io.html#gad4d3bfe65554e7ea0ce2fd4198c0c9f5" title="janus_attribute to string ">janus_attribute_to_string</a> and <a class="el" href="group__janus__io.html#ga0f8d56ae7315e5d340bdc2755ee11a61" title="janus_error to string. ">janus_error_to_string</a> return a string for the corresponding enum by removing the leading <code>JANUS_:</code> </p><div class="fragment"><div class="line"><a class="code" href="group__janus__io.html#gad4d3bfe65554e7ea0ce2fd4198c0c9f5">janus_attribute_to_string</a>(<a class="code" href="group__janus.html#gga8e03036cfd04011d99a61214212ebca0a3082043fc7d909de8c569cee2efcab14">JANUS_RIGHT_EYE_X</a>); <span class="comment">// returns &quot;RIGHT_EYE_X&quot;</span></div>
+</div><!-- fragment --><p> Functions <a class="el" href="group__janus__io.html#ga56ffac2ffdcaccf8a0a710e4d5f057b1" title="janus_attribute from string. ">janus_attribute_from_string</a> and <a class="el" href="group__janus__io.html#ga664d28544441c4d0e5cf643e329a21c7" title="janus_error from string. ">janus_error_from_string</a> provide the opposite functionality: </p><div class="fragment"><div class="line"><a class="code" href="group__janus__io.html#ga56ffac2ffdcaccf8a0a710e4d5f057b1">janus_attribute_from_string</a>(<span class="stringliteral">&quot;RIGHT_EYE_X&quot;</span>); <span class="comment">// returns JANUS_RIGHT_EYE_X</span></div>
+</div><!-- fragment --> <dl class="section note"><dt>Note</dt><dd><a class="el" href="group__janus__io.html#ga56ffac2ffdcaccf8a0a710e4d5f057b1" title="janus_attribute from string. ">janus_attribute_from_string</a> is used to decode <a class="el" href="group__janus__io.html#gaeddd0e276eebe8616d41808eed8dff16" title="File name for a Janus Metadata File. ">janus_metadata</a> files, so attribute column names should follow this naming convention. </dd></dl>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
