@@ -343,12 +343,11 @@ struct FlatGallery
         data->ref_count = 1;
         size_t size;
         janus_gallery_size(gallery, &size);
-        janus_data *buffer = new janus_data[janus_max_template_size() * size];
+        janus_data *buffer = new janus_data[janus_max_template_size() * size + size * (sizeof(janus_template_id) + sizeof(size_t))];
 
         const clock_t start = clock();
         data->error = janus_flatten_gallery(gallery, buffer, &data->bytes);
         _janus_add_sample(janus_finalize_gallery_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-        _janus_add_sample(janus_gallery_size_samples, data->bytes);
 
         data->flat_gallery = new janus_data[data->bytes];
         memcpy(data->flat_gallery, buffer, data->bytes);
@@ -360,6 +359,13 @@ struct FlatGallery
         *this = other;
     }
 
+    FlatGallery& operator=(const FlatGallery& rhs)
+    {
+        data = rhs.data;
+        data->ref_count++;
+        return *this;
+    }
+
     ~FlatGallery()
     {
         data->ref_count--;
@@ -367,11 +373,6 @@ struct FlatGallery
             delete[] data->flat_gallery;
             delete data;
         }
-    }
-
-    janus_error compareTo(const FlatGallery &other, float *similarity) const
-    {
-        return JANUS_SUCCESS;
     }
 };
 
@@ -462,6 +463,7 @@ janus_metrics janus_get_metrics()
     metrics.janus_free_image_speed          = calculateMetric(janus_free_image_samples);
     metrics.janus_verify_speed              = calculateMetric(janus_verify_samples);
     metrics.janus_gallery_size_speed        = calculateMetric(janus_gallery_size_samples);
+    metrics.janus_finalize_gallery_speed    = calculateMetric(janus_finalize_gallery_samples);
     metrics.janus_compare_speed             = calculateMetric(janus_compare_samples);
     metrics.janus_template_size             = calculateMetric(janus_template_size_samples);
     metrics.janus_missing_attributes_count  = janus_missing_attributes_count;
@@ -486,6 +488,7 @@ void janus_print_metrics(janus_metrics metrics)
     printMetric("janus_free_image         ", metrics.janus_free_image_speed);
     printMetric("janus_verify             ", metrics.janus_verify_speed);
     printMetric("janus_gallery_size       ", metrics.janus_gallery_size_speed);
+    printMetric("janus_finalize_gallery   ", metrics.janus_finalize_gallery_speed);
     printMetric("janus_compare            ", metrics.janus_compare_speed);
     printMetric("janus_flat_template      ", metrics.janus_template_size, false);
     printf("\n\n");

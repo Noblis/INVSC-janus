@@ -251,6 +251,7 @@ struct janus_metrics
     struct janus_metric janus_verify_speed; /*!< \brief ms */
     struct janus_metric janus_compare_speed; /*!< \brief ms */
     struct janus_metric janus_gallery_size_speed; /*!< \brief ms */
+    struct janus_metric janus_finalize_gallery_speed; /*!< \brief ms */
     struct janus_metric janus_template_size; /*!< \brief KB */
     int          janus_missing_attributes_count; /*!< \brief Count of \ref JANUS_MISSING_ATTRIBUTES */
     int          janus_failure_to_enroll_count; /*!< \brief Count of \ref JANUS_FAILURE_TO_ENROLL */
