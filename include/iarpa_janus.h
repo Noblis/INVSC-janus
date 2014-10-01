@@ -116,7 +116,7 @@ extern "C" {
 #endif
 
 #define JANUS_VERSION_MAJOR 0
-#define JANUS_VERSION_MINOR 2
+#define JANUS_VERSION_MINOR 3
 #define JANUS_VERSION_PATCH 0
 
 /*!
@@ -127,17 +127,13 @@ extern "C" {
  *
  * \section Overview
  * A Janus application begins with a call to \ref janus_initialize. New
- * templates are constructed with \ref janus_allocate and provided
+ * templates are constructed with \ref janus_allocate_template and provided
  * image data with \ref janus_augment. Templates are freed after use with
- * \ref janus_free.
+ * \ref janus_free_template.
  *
  * Templates can be used for verification with \ref janus_flatten_template and
  * \ref janus_verify, or search with \ref janus_enroll,
  * \ref janus_flatten_gallery and \ref janus_search.
- * Complete similarity matrix construction is offered by \ref janus_compare.
- *
- * Transfer learning is optionally offered by \ref janus_train, whose model file
- * output is then passed to \ref janus_initialize.
  *
  * All Janus applications end with a call to \ref janus_finalize.
  *
@@ -246,6 +242,73 @@ typedef struct janus_image
  * Phases 2 and 3 will introduce API calls for automated detection and tracking.
  * Additional attributes and training data will be added over the duration of
  * the program.
+ *
+ * \section attribute_definitions Attribute Definitions
+ * Images were annotated with attributes using crowd sourcing.
+ * As a result, attributes are defined in layman's terms, instead of strict
+ * scientific definitions.
+ * Below are the instructions given to workers for each attribute, which should
+ * act as a de-facto definition of the attribute.
+ * In some cases instructions evolved slightly over time, reflecting lessons
+ * learned from communicating with the workers.
+ *
+ * \subsection face Face
+ * [Instructions with images.]
+ * (https://s3.amazonaws.com/TurkAnnotator/boundingboxesinstructions.html)
+ *
+ * We strongly prefer tight bounding boxes over loose ones.
+ * There's a bit of leeway here, especially because it is also important to
+ * capture the whole head, but if the bounding boxes are too loose we will have
+ * to reject the work.
+ * For the case of people wearing hats or headgear, or who just have large hair,
+ * try to approximate where the head would be (it's alright if you're not
+ * exact).
+ * As a general rule of thumb, if you can see a feature on a face (an eye, nose,
+ * or mouth) or if you can tell it's a forward facing head (but it's too far
+ * away to make out individual features), box it!
+ * Please err on the side of boxing heads, the exceptions being heads that are
+ * completely facing away and heads that are blocked so you cannot see any
+ * features.
+ * It's okay if boxes overlap!
+ * But, try to only box the parts of the head you can see.
+ * Non-living faces (portraits, faces on screens, etc.) are fair game, too!
+ * If they look realistic, box them.
+ * We understand that some images aren't worth your time.
+ * In the case of image shown below, where there are many small, blurry heads in
+ * the background, just box the person in focus (or press "Not visible" if no
+ * one is in focus).
+ * In cases like this one, where many faces are distinguishable, please press
+ * the "Crowd" button.
+ * We ask that you only do this in cases where there truly are crowds - at least
+ * 25 heads or so.
+ * These images will definitely be reviewed, and wrongly pressing this button
+ * will result in a rejection.
+ *
+ * \subsection right_eye Right Eye
+ * For this task, click on the middle of the right eye of the subject shown.
+ * Please note that the right eye of the subject will usually appear on the
+ * left.
+ * Also note that the middle of the eye is not necessarily the pupil,
+ * but rather the midpoint between outer edges of the eye.
+ * If the right eye is not visible or too blurry to identify, press
+ * "Not Visible" - unless the eye is obscured by dark glasses, in which case we
+ * ask that you estimate where the eye would be.
+ *
+ * \subsection left_eye Left Eye
+ * For this task, click on the middle of the left eye of the subject shown.
+ * Please note that the left eye of the subject will usually appear on the
+ * right.
+ * Also note that the middle of the eye is not necessarily the pupil,
+ * but rather the midpoint between outer edges of the eye.
+ * If the left eye is not visible or too blurry to identify, press
+ * "Not Visible" - unless the eye is obscured by dark glasses, in which case we
+ * ask that you estimate where the eye would be.
+ *
+ * \subsection nose_base Nose Base
+ * For this task, click on the middle of the nose base of the subject shown.
+ * This is considered to be the middle of where the nose meets the face.
+ * If the nose base is not visible or too blurry to identify, press
+ * "Not Visible”.
  */
 typedef enum janus_attribute
 {
@@ -253,17 +316,17 @@ typedef enum janus_attribute
     JANUS_FRAME                , /*!< Video frame number, -1 (or not present)
                                       for still images */
     JANUS_FACE_X               , /*!< Horizontal offset to top-left corner of
-                                      face (pixels) */
+                                      face (pixels) \see face */
     JANUS_FACE_Y               , /*!< Vertical offset to top-left corner of
-                                      face (pixels) */
-    JANUS_FACE_WIDTH           , /*!< Face horizontal size (pixels) */
-    JANUS_FACE_HEIGHT          , /*!< Face vertical size (pixels) */
-    JANUS_RIGHT_EYE_X          , /*!< Face landmark (pixels) */
-    JANUS_RIGHT_EYE_Y          , /*!< Face landmark (pixels) */
-    JANUS_LEFT_EYE_X           , /*!< Face landmark (pixels) */
-    JANUS_LEFT_EYE_Y           , /*!< Face landmark (pixels) */
-    JANUS_NOSE_BASE_X          , /*!< Face landmark (pixels) */
-    JANUS_NOSE_BASE_Y          , /*!< Face landmark (pixels) */
+                                      face (pixels) \see face */
+    JANUS_FACE_WIDTH           , /*!< Face horizontal size (pixels) \see face */
+    JANUS_FACE_HEIGHT          , /*!< Face vertical size (pixels) \see face */
+    JANUS_RIGHT_EYE_X          , /*!< Face landmark (pixels) \see right_eye */
+    JANUS_RIGHT_EYE_Y          , /*!< Face landmark (pixels) \see right_eye */
+    JANUS_LEFT_EYE_X           , /*!< Face landmark (pixels) \see left_eye */
+    JANUS_LEFT_EYE_Y           , /*!< Face landmark (pixels) \see left_eye */
+    JANUS_NOSE_BASE_X          , /*!< Face landmark (pixels) \see nose_base */
+    JANUS_NOSE_BASE_Y          , /*!< Face landmark (pixels) \see nose_base */
     JANUS_NUM_ATTRIBUTES         /*!< Idiom to iterate over all attributes */
 } janus_attribute;
 
@@ -287,16 +350,15 @@ typedef struct janus_attribute_list
  * \param[in] temp_path Path to an existing empty \em read-write directory for
  *                      use as temporary file storage by the implementation.
  *                      This path is guaranteed until \ref janus_finalize.
- * \param[in] model_file An empty string indicating the default algorithm, an
- *                       implementation-defined string indicating a specific
- *                       algorithm configuration, or the path to a model file
- *                       created by \ref janus_train.
+ * \param[in] algorithm An empty string indicating the default algorithm, or an
+ *                      implementation-defined string indicating an alternative
+ *                      configuration.
  * \remark This function is \ref thread_unsafe and should only be called once.
  * \see janus_finalize
  */
 JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
                                           const char *temp_path,
-                                          const char *model_file);
+                                          const char *algorithm);
 
 /*!
  * \brief Call once at the end of the application, after making all other calls
@@ -309,7 +371,7 @@ JANUS_EXPORT janus_error janus_finalize();
 /*!
  * \brief Contains the recognition information for an object.
  *
- * Create a new template with \ref janus_allocate.
+ * Create a new template with \ref janus_allocate_template.
  * Add images and videos to the template using \ref janus_augment and
  * \ref janus_track.
  * Finalize the template for comparison with \ref janus_flatten_template.
@@ -320,20 +382,21 @@ typedef struct janus_template_type *janus_template;
 /*!
  * \brief Allocate memory for an empty template.
  *
- * Memory is managed by the implementation and guaranteed until \ref janus_free.
+ * Memory is managed by the implementation and guaranteed until
+ * \ref janus_free_template.
  *
  * Add images to the template with \ref janus_augment.
  *
  * \code
  * janus_template template_;
- * janus_error error = janus_allocate(&template_);
+ * janus_error error = janus_allocate_template(&template_);
  * assert(!error);
  * \endcode
  *
  * \param[in] template_ An uninitialized template.
  * \remark This function is \ref reentrant.
  */
-JANUS_EXPORT janus_error janus_allocate(janus_template *template_);
+JANUS_EXPORT janus_error janus_allocate_template(janus_template *template_);
 
 /*!
  * \brief Add an image to the template.
@@ -371,14 +434,15 @@ JANUS_EXPORT janus_error janus_track(janus_template template_,
                                      int enabled);
 
 /*!
- * \brief Free memory for a template previously allocated by \ref janus_allocate.
+ * \brief Free memory for a template previously allocated by
+ * \ref janus_allocate_template.
  *
  * Call this function on a template after it is no longer needed.
  * \param[in] template_ The template to deallocate.
  * \remark This function is \ref reentrant.
- * \see janus_allocate
+ * \see janus_allocate_template
  */
- JANUS_EXPORT janus_error janus_free(janus_template template_);
+ JANUS_EXPORT janus_error janus_free_template(janus_template template_);
 
 /*!
  * \brief A finalized representation of a template suitable for comparison.
@@ -391,8 +455,8 @@ JANUS_EXPORT janus_error janus_track(janus_template template_,
 typedef janus_data *janus_flat_template;
 
 /*!
- * \brief The maximum size of templates generated by
- *        \ref janus_flatten_template and \ref janus_flatten_gallery.
+ * \brief The maximum size of templates generated by \ref janus_flatten_template
+ *        and \ref janus_flatten_gallery.
  *
  * Should be less than or equal to 32 MB.
  * \remark This function is \ref thread_safe.
@@ -404,9 +468,10 @@ JANUS_EXPORT size_t janus_max_template_size();
  *        \ref janus_verify.
  * \param[in] template_ The recognition information to construct the
  *                      finalized template from.
- * \param[in,out] flat_template A pre-allocated buffer provided by the user no
- *                              smaller than \ref janus_max_template_size to
- *                              contain the finalized template.
+ * \param[in,out] flat_template A pre-allocated buffer provided by the calling
+ *                              application no smaller than
+ *                              \ref janus_max_template_size to contain the
+ *                              finalized template.
  * \param[out] bytes Size of the buffer actually used to store the template.
  * \remark This function is \ref reentrant.
  */
@@ -442,12 +507,30 @@ JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
 typedef int janus_template_id;
 
 /*!
- * \brief A set of \ref janus_template in a file.
+ * \brief A set of \ref janus_template.
  *
- * A persistent representation that can be extended with additional templates
- * using \ref janus_enroll.
+ * Can be extended with additional templates using \ref janus_enroll.
  */
-typedef const char *janus_gallery;
+typedef struct janus_gallery_type *janus_gallery;
+
+/*!
+ * \brief Allocate memory for an gallery template.
+ *
+ * Memory is managed by the implementation and guaranteed until
+ * \ref janus_free_gallery.
+ *
+ * Add templates to the gallery with \ref janus_enroll.
+ *
+ * \code
+ * janus_gallery gallery;
+ * janus_error error = janus_allocate_gallery(&gallery);
+ * assert(!error);
+ * \endcode
+ *
+ * \param[in] gallery An uninitialized gallery.
+ * \remark This function is \ref reentrant.
+ */
+JANUS_EXPORT janus_error janus_allocate_gallery(janus_gallery *gallery);
 
 /*!
  * \brief A finalized representation of a gallery suitable for comparison.
@@ -464,17 +547,13 @@ typedef janus_data *janus_flat_gallery;
  *
  * Use \ref janus_search for searching against the gallery.
  *
- * It is up to the user to provide unique \p template_id values. The
- * implementation may assume that multiple templates with the same
+ * It is up to the calling application to provide unique \p template_id values.
+ * The implementation may assume that multiple templates with the same
  * \p template_id belong to the same identity.
- *
- * The number of templates in the gallery can be retrieved by
- * \ref janus_gallery_size.
  *
  * \param[in] template_ The template to add.
  * \param[in] template_id A unique identifier for the template.
- * \param[in] gallery The gallery file to take ownership of the template. A new
- *                    file will be created if one does not already exist.
+ * \param[in] gallery The gallery to take ownership of the template.
  * \remark This function is \ref reentrant.
  */
 JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
@@ -482,14 +561,28 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
                                       janus_gallery gallery);
 
 /*!
+ * \brief Free memory for a gallery previously allocated by
+ * \ref janus_allocate_gallery.
+ *
+ * Call this function on a gallery after it is no longer needed.
+ * \param[in] gallery The gallery to deallocate.
+ * \remark This function is \ref reentrant.
+ * \see janus_allocate_gallery
+ */
+ JANUS_EXPORT janus_error janus_free_gallery(janus_gallery gallery);
+
+/*!
  * \brief Create a finalized gallery representation for search with
  *        \ref janus_search.
  * \param[in] gallery The recognition information to construct the
  *                    finalized gallery from.
- * \param[in,out] flat_gallery A pre-allocated buffer provided by the user no
- *                             smaller than \ref janus_max_template_size *
- *                             \ref janus_gallery_size to contain the finalized
- *                             gallery.
+ * \param[in,out] flat_gallery A pre-allocated buffer provided by the calling
+ *                             application no smaller than
+ *                             \ref janus_max_template_size * \a gallery_size
+ *                             to contain the finalized gallery. \a gallery_size
+ *                             is the number of templates in \a gallery, which
+ *                             is equal to the number of calls made to
+ *                             \ref janus_enroll with \a gallery.
  * \param[out] bytes Size of the buffer actually used to store the gallery.
  * \remark This function is \ref reentrant.
  */
@@ -507,79 +600,24 @@ JANUS_EXPORT janus_error janus_flatten_gallery(const janus_gallery gallery,
  * \param [in] probe Probe to search for.
  * \param [in] gallery Gallery to search against.
  * \param [in] gallery_bytes Size of gallery.
- * \param [in] requested_returns The desired number of returned results.
+ * \param [in] num_requested_returns The desired number of returned results.
  * \param [out] template_ids Buffer to contain the \ref janus_template_id of the
  *                           top matching gallery templates.
  * \param [out] similarities Buffer to contain the similarity scores of the top
  *                           matching templates.
- * \param [out] actual_returns The number of populated elements in template_ids
- *                             and similarities.
+ * \param [out] num_actual_returns The number of populated elements in
+ *                                 template_ids and similarities. This value
+ *                                 could be zero.
  * \remark This function is \ref thread_safe.
  * \see janus_verify janus_compare
  */
-JANUS_EXPORT janus_error janus_search(const janus_template probe,
+JANUS_EXPORT janus_error janus_search(const janus_flat_template probe,
                                       const janus_flat_gallery gallery,
                                       const size_t gallery_bytes,
-                                      int requested_returns,
+                                      const int num_requested_returns,
                                       janus_template_id *template_ids,
                                       float *similarities,
-                                      int *actual_returns);
-
-/*!
- * \brief Train a new model from the provided templates.
- * \note This function is optional and may return \ref JANUS_NOT_IMPLEMENTED.
- * \param[in] templates Training data to generate the model file.
- * \param[in] num_templates Length of \em partial_templates.
- * \param[out] model_file File path to contain the trained model.
- * \remark This function is \ref thread_unsafe.
- * \todo Is the API the right level of abstraction for this function? Should
- *       it be moved to the command line instead or a shell script instead? Is
- *       a common interface impossible?
- */
-JANUS_EXPORT janus_error janus_train(const janus_template *templates,
-                                     const int num_templates,
-                                     const char *model_file);
-
-/*!
- * \brief Retrieve the number of templates in a gallery.
- *
- * Galleries may split or join templates based on their identity
- * information, so the number of templates in the gallery is not necessarily
- * equal to the number of \ref janus_enroll calls.
- *
- * \param[in] gallery The gallery whose templates to count.
- * \param[out] size The number of templates in the gallery.
- * \remark This function is \ref thread_safe.
- */
-JANUS_EXPORT janus_error janus_gallery_size(const janus_gallery gallery,
-                                            size_t *size);
-
-/*!
- * \brief Generate a similarity matrix.
- *
- * Compare all templates in the target gallery are to all templates in the query
- * gallery.
- *
- * Use \ref janus_gallery_size to determine the appropriate length of the
- * pre-allocated buffers.
- * \param[in] target Templates forming the similarity matrix columns.
- * \param[in] target_bytes Size of target gallery.
- * \param[in] query Templates forming the similarity matrix rows.
- * \param[in] query_bytes Size of query gallery.
- * \param[out] similarity_matrix Buffer to contain the similarity scores in
- *                               row-major order.
- * \param[out] target_ids Buffer to contain the target gallery template ids.
- * \param[out] query_ids Buffer to contain the query gallery template ids.
- * \remark This function is \ref thread_safe.
- * \see janus_verify janus_search
- */
-JANUS_EXPORT janus_error janus_compare(const janus_flat_gallery target,
-                                       const size_t target_bytes,
-                                       const janus_flat_gallery query,
-                                       const size_t query_bytes,
-                                       float *similarity_matrix,
-                                       janus_template_id *target_ids,
-                                       janus_template_id *query_ids);
+                                      int *num_actual_returns);
 
 /*! @}*/
 
