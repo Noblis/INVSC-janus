@@ -514,7 +514,7 @@ typedef int janus_template_id;
 typedef struct janus_gallery_type *janus_gallery;
 
 /*!
- * \brief Allocate memory for an gallery template.
+ * \brief Allocate memory for an empty gallery.
  *
  * Memory is managed by the implementation and guaranteed until
  * \ref janus_free_gallery.
