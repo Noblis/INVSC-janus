@@ -490,7 +490,7 @@ JANUS_EXPORT janus_error janus_flatten_template(const janus_template template_,
  * \param[in] b_bytes Size of template b.
  * \param[out] similarity Higher values indicate greater similarity.
  * \remark This function is \ref thread_safe.
- * \see janus_search janus_compare
+ * \see janus_search
  */
 JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
                                       const size_t a_bytes,
@@ -598,6 +598,7 @@ JANUS_EXPORT janus_error janus_flatten_gallery(const janus_gallery gallery,
  * less than or equal to requested_returns, depending on the contents of the
  * gallery.
  * \param [in] probe Probe to search for.
+ * \param [in] probe_bytes Size of probe.
  * \param [in] gallery Gallery to search against.
  * \param [in] gallery_bytes Size of gallery.
  * \param [in] num_requested_returns The desired number of returned results.
@@ -609,9 +610,10 @@ JANUS_EXPORT janus_error janus_flatten_gallery(const janus_gallery gallery,
  *                                 template_ids and similarities. This value
  *                                 could be zero.
  * \remark This function is \ref thread_safe.
- * \see janus_verify janus_compare
+ * \see janus_verify
  */
 JANUS_EXPORT janus_error janus_search(const janus_flat_template probe,
+                                      const size_t probe_bytes,
                                       const janus_flat_gallery gallery,
                                       const size_t gallery_bytes,
                                       const int num_requested_returns,
