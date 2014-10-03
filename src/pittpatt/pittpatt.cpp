@@ -83,8 +83,6 @@ janus_error janus_initialize(const char *sdk_path, const char *temp_path, const 
         return error;
 
     return to_janus_error(initialize_ppr_context(&ppr_context));
-
-    return error;
 }
 
 janus_error janus_finalize()
@@ -94,10 +92,10 @@ janus_error janus_finalize()
         ppr_free_gallery(it->second);
     }
 
-    ppr_finalize_context(ppr_context);
+    janus_error error = to_janus_error(ppr_finalize_context(ppr_context));
     ppr_finalize_sdk();
 
-    return JANUS_SUCCESS;
+    return error;
 }
 
 struct janus_template_type {
@@ -275,7 +273,13 @@ janus_error janus_enroll(const janus_template template_, const janus_template_id
 
     it = ppr_galleries.find(gallery);
     if (it == ppr_galleries.end()) {
-        ppr_create_gallery(ppr_context, &ppr_gallery);
+        if (FILE *file = fopen(gallery, "r")) {
+            fflush(stdout);
+            fclose(file);
+            ppr_read_gallery(ppr_context, gallery, &ppr_gallery);
+        } else {
+            ppr_create_gallery(ppr_context, &ppr_gallery);
+        }
         ppr_galleries[gallery] = ppr_gallery;
     } else {
         ppr_gallery = it->second;
