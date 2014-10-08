@@ -484,6 +484,10 @@ JANUS_EXPORT janus_error janus_flatten_template(const janus_template template_,
  * \brief Return a similarity score for two templates.
  *
  * Higher scores indicate greater similarity.
+ *
+ * The returned \p similarity score is \em symmetric. In other words, swapping
+ * the order of \p a and \p b will not change \p similarity.
+ *
  * \param[in] a The first template to compare.
  * \param[in] a_bytes Size of template a.
  * \param[in] b The second template to compare.
@@ -597,6 +601,10 @@ JANUS_EXPORT janus_error janus_flatten_gallery(const janus_gallery gallery,
  * enough to contain \p requested_returns elements. \p actual_returns will be
  * less than or equal to requested_returns, depending on the contents of the
  * gallery.
+ *
+ * The returned \p similarities \em may be normalized by the implementation based on the contents of the \p gallery.
+ * Therefore, similarity scores returned from searches against different galleries are \em not guaranteed to be comparable.
+ *
  * \param [in] probe Probe to search for.
  * \param [in] probe_bytes Size of probe.
  * \param [in] gallery Gallery to search against.
