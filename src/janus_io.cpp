@@ -112,7 +112,7 @@ static vector<double> janus_free_image_samples;
 static vector<double> janus_verify_samples;
 static vector<double> janus_template_size_samples;
 static vector<double> janus_gallery_size_samples;
-static vector<double> janus_compare_samples;
+static vector<double> janus_search_samples;
 static int janus_missing_attributes_count = 0;
 static int janus_failure_to_enroll_count = 0;
 static int janus_other_errors_count = 0;
@@ -212,7 +212,7 @@ struct TemplateIterator : public TemplateData
     static janus_error create(const char *data_path, const TemplateData templateData, janus_template *template_, janus_template_id *templateID, bool verbose)
     {
         clock_t start = clock();
-        JANUS_CHECK(janus_allocate(template_))
+        JANUS_CHECK(janus_allocate_template(template_))
         _janus_add_sample(janus_initialize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
         for (size_t i=0; i<templateData.templateIDs.size(); i++) {
@@ -290,7 +290,7 @@ struct FlatTemplate
 
         const clock_t start = clock();
         data->error = janus_flatten_template(template_, buffer, &data->bytes);
-        JANUS_ASSERT(janus_free(template_))
+        JANUS_ASSERT(janus_free_template(template_))
         _janus_add_sample(janus_finalize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         _janus_add_sample(janus_template_size_samples, data->bytes / 1024.0);
 
@@ -329,6 +329,9 @@ struct FlatTemplate
     }
 };
 
+struct janus_gallery_type : public vector<janus_template>
+{};
+
 struct FlatGallery
 {
     struct Data {
@@ -341,12 +344,12 @@ struct FlatGallery
     {
         data = new Data();
         data->ref_count = 1;
-        size_t size;
-        janus_gallery_size(gallery, &size);
-        janus_data *buffer = new janus_data[janus_max_template_size() * size + size * (sizeof(janus_template_id) + sizeof(size_t))];
+        size_t size = gallery->size();
+        janus_data *buffer = new janus_data[size*(janus_max_template_size() + sizeof(janus_template_id) + sizeof(size_t))];
 
         const clock_t start = clock();
         data->error = janus_flatten_gallery(gallery, buffer, &data->bytes);
+        JANUS_ASSERT(janus_free_gallery(gallery))
         _janus_add_sample(janus_finalize_gallery_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
         data->flat_gallery = new janus_data[data->bytes];
@@ -376,7 +379,7 @@ struct FlatGallery
     }
 };
 
-janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_gallery target, janus_gallery query, janus_matrix matrix)
+janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_metadata target, janus_metadata query, janus_matrix matrix)
 {
     ofstream stream(matrix, ios::out | ios::binary);
     stream << "S2\n"
@@ -391,42 +394,110 @@ janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, j
     return JANUS_SUCCESS;
 }
 
-janus_error janus_evaluate(janus_gallery target, janus_gallery query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask)
+janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, janus_flat_gallery query, size_t query_bytes, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, int num_requested_returns)
 {
-    size_t target_size, query_size;
-    clock_t start = clock();
-    JANUS_CHECK(janus_gallery_size(target, &target_size))
-    _janus_add_sample(janus_gallery_size_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-
-    start = clock();
-    JANUS_CHECK(janus_gallery_size(query, &query_size))
-    _janus_add_sample(janus_gallery_size_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-
-    FlatGallery flat_target(target), flat_query(query);
-
-    float *similarity_matrix = new float[target_size * query_size];
-    janus_template_id *target_ids = new janus_template_id[target_size];
-    janus_template_id *query_ids = new janus_template_id[query_size];
-
     TemplateData targetMetadata = TemplateIterator(target_metadata, false);
     TemplateData queryMetadata = TemplateIterator(query_metadata, false);
+    size_t query_size = queryMetadata.templateIDs.size();
+    float *similarity_matrix = new float[query_size * num_requested_returns];
+    unsigned char *truth = new unsigned char[query_size * num_requested_returns];
 
-    start = clock();
-    JANUS_CHECK(janus_compare(flat_target.data->flat_gallery, flat_target.data->bytes, flat_query.data->flat_gallery, flat_query.data->bytes, similarity_matrix, target_ids, query_ids))
-    _janus_add_sample(janus_compare_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+    int num_queries = 0;
+    int actual_returns = 0;
+    janus_flat_gallery flat_query = query;
+    while (flat_query < query + query_bytes) {
+        janus_template_id *template_ids = new janus_template_id[num_requested_returns];
+        float *similarities = new float[num_requested_returns];
+        int num_actual_returns;
 
-    JANUS_CHECK(janus_write_matrix(similarity_matrix, query_size, target_size, false, target, query, simmat))
+        janus_template_id query_template_id = *reinterpret_cast<janus_template_id*>(flat_query);
+        flat_query += sizeof(query_template_id);
+        const size_t query_template_bytes = *reinterpret_cast<size_t*>(flat_query);
+        flat_query += sizeof(query_template_bytes);
+        janus_flat_template query_template_flat = new janus_data[janus_max_template_size()];
+        memcpy(query_template_flat, flat_query, query_template_bytes);
+        flat_query += query_template_bytes;
+
+        clock_t start = clock();
+        JANUS_CHECK(janus_search(query_template_flat, query_template_bytes, target, target_bytes, num_requested_returns, template_ids, similarities, &num_actual_returns))
+        _janus_add_sample(janus_search_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        _janus_add_sample(janus_template_size_samples, query_template_bytes / 1024.0);
+
+        memcpy(similarity_matrix, similarities, sizeof(float)*num_actual_returns);
+        similarity_matrix += num_actual_returns;
+        for (int j=0; j<num_actual_returns; j++)
+            truth[num_queries*num_actual_returns+j] = (queryMetadata.subjectIDLUT[query_template_id] == targetMetadata.subjectIDLUT[template_ids[j]] ? 0xff : 0x7f);
+
+        actual_returns = num_actual_returns;
+        num_queries++;
+        delete[] query_template_flat;
+        delete[] template_ids;
+        delete[] similarities;
+    }
+    similarity_matrix -= num_queries*actual_returns;
+    JANUS_CHECK(janus_write_matrix(similarity_matrix, num_queries, actual_returns, false, target_metadata, query_metadata, simmat))
     delete[] similarity_matrix;
-
-    unsigned char *truth = new unsigned char[target_size * query_size];
-    for (size_t i=0; i<query_size; i++)
-        for (size_t j=0; j<target_size; j++)
-            truth[i*target_size+j] = (queryMetadata.subjectIDLUT[query_ids[i]] == targetMetadata.subjectIDLUT[target_ids[j]] ? 0xff : 0x7f);
-    JANUS_CHECK(janus_write_matrix(truth, query_size, target_size, true, target, query, mask))
+    JANUS_CHECK(janus_write_matrix(truth, num_queries, actual_returns, true, target_metadata, query_metadata, mask))
     delete[] truth;
+    return JANUS_SUCCESS;
+}
 
-    delete[] query_ids;
-    delete[] target_ids;
+janus_error janus_evaluate_verify(janus_flat_gallery target, size_t target_bytes, janus_flat_gallery query, size_t query_bytes, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask)
+{
+    TemplateData targetMetadata = TemplateIterator(target_metadata, false);
+    TemplateData queryMetadata = TemplateIterator(query_metadata, false);
+    size_t target_size = targetMetadata.templateIDs.size();
+    size_t query_size = queryMetadata.templateIDs.size();
+    float *similarity_matrix = new float[query_size * target_size];
+    unsigned char *truth = new unsigned char[query_size * target_size];
+
+    int num_queries = 0;
+    int num_targets = 0;
+    janus_flat_gallery flat_query = query;
+    janus_flat_gallery flat_target = target;
+    while (flat_query < query + query_bytes) {
+        janus_template_id query_template_id = *reinterpret_cast<janus_template_id*>(flat_query);
+        flat_query += sizeof(query_template_id);
+        const size_t query_template_bytes = *reinterpret_cast<size_t*>(flat_query);
+        flat_query += sizeof(query_template_bytes);
+        janus_flat_template query_template_flat = new janus_data[janus_max_template_size()];
+        memcpy(query_template_flat, flat_query, query_template_bytes);
+        flat_query += query_template_bytes;
+        _janus_add_sample(janus_template_size_samples, query_template_bytes / 1024.0);
+
+        while (flat_target < target + target_bytes) {
+            janus_template_id target_template_id = *reinterpret_cast<janus_template_id*>(flat_target);
+            flat_target += sizeof(target_template_id);
+            const size_t target_template_bytes = *reinterpret_cast<size_t*>(flat_target);
+            flat_target += sizeof(target_template_bytes);
+            janus_flat_template target_template_flat = new janus_data[janus_max_template_size()];
+            memcpy(target_template_flat, flat_target, target_template_bytes);
+            flat_target += target_template_bytes;
+            if (num_queries == 0)
+                _janus_add_sample(janus_template_size_samples, target_template_bytes / 1024.0);
+
+            float similarity;
+            clock_t start = clock();
+            JANUS_CHECK(janus_verify(query_template_flat, query_template_bytes, target_template_flat, target_template_bytes, &similarity))
+            _janus_add_sample(janus_verify_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+            *similarity_matrix = similarity;
+            similarity_matrix += 1;
+            *truth = (queryMetadata.subjectIDLUT[query_template_id] == targetMetadata.subjectIDLUT[target_template_id] ? 0xff : 0x7f);
+            truth += 1;
+            if (num_queries == 0)
+                num_targets++;
+            delete[] target_template_flat;
+        }
+    flat_target -= target_bytes;
+    delete[] query_template_flat;
+    num_queries++;
+    }
+    similarity_matrix -= num_targets*num_queries;
+    truth -= num_targets*num_queries;
+    JANUS_CHECK(janus_write_matrix(similarity_matrix, num_queries, num_targets, false, target_metadata, query_metadata, simmat))
+    JANUS_CHECK(janus_write_matrix(truth, num_queries, num_targets, true, target_metadata, query_metadata, mask))
+    delete[] similarity_matrix;
+    delete[] truth;
     return JANUS_SUCCESS;
 }
 
@@ -464,7 +535,7 @@ janus_metrics janus_get_metrics()
     metrics.janus_verify_speed              = calculateMetric(janus_verify_samples);
     metrics.janus_gallery_size_speed        = calculateMetric(janus_gallery_size_samples);
     metrics.janus_finalize_gallery_speed    = calculateMetric(janus_finalize_gallery_samples);
-    metrics.janus_compare_speed             = calculateMetric(janus_compare_samples);
+    metrics.janus_search_speed             = calculateMetric(janus_search_samples);
     metrics.janus_template_size             = calculateMetric(janus_template_size_samples);
     metrics.janus_missing_attributes_count  = janus_missing_attributes_count;
     metrics.janus_failure_to_enroll_count   = janus_failure_to_enroll_count;
@@ -489,7 +560,7 @@ void janus_print_metrics(janus_metrics metrics)
     printMetric("janus_verify             ", metrics.janus_verify_speed);
     printMetric("janus_gallery_size       ", metrics.janus_gallery_size_speed);
     printMetric("janus_finalize_gallery   ", metrics.janus_finalize_gallery_speed);
-    printMetric("janus_compare            ", metrics.janus_compare_speed);
+    printMetric("janus_search             ", metrics.janus_search_speed);
     printMetric("janus_flat_template      ", metrics.janus_template_size, false);
     printf("\n\n");
     printf("janus_error             \tCount\n");
