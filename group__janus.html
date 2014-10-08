@@ -30,7 +30,7 @@
   <td id="projectlogo"><img alt="Logo" src="janus.png"/></td>
   <td style="padding-left: 0.5em;">
    <div id="projectname">IARPA Janus
-   &#160;<span id="projectnumber">0.2.0</span>
+   &#160;<span id="projectnumber">0.3.0</span>
    </div>
    <div id="projectbrief">IARPA Janus Program API</div>
   </td>
@@ -139,9 +139,9 @@ janus_template_type *&#160;</td><td class="memItemRight" valign="bottom"><a clas
 <tr class="memitem:ga5d0040926b3f9faf9dc6bd3e112504ed"><td class="memItemLeft" align="right" valign="top">typedef int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a></td></tr>
 <tr class="memdesc:ga5d0040926b3f9faf9dc6bd3e112504ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique identifier for a <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a>.  <a href="#ga5d0040926b3f9faf9dc6bd3e112504ed">More...</a><br /></td></tr>
 <tr class="separator:ga5d0040926b3f9faf9dc6bd3e112504ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8bb6f6adcf52a29d388fd28c780b2256"><td class="memItemLeft" align="right" valign="top">typedef const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256">janus_gallery</a></td></tr>
-<tr class="memdesc:ga8bb6f6adcf52a29d388fd28c780b2256"><td class="mdescLeft">&#160;</td><td class="mdescRight">A set of <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> in a file.  <a href="#ga8bb6f6adcf52a29d388fd28c780b2256">More...</a><br /></td></tr>
-<tr class="separator:ga8bb6f6adcf52a29d388fd28c780b2256"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga64368fd83d5e9abfd9ef6ab6231866e8"><td class="memItemLeft" align="right" valign="top">typedef struct janus_gallery_type *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a></td></tr>
+<tr class="memdesc:ga64368fd83d5e9abfd9ef6ab6231866e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">A set of <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a>.  <a href="#ga64368fd83d5e9abfd9ef6ab6231866e8">More...</a><br /></td></tr>
+<tr class="separator:ga64368fd83d5e9abfd9ef6ab6231866e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf1d1ec3876715bd9d6e66402b0110659"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__janus.html#gab23d3331754844d0a5e80fcfad4d32c0">janus_data</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a></td></tr>
 <tr class="memdesc:gaf1d1ec3876715bd9d6e66402b0110659"><td class="mdescLeft">&#160;</td><td class="mdescRight">A finalized representation of a gallery suitable for comparison.  <a href="#gaf1d1ec3876715bd9d6e66402b0110659">More...</a><br /></td></tr>
 <tr class="separator:gaf1d1ec3876715bd9d6e66402b0110659"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -203,24 +203,24 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gace3bcaedb06a29b8c7579f08eb67664d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gace3bcaedb06a29b8c7579f08eb67664d">janus_initialize</a> (const char *sdk_path, const char *temp_path, const char *model_file)</td></tr>
-<tr class="memdesc:gace3bcaedb06a29b8c7579f08eb67664d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call once at the start of the application, before making any other calls to the API.  <a href="#gace3bcaedb06a29b8c7579f08eb67664d">More...</a><br /></td></tr>
-<tr class="separator:gace3bcaedb06a29b8c7579f08eb67664d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga386ac373dacd168fd136e8e814d04be4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga386ac373dacd168fd136e8e814d04be4">janus_initialize</a> (const char *sdk_path, const char *temp_path, const char *algorithm)</td></tr>
+<tr class="memdesc:ga386ac373dacd168fd136e8e814d04be4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call once at the start of the application, before making any other calls to the API.  <a href="#ga386ac373dacd168fd136e8e814d04be4">More...</a><br /></td></tr>
+<tr class="separator:ga386ac373dacd168fd136e8e814d04be4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaca1ad3c66d178b28550980179f24f7d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gaca1ad3c66d178b28550980179f24f7d3">janus_finalize</a> ()</td></tr>
 <tr class="memdesc:gaca1ad3c66d178b28550980179f24f7d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call once at the end of the application, after making all other calls to the API.  <a href="#gaca1ad3c66d178b28550980179f24f7d3">More...</a><br /></td></tr>
 <tr class="separator:gaca1ad3c66d178b28550980179f24f7d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaeaf7a2533b7d4b27f5b7eaa400529f8c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gaeaf7a2533b7d4b27f5b7eaa400529f8c">janus_allocate</a> (<a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> *template_)</td></tr>
-<tr class="memdesc:gaeaf7a2533b7d4b27f5b7eaa400529f8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate memory for an empty template.  <a href="#gaeaf7a2533b7d4b27f5b7eaa400529f8c">More...</a><br /></td></tr>
-<tr class="separator:gaeaf7a2533b7d4b27f5b7eaa400529f8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8619857e68a2dacee603313b042f2fcc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga8619857e68a2dacee603313b042f2fcc">janus_allocate_template</a> (<a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> *template_)</td></tr>
+<tr class="memdesc:ga8619857e68a2dacee603313b042f2fcc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate memory for an empty template.  <a href="#ga8619857e68a2dacee603313b042f2fcc">More...</a><br /></td></tr>
+<tr class="separator:ga8619857e68a2dacee603313b042f2fcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaace74a5c78128f6fa3a5eefd5b6f1939"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gaace74a5c78128f6fa3a5eefd5b6f1939">janus_augment</a> (const <a class="el" href="structjanus__image.html">janus_image</a> image, const <a class="el" href="structjanus__attribute__list.html">janus_attribute_list</a> attributes, <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> template_)</td></tr>
 <tr class="memdesc:gaace74a5c78128f6fa3a5eefd5b6f1939"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add an image to the template.  <a href="#gaace74a5c78128f6fa3a5eefd5b6f1939">More...</a><br /></td></tr>
 <tr class="separator:gaace74a5c78128f6fa3a5eefd5b6f1939"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga86a0e85c41129071a8dd2711def715bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga86a0e85c41129071a8dd2711def715bd">janus_track</a> (<a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> template_, int enabled)</td></tr>
 <tr class="memdesc:ga86a0e85c41129071a8dd2711def715bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable or disable object tracking for the template.  <a href="#ga86a0e85c41129071a8dd2711def715bd">More...</a><br /></td></tr>
 <tr class="separator:ga86a0e85c41129071a8dd2711def715bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7c834d3d57cddd1fd20e8ec16ffd1c87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga7c834d3d57cddd1fd20e8ec16ffd1c87">janus_free</a> (<a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> template_)</td></tr>
-<tr class="memdesc:ga7c834d3d57cddd1fd20e8ec16ffd1c87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free memory for a template previously allocated by <a class="el" href="group__janus.html#gaeaf7a2533b7d4b27f5b7eaa400529f8c">janus_allocate</a>.  <a href="#ga7c834d3d57cddd1fd20e8ec16ffd1c87">More...</a><br /></td></tr>
-<tr class="separator:ga7c834d3d57cddd1fd20e8ec16ffd1c87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa4a9154ad52b30392a4ed01a5b30a4c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gaa4a9154ad52b30392a4ed01a5b30a4c5">janus_free_template</a> (<a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> template_)</td></tr>
+<tr class="memdesc:gaa4a9154ad52b30392a4ed01a5b30a4c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free memory for a template previously allocated by <a class="el" href="group__janus.html#ga8619857e68a2dacee603313b042f2fcc">janus_allocate_template</a>.  <a href="#gaa4a9154ad52b30392a4ed01a5b30a4c5">More...</a><br /></td></tr>
+<tr class="separator:gaa4a9154ad52b30392a4ed01a5b30a4c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadbc4e11537a1ef422cbc8bcf3dbe8055"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gadbc4e11537a1ef422cbc8bcf3dbe8055">janus_max_template_size</a> ()</td></tr>
 <tr class="memdesc:gadbc4e11537a1ef422cbc8bcf3dbe8055"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum size of templates generated by <a class="el" href="group__janus.html#ga5c5c3d57e1143d792d5c45fb84fb6bb2">janus_flatten_template</a> and <a class="el" href="group__janus.html#ga078130b68c5843aacf5a6fc1e7fb820f">janus_flatten_gallery</a>.  <a href="#gadbc4e11537a1ef422cbc8bcf3dbe8055">More...</a><br /></td></tr>
 <tr class="separator:gadbc4e11537a1ef422cbc8bcf3dbe8055"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -230,33 +230,29 @@ Functions</h2></td></tr>
 <tr class="memitem:ga7f9bab9206a29d9f99087aa932267dd5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga7f9bab9206a29d9f99087aa932267dd5">janus_verify</a> (const <a class="el" href="group__janus.html#ga58102bdd155ece1516a5b6772e5dd25b">janus_flat_template</a> a, const size_t a_bytes, const <a class="el" href="group__janus.html#ga58102bdd155ece1516a5b6772e5dd25b">janus_flat_template</a> b, const size_t b_bytes, float *similarity)</td></tr>
 <tr class="memdesc:ga7f9bab9206a29d9f99087aa932267dd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a similarity score for two templates.  <a href="#ga7f9bab9206a29d9f99087aa932267dd5">More...</a><br /></td></tr>
 <tr class="separator:ga7f9bab9206a29d9f99087aa932267dd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga15142aae31a6ce2365776e7ff1ef4dfb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a> (const <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> template_, const <a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> template_id, <a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256">janus_gallery</a> gallery)</td></tr>
+<tr class="memitem:ga38b61036a5fb27671ee104c61f35a0b7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga38b61036a5fb27671ee104c61f35a0b7">janus_allocate_gallery</a> (<a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a> *gallery)</td></tr>
+<tr class="memdesc:ga38b61036a5fb27671ee104c61f35a0b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate memory for an empty gallery.  <a href="#ga38b61036a5fb27671ee104c61f35a0b7">More...</a><br /></td></tr>
+<tr class="separator:ga38b61036a5fb27671ee104c61f35a0b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga15142aae31a6ce2365776e7ff1ef4dfb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a> (const <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> template_, const <a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> template_id, <a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a> gallery)</td></tr>
 <tr class="memdesc:ga15142aae31a6ce2365776e7ff1ef4dfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a template to the gallery.  <a href="#ga15142aae31a6ce2365776e7ff1ef4dfb">More...</a><br /></td></tr>
 <tr class="separator:ga15142aae31a6ce2365776e7ff1ef4dfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga078130b68c5843aacf5a6fc1e7fb820f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga078130b68c5843aacf5a6fc1e7fb820f">janus_flatten_gallery</a> (const <a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256">janus_gallery</a> gallery, <a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a> flat_gallery, size_t *bytes)</td></tr>
-<tr class="memdesc:ga078130b68c5843aacf5a6fc1e7fb820f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a finalized gallery representation for search with <a class="el" href="group__janus.html#ga19881e16ef19daaefac83cebac586e47">janus_search</a>.  <a href="#ga078130b68c5843aacf5a6fc1e7fb820f">More...</a><br /></td></tr>
+<tr class="memitem:ga0bd53aa0a141def4fcd8ec3235c2c87b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga0bd53aa0a141def4fcd8ec3235c2c87b">janus_free_gallery</a> (<a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a> gallery)</td></tr>
+<tr class="memdesc:ga0bd53aa0a141def4fcd8ec3235c2c87b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free memory for a gallery previously allocated by <a class="el" href="group__janus.html#ga38b61036a5fb27671ee104c61f35a0b7">janus_allocate_gallery</a>.  <a href="#ga0bd53aa0a141def4fcd8ec3235c2c87b">More...</a><br /></td></tr>
+<tr class="separator:ga0bd53aa0a141def4fcd8ec3235c2c87b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga078130b68c5843aacf5a6fc1e7fb820f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga078130b68c5843aacf5a6fc1e7fb820f">janus_flatten_gallery</a> (const <a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a> gallery, <a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a> flat_gallery, size_t *bytes)</td></tr>
+<tr class="memdesc:ga078130b68c5843aacf5a6fc1e7fb820f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a finalized gallery representation for search with <a class="el" href="group__janus.html#ga160ab543fa9bdd768efedf14561874a3">janus_search</a>.  <a href="#ga078130b68c5843aacf5a6fc1e7fb820f">More...</a><br /></td></tr>
 <tr class="separator:ga078130b68c5843aacf5a6fc1e7fb820f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga19881e16ef19daaefac83cebac586e47"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga19881e16ef19daaefac83cebac586e47">janus_search</a> (const <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> probe, const <a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a> gallery, const size_t gallery_bytes, int requested_returns, <a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> *template_ids, float *similarities, int *actual_returns)</td></tr>
-<tr class="memdesc:ga19881e16ef19daaefac83cebac586e47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ranked search for a template against a gallery.  <a href="#ga19881e16ef19daaefac83cebac586e47">More...</a><br /></td></tr>
-<tr class="separator:ga19881e16ef19daaefac83cebac586e47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad0d41f710035e494da7b23d00ae5eea5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gad0d41f710035e494da7b23d00ae5eea5">janus_train</a> (const <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> *templates, const int num_templates, const char *model_file)</td></tr>
-<tr class="memdesc:gad0d41f710035e494da7b23d00ae5eea5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Train a new model from the provided templates.  <a href="#gad0d41f710035e494da7b23d00ae5eea5">More...</a><br /></td></tr>
-<tr class="separator:gad0d41f710035e494da7b23d00ae5eea5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3f3897ff2d5c4882518fbd251721ef04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga3f3897ff2d5c4882518fbd251721ef04">janus_gallery_size</a> (const <a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256">janus_gallery</a> gallery, size_t *size)</td></tr>
-<tr class="memdesc:ga3f3897ff2d5c4882518fbd251721ef04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve the number of templates in a gallery.  <a href="#ga3f3897ff2d5c4882518fbd251721ef04">More...</a><br /></td></tr>
-<tr class="separator:ga3f3897ff2d5c4882518fbd251721ef04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabf6681207b3c6f0b14d0dab979978ea2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#gabf6681207b3c6f0b14d0dab979978ea2">janus_compare</a> (const <a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a> target, const size_t target_bytes, const <a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a> query, const size_t query_bytes, float *similarity_matrix, <a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> *target_ids, <a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> *query_ids)</td></tr>
-<tr class="memdesc:gabf6681207b3c6f0b14d0dab979978ea2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a similarity matrix.  <a href="#gabf6681207b3c6f0b14d0dab979978ea2">More...</a><br /></td></tr>
-<tr class="separator:gabf6681207b3c6f0b14d0dab979978ea2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga160ab543fa9bdd768efedf14561874a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__janus.html#ga160ab543fa9bdd768efedf14561874a3">janus_search</a> (const <a class="el" href="group__janus.html#ga58102bdd155ece1516a5b6772e5dd25b">janus_flat_template</a> probe, const size_t probe_bytes, const <a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a> gallery, const size_t gallery_bytes, const int num_requested_returns, <a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> *template_ids, float *similarities, int *num_actual_returns)</td></tr>
+<tr class="memdesc:ga160ab543fa9bdd768efedf14561874a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ranked search for a template against a gallery.  <a href="#ga160ab543fa9bdd768efedf14561874a3">More...</a><br /></td></tr>
+<tr class="separator:ga160ab543fa9bdd768efedf14561874a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Mandatory interface for Phase 1. </p>
 <p>All Janus performers should adhere to this interface.</p>
 <h1><a class="anchor" id="Overview"></a>
 Overview</h1>
-<p>A Janus application begins with a call to <a class="el" href="group__janus.html#gace3bcaedb06a29b8c7579f08eb67664d">janus_initialize</a>. New templates are constructed with <a class="el" href="group__janus.html#gaeaf7a2533b7d4b27f5b7eaa400529f8c">janus_allocate</a> and provided image data with <a class="el" href="group__janus.html#gaace74a5c78128f6fa3a5eefd5b6f1939">janus_augment</a>. Templates are freed after use with <a class="el" href="group__janus.html#ga7c834d3d57cddd1fd20e8ec16ffd1c87">janus_free</a>.</p>
-<p>Templates can be used for verification with <a class="el" href="group__janus.html#ga5c5c3d57e1143d792d5c45fb84fb6bb2">janus_flatten_template</a> and <a class="el" href="group__janus.html#ga7f9bab9206a29d9f99087aa932267dd5">janus_verify</a>, or search with <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a>, <a class="el" href="group__janus.html#ga078130b68c5843aacf5a6fc1e7fb820f">janus_flatten_gallery</a> and <a class="el" href="group__janus.html#ga19881e16ef19daaefac83cebac586e47">janus_search</a>. Complete similarity matrix construction is offered by <a class="el" href="group__janus.html#gabf6681207b3c6f0b14d0dab979978ea2">janus_compare</a>.</p>
-<p>Transfer learning is optionally offered by <a class="el" href="group__janus.html#gad0d41f710035e494da7b23d00ae5eea5">janus_train</a>, whose model file output is then passed to <a class="el" href="group__janus.html#gace3bcaedb06a29b8c7579f08eb67664d">janus_initialize</a>.</p>
+<p>A Janus application begins with a call to <a class="el" href="group__janus.html#ga386ac373dacd168fd136e8e814d04be4">janus_initialize</a>. New templates are constructed with <a class="el" href="group__janus.html#ga8619857e68a2dacee603313b042f2fcc">janus_allocate_template</a> and provided image data with <a class="el" href="group__janus.html#gaace74a5c78128f6fa3a5eefd5b6f1939">janus_augment</a>. Templates are freed after use with <a class="el" href="group__janus.html#gaa4a9154ad52b30392a4ed01a5b30a4c5">janus_free_template</a>.</p>
+<p>Templates can be used for verification with <a class="el" href="group__janus.html#ga5c5c3d57e1143d792d5c45fb84fb6bb2">janus_flatten_template</a> and <a class="el" href="group__janus.html#ga7f9bab9206a29d9f99087aa932267dd5">janus_verify</a>, or search with <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a>, <a class="el" href="group__janus.html#ga078130b68c5843aacf5a6fc1e7fb820f">janus_flatten_gallery</a> and <a class="el" href="group__janus.html#ga160ab543fa9bdd768efedf14561874a3">janus_search</a>.</p>
 <p>All Janus applications end with a call to <a class="el" href="group__janus.html#gaca1ad3c66d178b28550980179f24f7d3">janus_finalize</a>.</p>
 <h1><a class="anchor" id="thread_safety"></a>
 Thread Safety</h1>
@@ -286,7 +282,23 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>A measurement made on a <a class="el" href="structjanus__image.html" title="Common representation for still images and video frames. ">janus_image</a>. </p>
-<p>These attributes are provided from manual annotation for Phase 1. Phases 2 and 3 will introduce API calls for automated detection and tracking. Additional attributes and training data will be added over the duration of the program. </p>
+<p>These attributes are provided from manual annotation for Phase 1. Phases 2 and 3 will introduce API calls for automated detection and tracking. Additional attributes and training data will be added over the duration of the program.</p>
+<h1><a class="anchor" id="attribute_definitions"></a>
+Attribute Definitions</h1>
+<p>Images were annotated with attributes using crowd sourcing. As a result, attributes are defined in layman's terms, instead of strict scientific definitions. Below are the instructions given to workers for each attribute, which should act as a de-facto definition of the attribute. In some cases instructions evolved slightly over time, reflecting lessons learned from communicating with the workers.</p>
+<h2><a class="anchor" id="face"></a>
+Face</h2>
+<p><a href="https://s3.amazonaws.com/TurkAnnotator/boundingboxesinstructions.html">Instructions with images.</a></p>
+<p>We strongly prefer tight bounding boxes over loose ones. There's a bit of leeway here, especially because it is also important to capture the whole head, but if the bounding boxes are too loose we will have to reject the work. For the case of people wearing hats or headgear, or who just have large hair, try to approximate where the head would be (it's alright if you're not exact). As a general rule of thumb, if you can see a feature on a face (an eye, nose, or mouth) or if you can tell it's a forward facing head (but it's too far away to make out individual features), box it! Please err on the side of boxing heads, the exceptions being heads that are completely facing away and heads that are blocked so you cannot see any features. It's okay if boxes overlap! But, try to only box the parts of the head you can see. Non-living faces (portraits, faces on screens, etc.) are fair game, too! If they look realistic, box them. We understand that some images aren't worth your time. In the case of image shown below, where there are many small, blurry heads in the background, just box the person in focus (or press "Not visible" if no one is in focus). In cases like this one, where many faces are distinguishable, please press the "Crowd" button. We ask that you only do this in cases where there truly are crowds - at least 25 heads or so. These images will definitely be reviewed, and wrongly pressing this button will result in a rejection.</p>
+<h2><a class="anchor" id="right_eye"></a>
+Right Eye</h2>
+<p>For this task, click on the middle of the right eye of the subject shown. Please note that the right eye of the subject will usually appear on the left. Also note that the middle of the eye is not necessarily the pupil, but rather the midpoint between outer edges of the eye. If the right eye is not visible or too blurry to identify, press "Not Visible" - unless the eye is obscured by dark glasses, in which case we ask that you estimate where the eye would be.</p>
+<h2><a class="anchor" id="left_eye"></a>
+Left Eye</h2>
+<p>For this task, click on the middle of the left eye of the subject shown. Please note that the left eye of the subject will usually appear on the right. Also note that the middle of the eye is not necessarily the pupil, but rather the midpoint between outer edges of the eye. If the left eye is not visible or too blurry to identify, press "Not Visible" - unless the eye is obscured by dark glasses, in which case we ask that you estimate where the eye would be.</p>
+<h2><a class="anchor" id="nose_base"></a>
+Nose Base</h2>
+<p>For this task, click on the middle of the nose base of the subject shown. This is considered to be the middle of where the nose meets the face. If the nose base is not visible or too blurry to identify, press "Not Visible”. </p>
 
 </div>
 </div>
@@ -316,7 +328,7 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>A finalized representation of a gallery suitable for comparison. </p>
-<p>Ideally comparison should occur directly against the janus_flat_gallery. Alternatively, the implementation may temporarily unmarshall this buffer into a more suitable data structure. </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256" title="A set of janus_template in a file. ">janus_gallery</a> </dd></dl>
+<p>Ideally comparison should occur directly against the janus_flat_gallery. Alternatively, the implementation may temporarily unmarshall this buffer into a more suitable data structure. </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8" title="A set of janus_template. ">janus_gallery</a> </dd></dl>
 
 </div>
 </div>
@@ -335,18 +347,18 @@ Implementer Notes</h1>
 
 </div>
 </div>
-<a class="anchor" id="ga8bb6f6adcf52a29d388fd28c780b2256"></a>
+<a class="anchor" id="ga64368fd83d5e9abfd9ef6ab6231866e8"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef const char* <a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256">janus_gallery</a></td>
+          <td class="memname">typedef struct janus_gallery_type* <a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>A set of <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> in a file. </p>
-<p>A persistent representation that can be extended with additional templates using <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a>. </p>
+<p>A set of <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a>. </p>
+<p>Can be extended with additional templates using <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a>. </p>
 
 </div>
 </div>
@@ -385,7 +397,7 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>Contains the recognition information for an object. </p>
-<p>Create a new template with <a class="el" href="group__janus.html#gaeaf7a2533b7d4b27f5b7eaa400529f8c">janus_allocate</a>. Add images and videos to the template using <a class="el" href="group__janus.html#gaace74a5c78128f6fa3a5eefd5b6f1939">janus_augment</a> and <a class="el" href="group__janus.html#ga86a0e85c41129071a8dd2711def715bd">janus_track</a>. Finalize the template for comparison with <a class="el" href="group__janus.html#ga5c5c3d57e1143d792d5c45fb84fb6bb2">janus_flatten_template</a>. </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga58102bdd155ece1516a5b6772e5dd25b" title="A finalized representation of a template suitable for comparison. ">janus_flat_template</a> </dd></dl>
+<p>Create a new template with <a class="el" href="group__janus.html#ga8619857e68a2dacee603313b042f2fcc">janus_allocate_template</a>. Add images and videos to the template using <a class="el" href="group__janus.html#gaace74a5c78128f6fa3a5eefd5b6f1939">janus_augment</a> and <a class="el" href="group__janus.html#ga86a0e85c41129071a8dd2711def715bd">janus_track</a>. Finalize the template for comparison with <a class="el" href="group__janus.html#ga5c5c3d57e1143d792d5c45fb84fb6bb2">janus_flatten_template</a>. </p><dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga58102bdd155ece1516a5b6772e5dd25b" title="A finalized representation of a template suitable for comparison. ">janus_flat_template</a> </dd></dl>
 
 </div>
 </div>
@@ -400,7 +412,7 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>Unique identifier for a <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a>. </p>
-<p>Associate a template with a unique id using <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a>. Retrieve the unique id from a search using <a class="el" href="group__janus.html#ga19881e16ef19daaefac83cebac586e47">janus_search</a>. </p>
+<p>Associate a template with a unique id using <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a>. Retrieve the unique id from a search using <a class="el" href="group__janus.html#ga160ab543fa9bdd768efedf14561874a3">janus_search</a>. </p>
 
 </div>
 </div>
@@ -416,7 +428,23 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>A measurement made on a <a class="el" href="structjanus__image.html" title="Common representation for still images and video frames. ">janus_image</a>. </p>
-<p>These attributes are provided from manual annotation for Phase 1. Phases 2 and 3 will introduce API calls for automated detection and tracking. Additional attributes and training data will be added over the duration of the program. </p>
+<p>These attributes are provided from manual annotation for Phase 1. Phases 2 and 3 will introduce API calls for automated detection and tracking. Additional attributes and training data will be added over the duration of the program.</p>
+<h1><a class="anchor" id="attribute_definitions"></a>
+Attribute Definitions</h1>
+<p>Images were annotated with attributes using crowd sourcing. As a result, attributes are defined in layman's terms, instead of strict scientific definitions. Below are the instructions given to workers for each attribute, which should act as a de-facto definition of the attribute. In some cases instructions evolved slightly over time, reflecting lessons learned from communicating with the workers.</p>
+<h2><a class="anchor" id="face"></a>
+Face</h2>
+<p><a href="https://s3.amazonaws.com/TurkAnnotator/boundingboxesinstructions.html">Instructions with images.</a></p>
+<p>We strongly prefer tight bounding boxes over loose ones. There's a bit of leeway here, especially because it is also important to capture the whole head, but if the bounding boxes are too loose we will have to reject the work. For the case of people wearing hats or headgear, or who just have large hair, try to approximate where the head would be (it's alright if you're not exact). As a general rule of thumb, if you can see a feature on a face (an eye, nose, or mouth) or if you can tell it's a forward facing head (but it's too far away to make out individual features), box it! Please err on the side of boxing heads, the exceptions being heads that are completely facing away and heads that are blocked so you cannot see any features. It's okay if boxes overlap! But, try to only box the parts of the head you can see. Non-living faces (portraits, faces on screens, etc.) are fair game, too! If they look realistic, box them. We understand that some images aren't worth your time. In the case of image shown below, where there are many small, blurry heads in the background, just box the person in focus (or press "Not visible" if no one is in focus). In cases like this one, where many faces are distinguishable, please press the "Crowd" button. We ask that you only do this in cases where there truly are crowds - at least 25 heads or so. These images will definitely be reviewed, and wrongly pressing this button will result in a rejection.</p>
+<h2><a class="anchor" id="right_eye"></a>
+Right Eye</h2>
+<p>For this task, click on the middle of the right eye of the subject shown. Please note that the right eye of the subject will usually appear on the left. Also note that the middle of the eye is not necessarily the pupil, but rather the midpoint between outer edges of the eye. If the right eye is not visible or too blurry to identify, press "Not Visible" - unless the eye is obscured by dark glasses, in which case we ask that you estimate where the eye would be.</p>
+<h2><a class="anchor" id="left_eye"></a>
+Left Eye</h2>
+<p>For this task, click on the middle of the left eye of the subject shown. Please note that the left eye of the subject will usually appear on the right. Also note that the middle of the eye is not necessarily the pupil, but rather the midpoint between outer edges of the eye. If the left eye is not visible or too blurry to identify, press "Not Visible" - unless the eye is obscured by dark glasses, in which case we ask that you estimate where the eye would be.</p>
+<h2><a class="anchor" id="nose_base"></a>
+Nose Base</h2>
+<p>For this task, click on the middle of the nose base of the subject shown. This is considered to be the middle of where the nose meets the face. If the nose base is not visible or too blurry to identify, press "Not Visible”. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0a0bdf249e3ce9b770abb5fe86deecc0f9"></a>JANUS_INVALID_ATTRIBUTE&#160;</td><td class="fielddoc">
 <p>Catch-all error code </p>
@@ -425,34 +453,34 @@ Implementer Notes</h1>
 <p>Video frame number, -1 (or not present) for still images </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0ac7e8b7d5f7d677e66178cd66e511a681"></a>JANUS_FACE_X&#160;</td><td class="fielddoc">
-<p>Horizontal offset to top-left corner of face (pixels) </p>
+<p>Horizontal offset to top-left corner of face (pixels) </p><dl class="section see"><dt>See also</dt><dd>face </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0a305b00b5bba7b402ac743e8684fb2cee"></a>JANUS_FACE_Y&#160;</td><td class="fielddoc">
-<p>Vertical offset to top-left corner of face (pixels) </p>
+<p>Vertical offset to top-left corner of face (pixels) </p><dl class="section see"><dt>See also</dt><dd>face </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0a670aa42a25e178360073dc3332025f96"></a>JANUS_FACE_WIDTH&#160;</td><td class="fielddoc">
-<p>Face horizontal size (pixels) </p>
+<p>Face horizontal size (pixels) </p><dl class="section see"><dt>See also</dt><dd>face </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0ae97ffb370a84608c28954014297af012"></a>JANUS_FACE_HEIGHT&#160;</td><td class="fielddoc">
-<p>Face vertical size (pixels) </p>
+<p>Face vertical size (pixels) </p><dl class="section see"><dt>See also</dt><dd>face </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0a3082043fc7d909de8c569cee2efcab14"></a>JANUS_RIGHT_EYE_X&#160;</td><td class="fielddoc">
-<p>Face landmark (pixels) </p>
+<p>Face landmark (pixels) </p><dl class="section see"><dt>See also</dt><dd>right_eye </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0af614d89e4646f75e5da014fc05741c20"></a>JANUS_RIGHT_EYE_Y&#160;</td><td class="fielddoc">
-<p>Face landmark (pixels) </p>
+<p>Face landmark (pixels) </p><dl class="section see"><dt>See also</dt><dd>right_eye </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0ab23d87df6db2a62609ccda06d1931031"></a>JANUS_LEFT_EYE_X&#160;</td><td class="fielddoc">
-<p>Face landmark (pixels) </p>
+<p>Face landmark (pixels) </p><dl class="section see"><dt>See also</dt><dd>left_eye </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0af11a0198873cf27bc27bca926d5399c3"></a>JANUS_LEFT_EYE_Y&#160;</td><td class="fielddoc">
-<p>Face landmark (pixels) </p>
+<p>Face landmark (pixels) </p><dl class="section see"><dt>See also</dt><dd>left_eye </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0acdb0cba0f38d1a9f5412d4644ffdf1c2"></a>JANUS_NOSE_BASE_X&#160;</td><td class="fielddoc">
-<p>Face landmark (pixels) </p>
+<p>Face landmark (pixels) </p><dl class="section see"><dt>See also</dt><dd>nose_base </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0a2be8af26c3988e8930d04165c766b69e"></a>JANUS_NOSE_BASE_Y&#160;</td><td class="fielddoc">
-<p>Face landmark (pixels) </p>
+<p>Face landmark (pixels) </p><dl class="section see"><dt>See also</dt><dd>nose_base </dd></dl>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga8e03036cfd04011d99a61214212ebca0a2553bc28fc1011a2f858611843e618d2"></a>JANUS_NUM_ATTRIBUTES&#160;</td><td class="fielddoc">
 <p>Idiom to iterate over all attributes </p>
@@ -506,7 +534,7 @@ Implementer Notes</h1>
 <p>Memorry allocation failed </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga1b275e4dade484951b366f785597b8f6a5af0f2159cd65cb7f93405f6bd051324"></a>JANUS_INVALID_SDK_PATH&#160;</td><td class="fielddoc">
-<p>Incorrect location provided to <a class="el" href="group__janus.html#gace3bcaedb06a29b8c7579f08eb67664d" title="Call once at the start of the application, before making any other calls to the API. ">janus_initialize</a> </p>
+<p>Incorrect location provided to <a class="el" href="group__janus.html#ga386ac373dacd168fd136e8e814d04be4" title="Call once at the start of the application, before making any other calls to the API. ">janus_initialize</a> </p>
 </td></tr>
 <tr><td class="fieldname"><a class="anchor" id="gga1b275e4dade484951b366f785597b8f6a2d98ba9c9d0555d912b73038183c72cd"></a>JANUS_OPEN_ERROR&#160;</td><td class="fielddoc">
 <p>Failed to open a file </p>
@@ -552,12 +580,42 @@ Implementer Notes</h1>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gaeaf7a2533b7d4b27f5b7eaa400529f8c"></a>
+<a class="anchor" id="ga38b61036a5fb27671ee104c61f35a0b7"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_allocate </td>
+          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_allocate_gallery </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a> *&#160;</td>
+          <td class="paramname"><em>gallery</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Allocate memory for an empty gallery. </p>
+<p>Memory is managed by the implementation and guaranteed until <a class="el" href="group__janus.html#ga0bd53aa0a141def4fcd8ec3235c2c87b">janus_free_gallery</a>.</p>
+<p>Add templates to the gallery with <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a>.</p>
+<div class="fragment"><div class="line"><a class="code" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a> gallery;</div>
+<div class="line"><a class="code" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> error = <a class="code" href="group__janus.html#ga38b61036a5fb27671ee104c61f35a0b7">janus_allocate_gallery</a>(&amp;gallery);</div>
+<div class="line">assert(!error);</div>
+</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">gallery</td><td>An uninitialized gallery. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#reentrant">reentrant</a>. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga8619857e68a2dacee603313b042f2fcc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_allocate_template </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> *&#160;</td>
           <td class="paramname"><em>template_</em></td><td>)</td>
@@ -567,10 +625,10 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>Allocate memory for an empty template. </p>
-<p>Memory is managed by the implementation and guaranteed until <a class="el" href="group__janus.html#ga7c834d3d57cddd1fd20e8ec16ffd1c87">janus_free</a>.</p>
+<p>Memory is managed by the implementation and guaranteed until <a class="el" href="group__janus.html#gaa4a9154ad52b30392a4ed01a5b30a4c5">janus_free_template</a>.</p>
 <p>Add images to the template with <a class="el" href="group__janus.html#gaace74a5c78128f6fa3a5eefd5b6f1939">janus_augment</a>.</p>
 <div class="fragment"><div class="line"><a class="code" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> template_;</div>
-<div class="line"><a class="code" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> error = <a class="code" href="group__janus.html#gaeaf7a2533b7d4b27f5b7eaa400529f8c">janus_allocate</a>(&amp;template_);</div>
+<div class="line"><a class="code" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> error = <a class="code" href="group__janus.html#ga8619857e68a2dacee603313b042f2fcc">janus_allocate_template</a>(&amp;template_);</div>
 <div class="line">assert(!error);</div>
 </div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -627,79 +685,6 @@ Implementer Notes</h1>
 
 </div>
 </div>
-<a class="anchor" id="gabf6681207b3c6f0b14d0dab979978ea2"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_compare </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a>&#160;</td>
-          <td class="paramname"><em>target</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const size_t&#160;</td>
-          <td class="paramname"><em>target_bytes</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659">janus_flat_gallery</a>&#160;</td>
-          <td class="paramname"><em>query</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const size_t&#160;</td>
-          <td class="paramname"><em>query_bytes</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">float *&#160;</td>
-          <td class="paramname"><em>similarity_matrix</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> *&#160;</td>
-          <td class="paramname"><em>target_ids</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> *&#160;</td>
-          <td class="paramname"><em>query_ids</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Generate a similarity matrix. </p>
-<p>Compare all templates in the target gallery are to all templates in the query gallery.</p>
-<p>Use <a class="el" href="group__janus.html#ga3f3897ff2d5c4882518fbd251721ef04">janus_gallery_size</a> to determine the appropriate length of the pre-allocated buffers. </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">target</td><td>Templates forming the similarity matrix columns. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">target_bytes</td><td>Size of target gallery. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">query</td><td>Templates forming the similarity matrix rows. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">query_bytes</td><td>Size of query gallery. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">similarity_matrix</td><td>Buffer to contain the similarity scores in row-major order. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">target_ids</td><td>Buffer to contain the target gallery template ids. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">query_ids</td><td>Buffer to contain the query gallery template ids. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#thread_safe">thread_safe</a>. </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga7f9bab9206a29d9f99087aa932267dd5" title="Return a similarity score for two templates. ">janus_verify</a> <a class="el" href="group__janus.html#ga19881e16ef19daaefac83cebac586e47" title="Ranked search for a template against a gallery. ">janus_search</a> </dd></dl>
-
-</div>
-</div>
 <a class="anchor" id="ga15142aae31a6ce2365776e7ff1ef4dfb"></a>
 <div class="memitem">
 <div class="memproto">
@@ -719,7 +704,7 @@ Implementer Notes</h1>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256">janus_gallery</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a>&#160;</td>
           <td class="paramname"><em>gallery</em>&#160;</td>
         </tr>
         <tr>
@@ -731,14 +716,13 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>Add a template to the gallery. </p>
-<p>Use <a class="el" href="group__janus.html#ga19881e16ef19daaefac83cebac586e47">janus_search</a> for searching against the gallery.</p>
-<p>It is up to the user to provide unique <code>template_id</code> values. The implementation may assume that multiple templates with the same <code>template_id</code> belong to the same identity.</p>
-<p>The number of templates in the gallery can be retrieved by <a class="el" href="group__janus.html#ga3f3897ff2d5c4882518fbd251721ef04">janus_gallery_size</a>.</p>
+<p>Use <a class="el" href="group__janus.html#ga160ab543fa9bdd768efedf14561874a3">janus_search</a> for searching against the gallery.</p>
+<p>It is up to the calling application to provide unique <code>template_id</code> values. The implementation may assume that multiple templates with the same <code>template_id</code> belong to the same identity.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">template_</td><td>The template to add. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">template_id</td><td>A unique identifier for the template. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">gallery</td><td>The gallery file to take ownership of the template. A new file will be created if one does not already exist. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">gallery</td><td>The gallery to take ownership of the template. </td></tr>
   </table>
   </dd>
 </dl>
@@ -761,7 +745,7 @@ Implementer Notes</h1>
 
 <p>Call once at the end of the application, after making all other calls to the API. </p>
 <dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#thread_unsafe">thread_unsafe</a> and should only be called once. </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#gace3bcaedb06a29b8c7579f08eb67664d" title="Call once at the start of the application, before making any other calls to the API. ">janus_initialize</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga386ac373dacd168fd136e8e814d04be4" title="Call once at the start of the application, before making any other calls to the API. ">janus_initialize</a> </dd></dl>
 
 </div>
 </div>
@@ -772,7 +756,7 @@ Implementer Notes</h1>
         <tr>
           <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_flatten_gallery </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256">janus_gallery</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a>&#160;</td>
           <td class="paramname"><em>gallery</em>, </td>
         </tr>
         <tr>
@@ -795,11 +779,11 @@ Implementer Notes</h1>
       </table>
 </div><div class="memdoc">
 
-<p>Create a finalized gallery representation for search with <a class="el" href="group__janus.html#ga19881e16ef19daaefac83cebac586e47">janus_search</a>. </p>
+<p>Create a finalized gallery representation for search with <a class="el" href="group__janus.html#ga160ab543fa9bdd768efedf14561874a3">janus_search</a>. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">gallery</td><td>The recognition information to construct the finalized gallery from. </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">flat_gallery</td><td>A pre-allocated buffer provided by the user no smaller than <a class="el" href="group__janus.html#gadbc4e11537a1ef422cbc8bcf3dbe8055">janus_max_template_size</a> * <a class="el" href="group__janus.html#ga3f3897ff2d5c4882518fbd251721ef04">janus_gallery_size</a> to contain the finalized gallery. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">flat_gallery</td><td>A pre-allocated buffer provided by the calling application no smaller than <a class="el" href="group__janus.html#gadbc4e11537a1ef422cbc8bcf3dbe8055">janus_max_template_size</a> * <em>gallery_size</em> to contain the finalized gallery. <em>gallery_size</em> is the number of templates in <em>gallery</em>, which is equal to the number of calls made to <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a> with <em>gallery</em>. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">bytes</td><td>Size of the buffer actually used to store the gallery. </td></tr>
   </table>
   </dd>
@@ -842,7 +826,7 @@ Implementer Notes</h1>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">template_</td><td>The recognition information to construct the finalized template from. </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">flat_template</td><td>A pre-allocated buffer provided by the user no smaller than <a class="el" href="group__janus.html#gadbc4e11537a1ef422cbc8bcf3dbe8055">janus_max_template_size</a> to contain the finalized template. </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">flat_template</td><td>A pre-allocated buffer provided by the calling application no smaller than <a class="el" href="group__janus.html#gadbc4e11537a1ef422cbc8bcf3dbe8055">janus_max_template_size</a> to contain the finalized template. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">bytes</td><td>Size of the buffer actually used to store the template. </td></tr>
   </table>
   </dd>
@@ -851,12 +835,38 @@ Implementer Notes</h1>
 
 </div>
 </div>
-<a class="anchor" id="ga7c834d3d57cddd1fd20e8ec16ffd1c87"></a>
+<a class="anchor" id="ga0bd53aa0a141def4fcd8ec3235c2c87b"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_free </td>
+          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_free_gallery </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8">janus_gallery</a>&#160;</td>
+          <td class="paramname"><em>gallery</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Free memory for a gallery previously allocated by <a class="el" href="group__janus.html#ga38b61036a5fb27671ee104c61f35a0b7">janus_allocate_gallery</a>. </p>
+<p>Call this function on a gallery after it is no longer needed. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">gallery</td><td>The gallery to deallocate. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#reentrant">reentrant</a>. </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga38b61036a5fb27671ee104c61f35a0b7" title="Allocate memory for an empty gallery. ">janus_allocate_gallery</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaa4a9154ad52b30392a4ed01a5b30a4c5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_free_template </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a>&#160;</td>
           <td class="paramname"><em>template_</em></td><td>)</td>
@@ -865,7 +875,7 @@ Implementer Notes</h1>
       </table>
 </div><div class="memdoc">
 
-<p>Free memory for a template previously allocated by <a class="el" href="group__janus.html#gaeaf7a2533b7d4b27f5b7eaa400529f8c">janus_allocate</a>. </p>
+<p>Free memory for a template previously allocated by <a class="el" href="group__janus.html#ga8619857e68a2dacee603313b042f2fcc">janus_allocate_template</a>. </p>
 <p>Call this function on a template after it is no longer needed. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">template_</td><td>The template to deallocate. </td></tr>
@@ -873,48 +883,11 @@ Implementer Notes</h1>
   </dd>
 </dl>
 <dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#reentrant">reentrant</a>. </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#gaeaf7a2533b7d4b27f5b7eaa400529f8c" title="Allocate memory for an empty template. ">janus_allocate</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga8619857e68a2dacee603313b042f2fcc" title="Allocate memory for an empty template. ">janus_allocate_template</a> </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga3f3897ff2d5c4882518fbd251721ef04"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_gallery_size </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256">janus_gallery</a>&#160;</td>
-          <td class="paramname"><em>gallery</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t *&#160;</td>
-          <td class="paramname"><em>size</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Retrieve the number of templates in a gallery. </p>
-<p>Galleries may split or join templates based on their identity information, so the number of templates in the gallery is not necessarily equal to the number of <a class="el" href="group__janus.html#ga15142aae31a6ce2365776e7ff1ef4dfb">janus_enroll</a> calls.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">gallery</td><td>The gallery whose templates to count. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">size</td><td>The number of templates in the gallery. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#thread_safe">thread_safe</a>. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="gace3bcaedb06a29b8c7579f08eb67664d"></a>
+<a class="anchor" id="ga386ac373dacd168fd136e8e814d04be4"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -934,7 +907,7 @@ Implementer Notes</h1>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>model_file</em>&#160;</td>
+          <td class="paramname"><em>algorithm</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -949,7 +922,7 @@ Implementer Notes</h1>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">sdk_path</td><td>Path to the <em>read-only</em> directory containing the janus-compliant SDK as provided by the implementer. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">temp_path</td><td>Path to an existing empty <em>read-write</em> directory for use as temporary file storage by the implementation. This path is guaranteed until <a class="el" href="group__janus.html#gaca1ad3c66d178b28550980179f24f7d3">janus_finalize</a>. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">model_file</td><td>An empty string indicating the default algorithm, an implementation-defined string indicating a specific algorithm configuration, or the path to a model file created by <a class="el" href="group__janus.html#gad0d41f710035e494da7b23d00ae5eea5">janus_train</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">algorithm</td><td>An empty string indicating the default algorithm, or an implementation-defined string indicating an alternative configuration. </td></tr>
   </table>
   </dd>
 </dl>
@@ -976,15 +949,21 @@ Implementer Notes</h1>
 
 </div>
 </div>
-<a class="anchor" id="ga19881e16ef19daaefac83cebac586e47"></a>
+<a class="anchor" id="ga160ab543fa9bdd768efedf14561874a3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_search </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="group__janus.html#ga58102bdd155ece1516a5b6772e5dd25b">janus_flat_template</a>&#160;</td>
           <td class="paramname"><em>probe</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const size_t&#160;</td>
+          <td class="paramname"><em>probe_bytes</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1001,8 +980,8 @@ Implementer Notes</h1>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>requested_returns</em>, </td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>num_requested_returns</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1020,7 +999,7 @@ Implementer Notes</h1>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int *&#160;</td>
-          <td class="paramname"><em>actual_returns</em>&#160;</td>
+          <td class="paramname"><em>num_actual_returns</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1031,20 +1010,23 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>Ranked search for a template against a gallery. </p>
-<p><code>template_ids</code> and <code>similarities</code> should be pre-allocated buffers large enough to contain <code>requested_returns</code> elements. <code>actual_returns</code> will be less than or equal to requested_returns, depending on the contents of the gallery. </p><dl class="params"><dt>Parameters</dt><dd>
+<p><code>template_ids</code> and <code>similarities</code> should be pre-allocated buffers large enough to contain <code>requested_returns</code> elements. <code>actual_returns</code> will be less than or equal to requested_returns, depending on the contents of the gallery.</p>
+<p>The returned <code>similarities</code> <em>may</em> be normalized by the implementation based on the contents of the <code>gallery</code>. Therefore, similarity scores returned from searches against different galleries are <em>not</em> guaranteed to be comparable.</p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">probe</td><td>Probe to search for. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">probe_bytes</td><td>Size of probe. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">gallery</td><td>Gallery to search against. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">gallery_bytes</td><td>Size of gallery. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">requested_returns</td><td>The desired number of returned results. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">num_requested_returns</td><td>The desired number of returned results. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">template_ids</td><td>Buffer to contain the <a class="el" href="group__janus.html#ga5d0040926b3f9faf9dc6bd3e112504ed">janus_template_id</a> of the top matching gallery templates. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">similarities</td><td>Buffer to contain the similarity scores of the top matching templates. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">actual_returns</td><td>The number of populated elements in template_ids and similarities. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">num_actual_returns</td><td>The number of populated elements in template_ids and similarities. This value could be zero. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#thread_safe">thread_safe</a>. </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga7f9bab9206a29d9f99087aa932267dd5" title="Return a similarity score for two templates. ">janus_verify</a> <a class="el" href="group__janus.html#gabf6681207b3c6f0b14d0dab979978ea2" title="Generate a similarity matrix. ">janus_compare</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga7f9bab9206a29d9f99087aa932267dd5" title="Return a similarity score for two templates. ">janus_verify</a> </dd></dl>
 
 </div>
 </div>
@@ -1083,51 +1065,6 @@ Implementer Notes</h1>
 </dl>
 <dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#reentrant">reentrant</a>. </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#gaace74a5c78128f6fa3a5eefd5b6f1939" title="Add an image to the template. ">janus_augment</a> </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="gad0d41f710035e494da7b23d00ae5eea5"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group__janus.html#ga1b275e4dade484951b366f785597b8f6">janus_error</a> janus_train </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="group__janus.html#gaabac6b357615bbd03a082c714190e2d0">janus_template</a> *&#160;</td>
-          <td class="paramname"><em>templates</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int&#160;</td>
-          <td class="paramname"><em>num_templates</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>model_file</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Train a new model from the provided templates. </p>
-<dl class="section note"><dt>Note</dt><dd>This function is optional and may return <a class="el" href="group__janus.html#gga1b275e4dade484951b366f785597b8f6ae8d1090a68bff69a7994bbc6039d88f9">JANUS_NOT_IMPLEMENTED</a>. </dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">templates</td><td>Training data to generate the model file. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">num_templates</td><td>Length of <em>partial_templates</em>. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">model_file</td><td>File path to contain the trained model. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#thread_unsafe">thread_unsafe</a>. </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000001">Todo:</a></b></dt><dd>Is the API the right level of abstraction for this function? Should it be moved to the command line instead or a shell script instead? Is a common interface impossible? </dd></dl>
 
 </div>
 </div>
@@ -1174,7 +1111,9 @@ Implementer Notes</h1>
 </div><div class="memdoc">
 
 <p>Return a similarity score for two templates. </p>
-<p>Higher scores indicate greater similarity. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Higher scores indicate greater similarity.</p>
+<p>The returned <code>similarity</code> score is <em>symmetric</em>. In other words, swapping the order of <code>a</code> and <code>b</code> will not change <code>similarity</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">a</td><td>The first template to compare. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">a_bytes</td><td>Size of template a. </td></tr>
@@ -1185,14 +1124,14 @@ Implementer Notes</h1>
   </dd>
 </dl>
 <dl class="section remark"><dt>Remarks</dt><dd>This function is <a class="el" href="group__janus.html#thread_safe">thread_safe</a>. </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga19881e16ef19daaefac83cebac586e47" title="Ranked search for a template against a gallery. ">janus_search</a> <a class="el" href="group__janus.html#gabf6681207b3c6f0b14d0dab979978ea2" title="Generate a similarity matrix. ">janus_compare</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__janus.html#ga160ab543fa9bdd768efedf14561874a3" title="Ranked search for a template against a gallery. ">janus_search</a> </dd></dl>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Sep 30 2014 09:57:36 for IARPA Janus by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Oct 8 2014 08:35:44 for IARPA Janus by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.7
 </small></address>

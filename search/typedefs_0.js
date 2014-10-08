@@ -7,7 +7,7 @@ var searchData=
   ['janus_5ferror',['janus_error',['../group__janus.html#ga8d1da4647fdb996401e33bc8c40ea773',1,'iarpa_janus.h']]],
   ['janus_5fflat_5fgallery',['janus_flat_gallery',['../group__janus.html#gaf1d1ec3876715bd9d6e66402b0110659',1,'iarpa_janus.h']]],
   ['janus_5fflat_5ftemplate',['janus_flat_template',['../group__janus.html#ga58102bdd155ece1516a5b6772e5dd25b',1,'iarpa_janus.h']]],
-  ['janus_5fgallery',['janus_gallery',['../group__janus.html#ga8bb6f6adcf52a29d388fd28c780b2256',1,'iarpa_janus.h']]],
+  ['janus_5fgallery',['janus_gallery',['../group__janus.html#ga64368fd83d5e9abfd9ef6ab6231866e8',1,'iarpa_janus.h']]],
   ['janus_5fimage',['janus_image',['../group__janus.html#gaea656fd6eccb34bf08ccedfb77be047d',1,'iarpa_janus.h']]],
   ['janus_5fmatrix',['janus_matrix',['../group__janus__io.html#ga3d3454709ac3ce27a99d42444408f16d',1,'iarpa_janus_io.h']]],
   ['janus_5fmetadata',['janus_metadata',['../group__janus__io.html#gaeddd0e276eebe8616d41808eed8dff16',1,'iarpa_janus_io.h']]],
