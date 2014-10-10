@@ -16,7 +16,15 @@ using namespace std;
 
 ppr_context_type ppr_context;
 
-static map<janus_gallery, ppr_gallery_type> ppr_galleries;
+static map<char *, ppr_gallery_type> ppr_galleries;
+
+struct janus_template_type {
+    vector<ppr_face_list_type> ppr_face_lists;
+};
+
+struct janus_gallery_type {
+    char *gallery;
+};
 
 static janus_error to_janus_error(ppr_error_type error)
 {
@@ -87,7 +95,7 @@ janus_error janus_initialize(const char *sdk_path, const char *temp_path, const 
 
 janus_error janus_finalize()
 {
-    for (map<janus_gallery, ppr_gallery_type>::iterator it=ppr_galleries.begin(); it!=ppr_galleries.end(); ++it) {
+    for (map<char *, ppr_gallery_type>::iterator it=ppr_galleries.begin(); it!=ppr_galleries.end(); ++it) {
         ppr_write_gallery(ppr_context, it->first, it->second);
         ppr_free_gallery(it->second);
     }
@@ -98,11 +106,7 @@ janus_error janus_finalize()
     return error;
 }
 
-struct janus_template_type {
-    vector<ppr_face_list_type> ppr_face_lists;
-};
-
-janus_error janus_allocate(janus_template *template_)
+janus_error janus_allocate_template(janus_template *template_)
 {
     *template_ = new janus_template_type();
     return JANUS_SUCCESS;
@@ -175,7 +179,7 @@ janus_error janus_flatten_template(janus_template template_, janus_flat_template
     return JANUS_SUCCESS;
 }
 
-janus_error janus_free(janus_template template_)
+janus_error janus_free_template(janus_template template_)
 {
     for (size_t i=0; i<template_->ppr_face_lists.size(); i++) ppr_free_face_list(template_->ppr_face_lists[i]);
     template_->ppr_face_lists.clear();
@@ -269,18 +273,18 @@ static int faceID = 0;
 janus_error janus_enroll(const janus_template template_, const janus_template_id template_id, janus_gallery gallery)
 {
     ppr_gallery_type ppr_gallery;
-    map<janus_gallery, ppr_gallery_type>::iterator it;
+    map<char *, ppr_gallery_type>::iterator it;
 
-    it = ppr_galleries.find(gallery);
+    it = ppr_galleries.find(gallery->gallery);
     if (it == ppr_galleries.end()) {
-        if (FILE *file = fopen(gallery, "r")) {
+        if (FILE *file = fopen(gallery->gallery, "r")) {
             fflush(stdout);
             fclose(file);
-            ppr_read_gallery(ppr_context, gallery, &ppr_gallery);
+            ppr_read_gallery(ppr_context, gallery->gallery, &ppr_gallery);
         } else {
             ppr_create_gallery(ppr_context, &ppr_gallery);
         }
-        ppr_galleries[gallery] = ppr_gallery;
+        ppr_galleries[gallery->gallery] = ppr_gallery;
     } else {
         ppr_gallery = it->second;
     }
@@ -304,24 +308,6 @@ janus_error janus_enroll(const janus_template template_, const janus_template_id
     return JANUS_SUCCESS;
 }
 
-janus_error janus_gallery_size(janus_gallery gallery, size_t *size)
-{
-    ppr_gallery_type ppr_gallery;
-
-    map<janus_gallery, ppr_gallery_type>::iterator it = ppr_galleries.find(gallery);
-    if (it == ppr_galleries.end()) {
-        ppr_read_gallery(ppr_context, gallery, &ppr_gallery);
-        ppr_galleries[gallery] = ppr_gallery;
-    } else {
-        ppr_gallery = it->second;
-    }
-
-    ppr_id_list_type id_list;
-    ppr_error_type ppr_error = ppr_get_subject_id_list(ppr_context, ppr_gallery, &id_list);
-    *size = id_list.length;
-    return to_janus_error(ppr_error);
-}
-
 struct sort_first_greater {
     bool operator()(const std::pair<float,janus_template_id> &left, const std::pair<float,janus_template_id> &right) {
         return left.first > right.first;
@@ -332,10 +318,10 @@ janus_error janus_flatten_gallery(const janus_gallery gallery, janus_flat_galler
 {
     ppr_gallery_type ppr_gallery;
 
-    map<janus_gallery, ppr_gallery_type>::iterator it = ppr_galleries.find(gallery);
+    map<char *, ppr_gallery_type>::iterator it = ppr_galleries.find(gallery->gallery);
     if (it == ppr_galleries.end()) {
-        ppr_read_gallery(ppr_context, gallery, &ppr_gallery);
-        ppr_galleries[gallery] = ppr_gallery;
+        ppr_read_gallery(ppr_context, gallery->gallery, &ppr_gallery);
+        ppr_galleries[gallery->gallery] = ppr_gallery;
     } else {
         ppr_gallery = it->second;
     }
@@ -403,52 +389,6 @@ janus_error janus_search(const janus_template probe, janus_flat_gallery gallery,
         template_ids[i] = scores[i].second;
     }
 
-    ppr_free_gallery(query_gallery);
-    ppr_free_similarity_matrix(simmat);
-
-    return JANUS_SUCCESS;
-}
-
-janus_error janus_compare(const janus_flat_gallery target, const size_t target_bytes, const janus_flat_gallery query, const size_t query_bytes, float *similarity_matrix, janus_template_id *target_ids, janus_template_id *query_ids)
-{
-    ppr_flat_data_type query_flat_data;
-    ppr_create_flat_data(query_bytes,&query_flat_data);
-    memcpy(query_flat_data.data, query, query_bytes);
-    ppr_gallery_type query_gallery;
-    ppr_unflatten_gallery(ppr_context, query_flat_data, &query_gallery);
-
-    ppr_flat_data_type target_flat_data;
-    ppr_create_flat_data(target_bytes,&target_flat_data);
-    memcpy(target_flat_data.data, target, target_bytes);
-    ppr_gallery_type target_gallery;
-    ppr_unflatten_gallery(ppr_context, target_flat_data, &target_gallery);
-
-    ppr_similarity_matrix_type simmat;
-    ppr_compare_galleries(ppr_context, query_gallery, target_gallery, &simmat);
-
-    ppr_id_list_type query_id_list;
-    ppr_get_subject_id_list(ppr_context, query_gallery, &query_id_list);
-
-    ppr_id_list_type target_id_list;
-    ppr_get_subject_id_list(ppr_context, target_gallery, &target_id_list);
-
-    vector<float> scores;
-
-    for (int i=0; i<query_id_list.length; i++) {
-        int query_subject_id = query_id_list.ids[i];
-        for (int j=0; j<target_id_list.length; j++) {
-            int target_subject_id = target_id_list.ids[j];
-            float score;
-            ppr_get_subject_similarity_score(ppr_context, simmat, query_subject_id, target_subject_id, &score);
-            scores.push_back(score);
-        }
-    }
-
-    memcpy(similarity_matrix, scores.data(), query_id_list.length*target_id_list.length * sizeof(float));
-    memcpy(target_ids, target_id_list.ids, target_id_list.length * sizeof(janus_template_id));
-    memcpy(query_ids, query_id_list.ids, query_id_list.length * sizeof(janus_template_id));
-
-    ppr_free_gallery(target_gallery);
     ppr_free_gallery(query_gallery);
     ppr_free_similarity_matrix(simmat);
 
