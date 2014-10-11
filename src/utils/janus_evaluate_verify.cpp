@@ -40,23 +40,7 @@ int main(int argc, char *argv[])
     }
 
     JANUS_ASSERT(janus_initialize(argv[1], argv[2], argc >= 10 ? argv[9] : ""))
-
-    std::ifstream target;
-    target.open(argv[3], std::ios::binary | std::ios::ate);
-    size_t target_bytes = target.tellg();
-    target.seekg(0, ios::beg);
-
-    std::ifstream query;
-    query.open(argv[4], std::ios::binary | std::ios::ate);
-    size_t query_bytes = query.tellg();
-    query.seekg(0, ios::beg);
-
-    janus_flat_gallery target_flat = new janus_data[target_bytes];
-    target.read((char*)target_flat, target_bytes);
-    janus_flat_gallery query_flat = new janus_data[query_bytes];
-    query.read((char*)query_flat, query_bytes);
-
-    JANUS_ASSERT(janus_evaluate_verify(target_flat, target_bytes, query_flat, query_bytes, argv[5], argv[6], argv[7], argv[8]))
+    JANUS_ASSERT(janus_evaluate_verify(argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]))
     JANUS_ASSERT(janus_finalize())
 
     janus_print_metrics(janus_get_metrics());

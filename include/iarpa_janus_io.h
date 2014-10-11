@@ -190,6 +190,15 @@ JANUS_EXPORT janus_error janus_create_template(const char *data_path, janus_meta
  * \param [in] gallery File to save the gallery to.
  * \param [in] verbose Print information and warnings during gallery enrollment.
  */
+JANUS_EXPORT janus_error janus_create_templates(const char *data_path, janus_metadata metadata, const char *gallery_file, int verbose);
+
+/*!
+ * \brief High-level function for enrolling a gallery from a metadata file.
+ * \param [in] data_path Prefix path to files in metadata.
+ * \param [in] metadata #janus_metadata to enroll.
+ * \param [in] gallery File to save the templates to.
+ * \param [in] verbose Print information and warnings during gallery enrollment.
+ */
 JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, int verbose);
 
 /*!
@@ -217,32 +226,29 @@ JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, i
  * \brief Create similarity and mask matricies from two galleries with calls to janus_search.
  *
  * The \c SUBJECT_ID field is used to determine ground truth match/non-match in the mask.
- * \param[in] target Templates to constitute the columns of the matrix.
+ * \param[in] target flat_gallery to constitute the columns of the matrix.
  * \param[in] target_bytes size of target gallery.
- * \param[in] query Templates to constitute the rows for the matrix.
- * \param[in] query_bytes size of query gallery.
+ * \param[in] query Templates file created fron janus_create_templates to constitute the rows for the matrix.
  * \param[in] target_metadata metadata file for \p target.
  * \param[in] query_metadata metadata file for \p query.
  * \param[in] simmat Similarity matrix file to be created.
  * \param[in] mask Mask matrix file to be created.
  * \param[in] num_requested_returns Desired number of returned results for each call to janus_search.
  */
-JANUS_EXPORT janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, janus_flat_gallery query, size_t query_bytes, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, int num_requested_returns);
+JANUS_EXPORT janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, int num_requested_returns);
 
 /*!
  * \brief Create similarity and mask matricies from two galleries with calls to janus_verify.
  *
  * The \c SUBJECT_ID field is used to determine ground truth match/non-match in the mask.
- * \param[in] target Templates to constitute the columns of the matrix.
- * \param[in] target_bytes size of target gallery.
- * \param[in] query Templates to constitute the rows for the matrix.
- * \param[in] query_bytes size of query gallery.
+ * \param[in] target Templates file created from janus_create_templates to constitute the columns of the matrix.
+ * \param[in] query Templates file created from janus_create_templates to constitute the rows for the matrix.
  * \param[in] target_metadata metadata file for \p target.
  * \param[in] query_metadata metadata file for \p query.
  * \param[in] simmat Similarity matrix file to be created.
  * \param[in] mask Mask matrix file to be created.
  */
-JANUS_EXPORT janus_error janus_evaluate_verify(janus_flat_gallery target, size_t target_bytes, janus_flat_gallery query, size_t query_bytes, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask);
+JANUS_EXPORT janus_error janus_evaluate_verify(const char *target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask);
 
 /*!
  * \brief A statistic.
