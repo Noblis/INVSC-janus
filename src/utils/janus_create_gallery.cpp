@@ -14,16 +14,12 @@ const char *get_ext(const char *filename) {
 int main(int argc, char *argv[])
 {
     if ((argc < 6) || (argc > 8)) {
-        printf("Usage: janus_enroll sdk_path temp_path data_path metadata_file gallery_file [algorithm] [verbose]\n");
+        printf("Usage: janus_create_gallery sdk_path temp_path data_path metadata_file gallery_file [algorithm] [verbose]\n");
         return 1;
     }
 
     const char *ext1 = get_ext(argv[4]);
     const char *ext2 = get_ext(argv[5]);
-<<<<<<< HEAD
-
-=======
->>>>>>> 2039a3d... Added janus_evaluate_search and janus_evaluate_verify utils.  Modified janus_enroll for new janus_gallery_type.
     if (strcmp(ext1, "csv") != 0) {
         printf("metadata_file must be \".csv\" format.\n");
         return 1;
@@ -53,43 +49,18 @@ int main(int argc, char *argv[])
             JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], gallery, atoi(argv[7])))
         }
     }
-<<<<<<< HEAD
-    
-    if (argc == 6) {
-        JANUS_ASSERT(janus_initialize(argv[1], argv[2], ""))
-        JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], argv[5], 0))
-    } else if (argc == 7) {
-        if (atoi(argv[6])) {
-            JANUS_ASSERT(janus_initialize(argv[1], argv[2], ""))
-            JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], argv[5], atoi(argv[6])))
-        } else {
-            JANUS_ASSERT(janus_initialize(argv[1], argv[2], argv[6]))
-            JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], argv[5], 0))
-        }
-    } else {
-        if (atoi(argv[6])) {
-            JANUS_ASSERT(janus_initialize(argv[1], argv[2], argv[7]))
-            JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], argv[5], atoi(argv[6])))
-        } else {
-            JANUS_ASSERT(janus_initialize(argv[1], argv[2], argv[6]))
-            JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], argv[5], atoi(argv[7])))
-        }
-    }
-=======
 
     janus_metrics metrics = janus_get_metrics();
     size_t size = metrics.janus_initialize_template_speed.count;
-    janus_flat_gallery flat_gallery = new janus_data[size*(janus_max_template_size() + sizeof(janus_template_id) + sizeof(size_t))];
+    janus_flat_gallery flat_gallery = new janus_data[size*janus_max_template_size()];
     size_t bytes;
     JANUS_ASSERT(janus_flatten_gallery(gallery, flat_gallery, &bytes))
     std::ofstream file;
     file.open(argv[5], std::ios::out | std::ios::binary);
     file.write((char*)flat_gallery, bytes);
     file.close();
-    JANUS_ASSERT(janus_free_gallery(gallery))
->>>>>>> 2039a3d... Added janus_evaluate_search and janus_evaluate_verify utils.  Modified janus_enroll for new janus_gallery_type.
     JANUS_ASSERT(janus_finalize())
 
-    janus_print_metrics(janus_get_metrics());
+    janus_print_metrics(metrics);
     return EXIT_SUCCESS;
 }
