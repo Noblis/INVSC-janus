@@ -290,7 +290,7 @@ janus_error janus_create_gallery(const char *data_path, janus_metadata metadata,
     while (!templateData.templateIDs.empty()) {
         JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID, verbose))
         JANUS_CHECK(janus_enroll(template_, templateID, gallery))
-        JANUS_CHECK(janus_free(template_))
+        JANUS_CHECK(janus_free_template(template_))
         templateData = ti.next();
     }
     return JANUS_SUCCESS;
