@@ -15,9 +15,41 @@ PERFORMER="performer_name"
 SDK_PATH="/usr/local/"
 CS0_DIR="/path/to/CS0/"
 TEMP_PATH=$TMPDIR
-RESULTS="/path/to/results"
+RESULTS="./results"
 ALGORITHM=""
 
+plot () {
+	if [ "$1" = "*" ]; then
+		SPLIT=""
+	else
+		SPLIT="split$1"
+	fi
+	if type br &> /dev/null; then
+		for PROTOCOL in A B
+		do	
+			br -plot $RESULTS/split${1}/verify_${1}_${PROTOCOL}.csv $RESULTS/$SPLIT/verify_${SPLIT}_${PROTOCOL}.pdf
+			br -plot $RESULTS/split${1}/search_${1}_${PROTOCOL}.csv $RESULTS/$SPLIT/search_${SPLIT}_${PROTOCOL}.pdf
+		done
+		br -plot $RESULTS/split${1}/verify_${1}_A.csv $RESULTS/split${1}/verify_${1}_B.csv $RESULTS/${SPLIT}/verify_${SPLIT}.pdf
+		br -plot $RESULTS/split$1/search_${1}_A.csv $RESULTS/split${1}/search_${1}_B.csv $RESULTS/${SPLIT}/search_${SPLIT}.pdf
+		if type pdftk &> /dev/null; then
+			for PROTOCOL in A B
+			do
+				pdftk A=$RESULTS/$SPLIT/verify_${SPLIT}_${PROTOCOL}.pdf B=$RESULTS/$SPLIT/search_${SPLIT}_${PROTOCOL}.pdf cat A1-5 B6 A7-8 output $RESULTS/$SPLIT/${SPLIT}_${PROTOCOL}_results.pdf
+				rm $RESULTS/$SPLIT/verify_${SPLIT}_${PROTOCOL}.pdf
+				rm $RESULTS/$SPLIT/search_${SPLIT}_${PROTOCOL}.pdf
+			done
+			pdftk A=$RESULTS/$SPLIT/verify_${SPLIT}.pdf B=$RESULTS/$SPLIT/search_${SPLIT}.pdf cat A1-5 B6 A7-8 output $RESULTS/${SPLIT}/results_${SPLIT}_AB.pdf
+			rm $RESULTS/$SPLIT/verify_${SPLIT}.pdf
+			rm $RESULTS/$SPLIT/search_${SPLIT}.pdf
+		fi
+		rm $RESULTS/${SPLIT}/*.R
+	fi
+}
+# Evaluate CS0
+if [ ! -d $RESULTS ]; then
+	mkdir $RESULTS
+fi
 for i in `seq 1 10`;
 do
 	mkdir ${RESULTS}/split${i}
@@ -43,52 +75,19 @@ do
 
 		# Evaluate output matrices using OpenBR
 		if type br &> /dev/null; then
-			br -eval $RESULTS/split${i}/verify_${i}_${PROTOCOL}.mtx $RESULTS/split${i}/verify_${i}_${PROTOCOL}.mask $RESULTS/split${i}/verify_${i}_${PROTOCOL}.csv -plot $RESULTS/split${i}/verify_${i}_${PROTOCOL}.csv $RESULTS/split${i}/verify_${i}_${PROTOCOL}.pdf
-			br -eval $RESULTS/split${i}/search_${i}_${PROTOCOL}.mtx $RESULTS/split${i}/search_${i}_${PROTOCOL}.mask $RESULTS/split${i}/search_${i}_${PROTOCOL}.csv -plot $RESULTS/split${i}/search_${i}_${PROTOCOL}.csv $RESULTS/split${i}/search_${i}_${PROTOCOL}.pdf
-			# Take ROC/DET curves from verify and CMC curve from search
-			if type pdftk &> /dev/null; then
-				pdftk A=$RESULTS/split${i}/verify_${i}_${PROTOCOL}.pdf B=$RESULTS/split${i}/search_${i}_${PROTOCOL}.pdf cat A1-5 B6 A7-8 output $RESULTS/split${i}/split${i}_${PROTOCOL}_results.pdf
-				rm $RESULTS/split${i}/verify_${i}_${PROTOCOL}.pdf
-				rm $RESULTS/split${i}/search_${i}_${PROTOCOL}.pdf
-			fi
+			br -eval $RESULTS/split${i}/verify_${i}_${PROTOCOL}.mtx $RESULTS/split${i}/verify_${i}_${PROTOCOL}.mask $RESULTS/split${i}/verify_${i}_${PROTOCOL}.csv
+			br -eval $RESULTS/split${i}/search_${i}_${PROTOCOL}.mtx $RESULTS/split${i}/search_${i}_${PROTOCOL}.mask $RESULTS/split${i}/search_${i}_${PROTOCOL}.csv
 		fi
 	done
 	rm $RESULTS/*.gal
 
-	# Plot results on protocol A & B on same plots
-	if type br &> /dev/null; then
-		br -plot $RESULTS/split${i}/verify_${i}_A.csv $RESULTS/split${i}/verify_${i}_B.csv $RESULTS/split${i}/verify_${i}.pdf
-		br -plot $RESULTS/split${i}/search_${i}_A.csv $RESULTS/split${i}/search_${i}_B.csv $RESULTS/split${i}/search_${i}.pdf
-		if type pdftk &> /dev/null; then
-			pdftk A=$RESULTS/split${i}/verify_${i}.pdf B=$RESULTS/split${i}/search_${i}.pdf cat A1-5 B6 A7-8 output $RESULTS/split${i}/results_${i}_AB.pdf
-			rm $RESULTS/split${i}/verify_${i}.pdf
-			rm $RESULTS/split${i}/search_${i}.pdf
-		fi
-		rm $RESULTS/split${i}/*.R
-	fi
+	# Plot results for protocols A & B with OpenBR
+	plot ${i}
 done
 
 # Plot results across all splits
-if type br &> /dev/null; then
-	for PROTOCOL in A B
-	do	
-		br -plot $RESULTS/split1/verify_1_${PROTOCOL}.csv $RESULTS/split2/verify_2_${PROTOCOL}.csv $RESULTS/split3/verify_3_${PROTOCOL}.csv $RESULTS/split4/verify_4_${PROTOCOL}.csv $RESULTS/split5/verify_5_${PROTOCOL}.csv $RESULTS/split6/verify_6_${PROTOCOL}.csv $RESULTS/split7/verify_7_${PROTOCOL}.csv $RESULTS/split8/verify_8_${PROTOCOL}.csv $RESULTS/split9/verify_9_${PROTOCOL}.csv $RESULTS/split10/verify_10_${PROTOCOL}.csv $RESULTS/verify_${PROTOCOL}.pdf
-		br -plot $RESULTS/split1/search_1_${PROTOCOL}.csv $RESULTS/split2/search_2_${PROTOCOL}.csv $RESULTS/split3/search_3_${PROTOCOL}.csv $RESULTS/split4/search_4_${PROTOCOL}.csv $RESULTS/split5/search_5_${PROTOCOL}.csv $RESULTS/split6/search_6_${PROTOCOL}.csv $RESULTS/split7/search_7_${PROTOCOL}.csv $RESULTS/split8/search_8_${PROTOCOL}.csv $RESULTS/split9/search_9_${PROTOCOL}.csv $RESULTS/split10/search_10_${PROTOCOL}.csv $RESULTS/search_${PROTOCOL}.pdf
-		if type pdftk &> /dev/null; then
-			pdftk A=$RESULTS/verify_${PROTOCOL}.pdf B=$RESULTS/search_${PROTOCOL}.pdf cat A3-5 B6 A7 output $RESULTS/protocol_${PROTOCOL}_results.pdf
-			rm $RESULTS/verify_${PROTOCOL}.pdf
-			rm $RESULTS/search_${PROTOCOL}.pdf
-		fi
-	done
-	br -plot $RESULTS/split1/verify_1_A.csv $RESULTS/split2/verify_2_A.csv $RESULTS/split3/verify_3_A.csv $RESULTS/split4/verify_4_A.csv $RESULTS/split5/verify_5_A.csv $RESULTS/split6/verify_6_A.csv $RESULTS/split7/verify_7_A.csv $RESULTS/split8/verify_8_A.csv $RESULTS/split9/verify_9_A.csv $RESULTS/split10/verify_10_A.csv $RESULTS/split1/verify_1_B.csv $RESULTS/split2/verify_2_B.csv $RESULTS/split3/verify_3_B.csv $RESULTS/split4/verify_4_B.csv $RESULTS/split5/verify_5_B.csv $RESULTS/split6/verify_6_B.csv $RESULTS/split7/verify_7_B.csv $RESULTS/split8/verify_8_B.csv $RESULTS/split9/verify_9_B.csv $RESULTS/split10/verify_10_B.csv $RESULTS/verify.pdf
-	br -plot $RESULTS/split1/search_1_A.csv $RESULTS/split2/search_2_A.csv $RESULTS/split3/search_3_A.csv $RESULTS/split4/search_4_A.csv $RESULTS/split5/search_5_A.csv $RESULTS/split6/search_6_A.csv $RESULTS/split7/search_7_A.csv $RESULTS/split8/search_8_A.csv $RESULTS/split9/search_9_A.csv $RESULTS/split10/search_10_A.csv $RESULTS/split1/search_1_B.csv $RESULTS/split2/search_2_B.csv $RESULTS/split3/search_3_B.csv $RESULTS/split4/search_4_B.csv $RESULTS/split5/search_5_B.csv $RESULTS/split6/search_6_B.csv $RESULTS/split7/search_7_B.csv $RESULTS/split8/search_8_B.csv $RESULTS/split9/search_9_B.csv $RESULTS/split10/search_10_B.csv $RESULTS/search.pdf
-	if type pdftk &> /dev/null; then
-		pdftk A=$RESULTS/verify.pdf B=$RESULTS/search.pdf cat A3-5 B6 A7 output $RESULTS/results_AB.pdf
-		rm $RESULTS/verify.pdf
-		rm $RESULTS/search.pdf
-	fi
-	rm $RESULTS/*.R
-fi
+plot "*"
+# Package results
 cd $RESULTS
 tar -cvzf results_${PERFORMER}_${ALGORITHM}.tar.gz split* *.pdf
 
