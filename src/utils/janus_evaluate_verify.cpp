@@ -15,7 +15,7 @@ const char *get_ext(const char *filename) {
 int main(int argc, char *argv[])
 {
     if ((argc < 9) || (argc > 10)) {
-        printf("Usage: janus_evaluate_search sdk_path temp_path target_gallery query_gallery target_metadata query_metadata simmat mask [algorithm]\n");
+        printf("Usage: janus_evaluate_verify sdk_path temp_path target_gallery query_gallery target_metadata query_metadata simmat mask [algorithm]\n");
         return 1;
     }
     const char *ext1 = get_ext(argv[3]);
