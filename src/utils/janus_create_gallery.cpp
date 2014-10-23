@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <fstream>
 
@@ -11,10 +12,17 @@ const char *get_ext(const char *filename) {
     return dot + 1;
 }
 
+void printUsage()
+{
+    printf("Usage: janus_create_gallery sdk_path temp_path data_path metadata_file gallery_file [-algorithm <algorithm>] [-verbose]\n");
+}
+
 int main(int argc, char *argv[])
 {
-    if ((argc < 6) || (argc > 8)) {
-        printf("Usage: janus_create_gallery sdk_path temp_path data_path metadata_file gallery_file [algorithm] [verbose]\n");
+    int requiredArgs = 6;
+
+    if ((argc < requiredArgs) || (argc > 9)) {
+        printUsage();
         return 1;
     }
 
@@ -27,28 +35,26 @@ int main(int argc, char *argv[])
         printf("gallery_file must be \".gal\" format. \n");
         return 1;
     }
+
+    char *algorithm = NULL;
+    int verbose = 0;
+
+    for (int i=0; i<argc-requiredArgs; i++)
+        if (strcmp(argv[requiredArgs+i],"-algorithm") == 0)
+            algorithm = argv[requiredArgs+(++i)];
+        else if (strcmp(argv[requiredArgs+i],"-verbose") == 0)
+            verbose = 1;
+        else {
+            fprintf(stderr, "Unrecognized flag: %s\n", argv[requiredArgs+i]);
+            return 1;
+        }
+
+    JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm))
+
     janus_gallery gallery;
     JANUS_ASSERT(janus_allocate_gallery(&gallery))
-    if (argc == 6) {
-        JANUS_ASSERT(janus_initialize(argv[1], argv[2], ""))
-        JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], gallery, 0))
-    } else if (argc == 7) {
-        if (atoi(argv[6])) {
-            JANUS_ASSERT(janus_initialize(argv[1], argv[2], ""))
-            JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], gallery, atoi(argv[6])))
-        } else {
-            JANUS_ASSERT(janus_initialize(argv[1], argv[2], argv[6]))
-            JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], gallery, 0))
-        }
-    } else {
-        if (atoi(argv[6])) {
-            JANUS_ASSERT(janus_initialize(argv[1], argv[2], argv[7]))
-            JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], gallery, atoi(argv[6])))
-        } else {
-            JANUS_ASSERT(janus_initialize(argv[1], argv[2], argv[6]))
-            JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], gallery, atoi(argv[7])))
-        }
-    }
+
+    JANUS_ASSERT(janus_create_gallery(argv[3], argv[4], gallery, verbose))
 
     janus_metrics metrics = janus_get_metrics();
     size_t size = metrics.janus_initialize_template_speed.count;
