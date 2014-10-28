@@ -354,52 +354,6 @@ struct FlatTemplate
     }
 };
 
-struct FlatGallery
-{
-    struct Data {
-        janus_flat_gallery flat_gallery;
-        size_t bytes, ref_count;
-        janus_error error;
-    } *data;
-
-    FlatGallery(janus_gallery gallery)
-    {
-        data = new Data();
-        data->ref_count = 1;
-        size_t size;
-        janus_gallery_size(gallery, &size);
-        janus_data *buffer = new janus_data[janus_max_template_size() * size];
-
-        const clock_t start = clock();
-        data->error = janus_flatten_gallery(gallery, buffer, &data->bytes);
-        _janus_add_sample(janus_finalize_gallery_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-        _janus_add_sample(janus_gallery_size_samples, data->bytes);
-
-        data->flat_gallery = new janus_data[data->bytes];
-        memcpy(data->flat_gallery, buffer, data->bytes);
-        delete[] buffer;
-    }
-
-    FlatGallery(const FlatGallery& other)
-    {
-        *this = other;
-    }
-
-    ~FlatGallery()
-    {
-        data->ref_count--;
-        if (data->ref_count == 0) {
-            delete[] data->flat_gallery;
-            delete data;
-        }
-    }
-
-    janus_error compareTo(const FlatGallery &other, float *similarity) const
-    {
-        return JANUS_SUCCESS;
-    }
-};
-
 janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_metadata target, janus_metadata query, janus_matrix matrix)
 {
     ofstream stream(matrix, ios::out | ios::binary);
