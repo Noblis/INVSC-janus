@@ -323,6 +323,8 @@ janus_error janus_search(const janus_flat_template probe, const size_t probe_byt
     ppr_gallery_type target_gallery;
     ppr_unflatten_gallery(ppr_context, flat_data, &target_gallery);
 
+    ppr_free_flat_data(flat_data);
+
     ppr_similarity_matrix_type simmat;
     ppr_compare_galleries(ppr_context, probe_gallery, target_gallery, &simmat);
 
@@ -341,15 +343,17 @@ janus_error janus_search(const janus_flat_template probe, const size_t probe_byt
         scores.push_back(pair<float,janus_template_id>(score,target_subject_id));
     }
 
+    ppr_free_id_list(id_list);
+    ppr_free_gallery(probe_gallery);
+    ppr_free_gallery(target_gallery);
+    ppr_free_similarity_matrix(simmat);
+
     sort(scores.begin(), scores.end(), sort_first_greater());
 
     for (int i=0; i<*num_actual_returns; i++) {
         similarities[i] = scores[i].first;
         template_ids[i] = scores[i].second;
     }
-
-    ppr_free_gallery(probe_gallery);
-    ppr_free_similarity_matrix(simmat);
 
     return JANUS_SUCCESS;
 }
