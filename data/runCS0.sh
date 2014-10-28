@@ -57,21 +57,21 @@ do
 	do
 		# Enroll galleries using "janus_create_templates" for use in "janus_evaluate_verify"
 		echo janus_create_templates probe > $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
-		janus_create_templates $SDK_PATH $TEMP_PATH $CS0_DIR $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_probe.csv $RESULTS/test_${i}_${PROTOCOL}_probe_templates.gal $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
+		janus_create_templates $SDK_PATH $TEMP_PATH $CS0_DIR $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_probe.csv $RESULTS/test_${i}_${PROTOCOL}_probe_templates.gal -algorithm $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
 		echo janus_create_templates gallery >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
-		janus_create_templates $SDK_PATH $TEMP_PATH $CS0_DIR $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_gal.csv $RESULTS/test_${i}_${PROTOCOL}_gal_templates.gal $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
+		janus_create_templates $SDK_PATH $TEMP_PATH $CS0_DIR $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_gal.csv $RESULTS/test_${i}_${PROTOCOL}_gal_templates.gal -algorithm $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
 
 		# Evaluate protocol A verification using "janus_evaluate_verify"
 		echo janus_evaluate_verify >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
-		janus_evaluate_verify $SDK_PATH $TEMP_PATH $RESULTS/test_${i}_${PROTOCOL}_gal_templates.gal $RESULTS/test_${i}_${PROTOCOL}_probe_templates.gal $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_gal.csv $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_probe.csv $RESULTS/split${i}/verify_${i}_${PROTOCOL}.mtx $RESULTS/split${i}/verify_${i}_${PROTOCOL}.mask $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
+		janus_evaluate_verify $SDK_PATH $TEMP_PATH $RESULTS/test_${i}_${PROTOCOL}_gal_templates.gal $RESULTS/test_${i}_${PROTOCOL}_probe_templates.gal $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_gal.csv $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_probe.csv $RESULTS/split${i}/verify_${i}_${PROTOCOL}.mtx $RESULTS/split${i}/verify_${i}_${PROTOCOL}.mask -algorithm $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
 
 		# Enroll target gallery using "janus_create_gallery" for use in "janus_evaluate_search"
 		echo janus_create_gallery >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
-		janus_create_gallery $SDK_PATH $TEMP_PATH $CS0_DIR $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_gal.csv $RESULTS/test_${i}_${PROTOCOL}_gal_flat.gal $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
+		janus_create_gallery $SDK_PATH $TEMP_PATH $CS0_DIR $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_gal.csv $RESULTS/test_${i}_${PROTOCOL}_gal_flat.gal -algorithm $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
 
 		#Evaluate protocol A search using "janus_evaluate_search"
 		echo janus_evaluate_search >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
-		janus_evaluate_search $SDK_PATH $TEMP_PATH $RESULTS/test_${i}_${PROTOCOL}_gal_flat.gal $RESULTS/test_${i}_${PROTOCOL}_probe_templates.gal $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_gal.csv $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_probe.csv $RESULTS/split${i}/search_${i}_${PROTOCOL}.mtx $RESULTS/split${i}/search_${i}_${PROTOCOL}.mask 150 $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
+		janus_evaluate_search $SDK_PATH $TEMP_PATH $RESULTS/test_${i}_${PROTOCOL}_gal_flat.gal $RESULTS/test_${i}_${PROTOCOL}_probe_templates.gal $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_gal.csv $CS0_DIR/protocol/split${i}/test_${i}_${PROTOCOL}_probe.csv $RESULTS/split${i}/search_${i}_${PROTOCOL}.mtx $RESULTS/split${i}/search_${i}_${PROTOCOL}.mask 150 -algorithm $ALGORITHM >> $RESULTS/split${i}/split${i}_${PROTOCOL}_log.txt
 
 		# Evaluate output matrices using OpenBR
 		if type br &> /dev/null; then
