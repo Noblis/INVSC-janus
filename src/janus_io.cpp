@@ -416,11 +416,11 @@ janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes
         // Write matrix of size num_queries*num_requested returns
         if (num_actual_returns < num_requested_returns) {
             int diff = num_requested_returns - num_actual_returns;
-            int filler[diff];
-            for (int i=0; i<diff; i++) filler[i] = -std::numeric_limits<float>::max();
             memcpy(similarity_matrix, similarities, sizeof(float)*num_actual_returns);
             similarity_matrix += num_actual_returns;
-            memcpy(similarity_matrix, filler, sizeof(float)*diff);
+            for (int i=num_actual_returns; i<num_requested_returns; i++) {
+                similarity_matrix[num_queries*num_requested_returns+i] = -std::numeric_limits<float>::max();
+            }
             similarity_matrix += diff;
         } else {
             memcpy(similarity_matrix, similarities, sizeof(float)*num_actual_returns);
