@@ -1,3 +1,4 @@
+#include <cstring>
 #include <limits>
 #include <string>
 #include <fstream>
@@ -152,7 +153,8 @@ janus_error janus_augment(const janus_image image, const janus_attribute_list at
 
 janus_error janus_track(janus_template template_, int enabled)
 {
-    (void) template_, enabled;
+    (void) template_;
+    (void) enabled;
     return JANUS_NOT_IMPLEMENTED;
 }
 
