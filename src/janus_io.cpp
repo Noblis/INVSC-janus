@@ -254,6 +254,8 @@ janus_error janus_create_template(const char *data_path, janus_metadata metadata
     return TemplateIterator::create(data_path, ti.next(), template_, template_id, false);
 }
 
+#ifndef JANUS_CUSTOM_CREATE_TEMPLATES
+
 janus_error janus_create_templates(const char *data_path, janus_metadata metadata, const char *gallery_file, int verbose)
 {
     TemplateIterator ti(metadata, true);
@@ -278,6 +280,8 @@ janus_error janus_create_templates(const char *data_path, janus_metadata metadat
     file.close();
     return JANUS_SUCCESS;
 }
+
+#endif // JANUS_CUSTOM_CREATE_TEMPLATES
 
 #ifndef JANUS_CUSTOM_CREATE_GALLERY
 
