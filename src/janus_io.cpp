@@ -219,7 +219,7 @@ struct TemplateIterator : public TemplateData
             janus_image image;
 
             start = clock();
-            JANUS_CHECK(janus_read_image((data_path + templateData.fileNames[i]).c_str(), &image))
+            JANUS_ASSERT(janus_read_image((data_path + templateData.fileNames[i]).c_str(), &image))
             _janus_add_sample(janus_read_image_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
             start = clock();
