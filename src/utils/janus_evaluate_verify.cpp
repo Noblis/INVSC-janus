@@ -12,10 +12,17 @@ const char *get_ext(const char *filename) {
     return dot + 1;
 }
 
+void printUsage()
+{
+    printf("Usage: janus_evaluate_verify sdk_path temp_path target_gallery query_gallery target_metadata query_metadata simmat mask [-algorithm <algorithm>]\n");
+}
+
 int main(int argc, char *argv[])
 {
-    if ((argc < 9) || (argc > 10)) {
-        printf("Usage: janus_evaluate_verify sdk_path temp_path target_gallery query_gallery target_metadata query_metadata simmat mask [algorithm]\n");
+    int requiredArgs = 9;
+
+    if ((argc < requiredArgs) || (argc > 11)) {
+        printUsage();
         return 1;
     }
     const char *ext1 = get_ext(argv[3]);
@@ -39,7 +46,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argv[2], argc >= 10 ? argv[9] : ""))
+    char *algorithm = NULL;
+    for (int i=0; i<argc-requiredArgs; i++)
+        if (strcmp(argv[requiredArgs+i],"-algorithm") == 0)
+            algorithm = argv[requiredArgs+(++i)];
+        else {
+            fprintf(stderr, "Unrecognized flag: %s\n", argv[requiredArgs+i]);
+            return 1;
+        }
+
+    JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm))
     JANUS_ASSERT(janus_evaluate_verify(argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]))
     JANUS_ASSERT(janus_finalize())
 

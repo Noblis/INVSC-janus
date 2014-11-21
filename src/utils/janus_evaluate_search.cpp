@@ -12,10 +12,17 @@ const char *get_ext(const char *filename) {
     return dot + 1;
 }
 
+void printUsage()
+{
+    printf("Usage: janus_evaluate_search sdk_path temp_path target_gallery query_gallery target_metadata query_metadata simmat mask num_returns [-algorithm <algorithm>]\n");
+}
+
 int main(int argc, char *argv[])
 {
-    if ((argc < 10) || (argc > 11)) {
-        printf("Usage: janus_evaluate_search sdk_path temp_path target_gallery query_gallery target_metadata query_metadata simmat mask num_returns [algorithm]\n");
+    int requiredArgs = 10;
+
+    if ((argc < requiredArgs) || (argc > 12)) {
+        printUsage();
         return 1;
     }
     const char *ext1 = get_ext(argv[3]);
@@ -39,7 +46,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argv[2], argc >= 11 ? argv[10] : ""))
+    char *algorithm = NULL;
+    for (int i=0; i<argc-requiredArgs; i++)
+        if (strcmp(argv[requiredArgs+i],"-algorithm") == 0)
+            algorithm = argv[requiredArgs+(++i)];
+        else {
+            fprintf(stderr, "Unrecognized flag: %s\n", argv[requiredArgs+i]);
+            return 1;
+        }
+
+    JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm))
     int num_requested_returns = atoi(argv[9]);
 
     std::ifstream target;

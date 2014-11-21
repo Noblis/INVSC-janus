@@ -10,6 +10,11 @@ const char *get_ext(const char *filename) {
     return dot + 1;
 }
 
+void printUsage()
+{
+    printf("Usage: janus_verify sdk_path temp_path data_path target_metadata_file query_metadata_file [-algorithm <algorithm>]\n");
+}
+
 static janus_flat_template getFlatTemplate(const char *data_path, janus_metadata metadata, size_t *bytes)
 {
     janus_template template_;
@@ -23,8 +28,10 @@ static janus_flat_template getFlatTemplate(const char *data_path, janus_metadata
 
 int main(int argc, char *argv[])
 {
-    if ((argc < 6) || (argc > 7)) {
-        printf("Usage: janus_verify sdk_path temp_path data_path target_metadata_file query_metadata_file [algorithm]\n");
+    int requiredArgs = 6;
+
+    if ((argc < requiredArgs) || (argc > 8)) {
+        printUsage();
         return 1;
     }
 
@@ -36,7 +43,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argv[2], argc >= 7 ? argv[6] : ""))
+    char *algorithm = NULL;
+    for (int i=0; i<argc-requiredArgs; i++)
+        if (strcmp(argv[requiredArgs+i],"-algorithm") == 0)
+            algorithm = argv[requiredArgs+(++i)];
+        else {
+            fprintf(stderr, "Unrecognized flag: %s\n", argv[requiredArgs+i]);
+            return 1;
+        }
+
+    JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm))
 
     size_t target_bytes;
     janus_flat_template target_flat = getFlatTemplate(argv[3], argv[4], &target_bytes);
