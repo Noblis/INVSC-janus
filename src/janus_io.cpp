@@ -310,6 +310,8 @@ struct FlatTemplate
         janus_error error;
     } *data;
 
+    FlatTemplate() {} // Default constructor
+    
     FlatTemplate(janus_template template_)
     {
         data = new Data();
