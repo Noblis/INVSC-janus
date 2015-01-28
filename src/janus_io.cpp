@@ -310,7 +310,10 @@ struct FlatTemplate
         janus_error error;
     } *data;
 
-    FlatTemplate() {} // Default constructor
+    FlatTemplate()
+    {
+        data = NULL;
+    }
     
     FlatTemplate(janus_template template_)
     {
@@ -338,16 +341,18 @@ struct FlatTemplate
     FlatTemplate& operator=(const FlatTemplate& rhs)
     {
         data = rhs.data;
-        data->ref_count++;
+        if (data) data->ref_count++;
         return *this;
     }
 
     ~FlatTemplate()
     {
-        data->ref_count--;
-        if (data->ref_count == 0) {
-            delete[] data->flat_template;
-            delete data;
+        if (data) {
+            data->ref_count--;
+            if (data->ref_count == 0) {
+                delete[] data->flat_template;
+                delete data;
+            }
         }
     }
 
