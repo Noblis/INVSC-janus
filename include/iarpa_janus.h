@@ -309,6 +309,74 @@ typedef struct janus_image
  * This is considered to be the middle of where the nose meets the face.
  * If the nose base is not visible or too blurry to identify, press
  * "Not Visible”.
+ *
+ * \subsection forehead_visible Forehead Occlusion
+ * For this task, choose "Forehead Covered" when:
+ * - A scarf, hat, or hair covers at least 25% of the area between eyebrows
+ *   and hairline.
+ * - The area of the forehead is not contained in the image (because the
+ *   edge of the image cuts off this area).
+ * Choose "Not Covered" when:
+ * - More than 75% of the area between eyebrows and hairline is visible.
+ * - Another part of the person's face is blocking part of the forehead
+ *   (e.g. the person's face is tilted upwards or to the side).
+ * - The image is too blurry to see the forehead region well.
+ *
+ * \subsection eyes_visible Eye Occlusion
+ * For this task, choose "Eyes Covered" when:
+ * - Something is in front of either eye. This will often be glasses
+ *   (even clear glasses) or hair, but can be anything in the image.
+ * - The eye area is not contained in the image.
+ * Choose "Not Covered" when:
+ * - Both eyes are uncovered (even if they are closed).
+ * - Another part of the person's face is blocking either eye
+ *   (e.g. the person's face is tilted upwards or turned to the side).
+ * - The image is too blurry to see the eye region well
+ *
+ * \subsection nose_mouth_visible Nose and Mouth Occlusion
+ * For this task, choose "Covered" when:
+ * - Something is in front of the nose or the mouth, or both.
+ *   This is often a microphone or a hand, but can be anything in the image.
+ *   If any type of glasses are over the lower part of the nose, this should be
+ *   marked as "covered."
+ * - The area of the nose and mouth is not contained in the image
+ *   (the edge of the image cuts off this area).
+ * Choose "Not Covered" when:
+ * - Both the nose and mouth are uncovered (facial hair is not considered
+ *   'covering').
+ * - Another part of the person's face is blocking the nose or mouth
+ *   (e.g. the person's face is tilted downwards or turned to the side).
+ * - The image is too blurry to see the nose and mouth region well.
+ *
+ * \subsection indoor Indoor or Outdoor
+ * For this task, choose "Indoor" when:
+ * - The scene appears to be indoors, and is inside a building or other
+ *   covered structure, including any vehicle with a roof.
+ * - The scene might be indoors or outdoors, and there seems to be artificial
+ *   light present.
+ * Choose "Outdoor" when:
+ * - The scene appears to be outdoors, and is not under a roof or inside a
+ *   building, vehicle or structure.
+ * - The scene might be indoors or outdoors, and the photo appears to have
+ *   only natural light (sunlight).
+ *
+ * \subsection age Age
+ * For this task, estimate the approximate age of the person shown.
+ * The age categories in years and corresponding values in the #janus_metadata
+ * , are:
+ *
+ * | 0 - 19 | 20 - 34 | 35 - 49 | 50-64 | 65+ | Unknown |
+ * | 1      | 2       | 3       | 4     | 5   | 0       |
+ *
+ * If image quality is low, please take your best guess.
+ *
+ * \subsection skin_tone Skin Tone
+ * Skin tone is generalized into 6 categories described below, along with
+ * their corresponding values in the #janus_metadata.
+ *
+ * | Light Pink-toned | Light Yellow-toned | Medium Pink/Brown-toned | Medium Yellow/Brown-toned | Medium-Dark Brown | Dark Brown |
+ * | 1                | 2                  | 3                       | 4                         | 5                 | 6          |
+ *
  */
 typedef enum janus_attribute
 {
@@ -327,6 +395,16 @@ typedef enum janus_attribute
     JANUS_LEFT_EYE_Y           , /*!< Face landmark (pixels) \see left_eye */
     JANUS_NOSE_BASE_X          , /*!< Face landmark (pixels) \see nose_base */
     JANUS_NOSE_BASE_Y          , /*!< Face landmark (pixels) \see nose_base */
+    JANUS_FOREHEAD_VISIBLE     , /*!< Visibility of forehead
+                                      \see forehead_visible */
+    JANUS_EYES_VISIBLE         , /*!< Visibility of eyes \see eyes_visible */
+    JANUS_NOSE_MOUTH_VISIBLE   , /*!< Visibility of nose and mouth
+                                      \see nouse_mouth_visible */
+    JANUS_INDOOR               , /*!< Image was captured indoors \see indoor */
+    JANUS_GENDER               , /*!< Gender of subject of interest,
+                                      1 for male, 0 for female */
+    JANUS_AGE                  , /*!< Approximate age of subject \see age */
+    JANUS_SKIN_TONE            , /*!< Skin tone of subject \see skin_tone */
     JANUS_NUM_ATTRIBUTES         /*!< Idiom to iterate over all attributes */
 } janus_attribute;
 
