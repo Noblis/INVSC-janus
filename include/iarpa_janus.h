@@ -395,6 +395,7 @@ typedef enum janus_attribute
     JANUS_LEFT_EYE_Y           , /*!< Face landmark (pixels) \see left_eye */
     JANUS_NOSE_BASE_X          , /*!< Face landmark (pixels) \see nose_base */
     JANUS_NOSE_BASE_Y          , /*!< Face landmark (pixels) \see nose_base */
+    JANUS_FACE_YAW             , /*!< Face yaw estimation (degrees) */
     JANUS_FOREHEAD_VISIBLE     , /*!< Visibility of forehead
                                       \see forehead_visible */
     JANUS_EYES_VISIBLE         , /*!< Visibility of eyes \see eyes_visible */
