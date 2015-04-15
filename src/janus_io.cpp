@@ -33,7 +33,7 @@ const char *janus_error_to_string(janus_error error)
         ENUM_CASE(INVALID_VIDEO)
         ENUM_CASE(MISSING_TEMPLATE_ID)
         ENUM_CASE(MISSING_FILE_NAME)
-        ENUM_CASE(NULL_ATTRIBUTE_LIST)
+        ENUM_CASE(NULL_ATTRIBUTES)
         ENUM_CASE(MISSING_ATTRIBUTES)
         ENUM_CASE(FAILURE_TO_ENROLL)
         ENUM_CASE(NUM_ERRORS)
@@ -56,7 +56,7 @@ janus_error janus_error_from_string(const char *error)
     ENUM_COMPARE(INVALID_VIDEO, error)
     ENUM_COMPARE(MISSING_TEMPLATE_ID, error)
     ENUM_COMPARE(MISSING_FILE_NAME, error)
-    ENUM_COMPARE(NULL_ATTRIBUTE_LIST, error)
+    ENUM_COMPARE(NULL_ATTRIBUTES, error)
     ENUM_COMPARE(MISSING_ATTRIBUTES, error)
     ENUM_COMPARE(FAILURE_TO_ENROLL, error)
     ENUM_COMPARE(NUM_ERRORS, error)
@@ -67,8 +67,7 @@ janus_error janus_error_from_string(const char *error)
 const char *janus_attribute_to_string(janus_attribute attribute)
 {
     switch (attribute) {
-        ENUM_CASE(INVALID_ATTRIBUTE)
-        ENUM_CASE(FRAME)
+        ENUM_CASE(DETECTION_CONFIDENCE)
         ENUM_CASE(FACE_X)
         ENUM_CASE(FACE_Y)
         ENUM_CASE(FACE_WIDTH)
@@ -89,13 +88,12 @@ const char *janus_attribute_to_string(janus_attribute attribute)
         ENUM_CASE(SKIN_TONE)
         ENUM_CASE(NUM_ATTRIBUTES)
     }
-    return "INVALID_ATTRIBUTE";
+    return "";
 }
 
 janus_attribute janus_attribute_from_string(const char *attribute)
 {
-    ENUM_COMPARE(INVALID_ATTRIBUTE, attribute)
-    ENUM_COMPARE(FRAME, attribute)
+    ENUM_COMPARE(DETECTION_CONFIDENCE, attribute)
     ENUM_COMPARE(FACE_X, attribute)
     ENUM_COMPARE(FACE_Y, attribute)
     ENUM_COMPARE(FACE_WIDTH, attribute)
@@ -115,7 +113,7 @@ janus_attribute janus_attribute_from_string(const char *attribute)
     ENUM_COMPARE(AGE, attribute)
     ENUM_COMPARE(SKIN_TONE, attribute)
     ENUM_COMPARE(NUM_ATTRIBUTES, attribute)
-    return JANUS_INVALID_ATTRIBUTE;
+    return NUM_ATTRIBUTES;
 }
 
 // For computing metrics
