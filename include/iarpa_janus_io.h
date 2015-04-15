@@ -187,7 +187,7 @@ JANUS_EXPORT janus_error janus_create_template(const char *data_path, janus_meta
  * \brief High-level function for enrolling templates from a metadata file and writing templates to disk.
  * \param [in] data_path Prefix path to files in metadata.
  * \param [in] metadata #janus_metadata to enroll.
- * \param [in] gallery File to save the gallery to.
+ * \param [in] gallery_file File to save the gallery to.
  * \param [in] verbose Print information and warnings during gallery enrollment.
  */
 JANUS_EXPORT janus_error janus_create_templates(const char *data_path, janus_metadata metadata, const char *gallery_file, int verbose);
