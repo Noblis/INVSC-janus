@@ -87,6 +87,7 @@ const char *janus_attribute_to_string(janus_attribute attribute)
         ENUM_CASE(GENDER)
         ENUM_CASE(AGE)
         ENUM_CASE(SKIN_TONE)
+        ENUM_CASE(FACIAL_HAIR)
         ENUM_CASE(NUM_ATTRIBUTES)
     }
     return "INVALID_ATTRIBUTE";
@@ -114,6 +115,7 @@ janus_attribute janus_attribute_from_string(const char *attribute)
     ENUM_COMPARE(GENDER, attribute)
     ENUM_COMPARE(AGE, attribute)
     ENUM_COMPARE(SKIN_TONE, attribute)
+    ENUM_COMPARE(FACIAL_HAIR, attribute)
     ENUM_COMPARE(NUM_ATTRIBUTES, attribute)
     return JANUS_INVALID_ATTRIBUTE;
 }

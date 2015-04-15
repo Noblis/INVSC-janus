@@ -377,6 +377,11 @@ typedef struct janus_image
  * | Light Pink-toned | Light Yellow-toned | Medium Pink/Brown-toned | Medium Yellow/Brown-toned | Medium-Dark Brown | Dark Brown |
  * | 1                | 2                  | 3                       | 4                         | 5                 | 6          |
  *
+ * \subsection facial_hair Facial Hair
+ * For this task, there are four possible types of facial hair.  Select the facial hair type that is closest to the description below.
+ * | No Facial Hair | Moustache | Goatee | Beard |
+ * | 0              | 1         | 2      | 3     |
+ *
  */
 typedef enum janus_attribute
 {
@@ -406,6 +411,7 @@ typedef enum janus_attribute
                                       1 for male, 0 for female */
     JANUS_AGE                  , /*!< Approximate age of subject \see age */
     JANUS_SKIN_TONE            , /*!< Skin tone of subject \see skin_tone */
+    JANUS_FACIAL_HAIR          , /*!< Facial hair of subject \see facial_hair */
     JANUS_NUM_ATTRIBUTES         /*!< Idiom to iterate over all attributes */
 } janus_attribute;
 
