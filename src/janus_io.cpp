@@ -64,58 +64,6 @@ janus_error janus_error_from_string(const char *error)
     return JANUS_UNKNOWN_ERROR;
 }
 
-const char *janus_attribute_to_string(janus_attribute attribute)
-{
-    switch (attribute) {
-        ENUM_CASE(DETECTION_CONFIDENCE)
-        ENUM_CASE(FACE_X)
-        ENUM_CASE(FACE_Y)
-        ENUM_CASE(FACE_WIDTH)
-        ENUM_CASE(FACE_HEIGHT)
-        ENUM_CASE(RIGHT_EYE_X)
-        ENUM_CASE(RIGHT_EYE_Y)
-        ENUM_CASE(LEFT_EYE_X)
-        ENUM_CASE(LEFT_EYE_Y)
-        ENUM_CASE(NOSE_BASE_X)
-        ENUM_CASE(NOSE_BASE_Y)
-        ENUM_CASE(FACE_YAW)
-        ENUM_CASE(FOREHEAD_VISIBLE)
-        ENUM_CASE(EYES_VISIBLE)
-        ENUM_CASE(NOSE_MOUTH_VISIBLE)
-        ENUM_CASE(INDOOR)
-        ENUM_CASE(GENDER)
-        ENUM_CASE(AGE)
-        ENUM_CASE(SKIN_TONE)
-        ENUM_CASE(NUM_ATTRIBUTES)
-    }
-    return "";
-}
-
-janus_attribute janus_attribute_from_string(const char *attribute)
-{
-    ENUM_COMPARE(DETECTION_CONFIDENCE, attribute)
-    ENUM_COMPARE(FACE_X, attribute)
-    ENUM_COMPARE(FACE_Y, attribute)
-    ENUM_COMPARE(FACE_WIDTH, attribute)
-    ENUM_COMPARE(FACE_HEIGHT, attribute)
-    ENUM_COMPARE(RIGHT_EYE_X, attribute)
-    ENUM_COMPARE(RIGHT_EYE_Y, attribute)
-    ENUM_COMPARE(LEFT_EYE_X, attribute)
-    ENUM_COMPARE(LEFT_EYE_Y, attribute)
-    ENUM_COMPARE(NOSE_BASE_X, attribute)
-    ENUM_COMPARE(NOSE_BASE_Y, attribute)
-    ENUM_COMPARE(FACE_YAW, attribute)
-    ENUM_COMPARE(FOREHEAD_VISIBLE, attribute)
-    ENUM_COMPARE(EYES_VISIBLE, attribute)
-    ENUM_COMPARE(NOSE_MOUTH_VISIBLE, attribute)
-    ENUM_COMPARE(INDOOR, attribute)
-    ENUM_COMPARE(GENDER, attribute)
-    ENUM_COMPARE(AGE, attribute)
-    ENUM_COMPARE(SKIN_TONE, attribute)
-    ENUM_COMPARE(NUM_ATTRIBUTES, attribute)
-    return NUM_ATTRIBUTES;
-}
-
 // For computing metrics
 static vector<double> janus_initialize_template_samples;
 static vector<double> janus_augment_samples;

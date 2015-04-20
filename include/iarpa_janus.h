@@ -754,6 +754,9 @@ JANUS_EXPORT janus_error janus_search(const janus_flat_template probe,
  * the suggested number of clusters.
  * - The suggested default value for \p hint is \c 0.
  *
+ * \note The implementation of this function is optional, and may return
+ *       #JANUS_NOT_IMPLEMENTED.
+ *
  * \param[in] gallery The gallery to cluster.
  * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
  * \param[out] template_ids A pre-allocated array provided by the calling
