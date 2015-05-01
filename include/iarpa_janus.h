@@ -412,6 +412,7 @@ typedef struct janus_attributes
                         female. */
     double age; /*!< \brief Approximate age of subject (years) \see \ref age. */
     double skin_tone; /*!< \brief Skin tone of subject \see \ref skin_tone. */
+    double frame_rate; /*!< \brief Frames per second, or 0 for images. */
 } janus_attributes;
 
 /*!
@@ -513,12 +514,13 @@ JANUS_EXPORT janus_error janus_allocate_template(janus_template *template_);
  * \brief Add an image to the template.
  *
  * The \p attributes should be provided from a prior call to \ref janus_detect.
- * As a special case, if \p attributes is \c NULL, \p image should be treated
- * as a video frame, and the implementation should use the #janus_attributes
- * from a previous call to this function as the seed for the tracker, or as a
- * prior for localizing the object in the current frame. In this way,
- * for videos \ref janus_detect need only be called once, at the start of the
- * frame sequence.
+ * As a special case, if janus_attributes::frame_rate is greater than zero, the
+ * \p image should be treated as the first frame in a video sequence. Subsequent
+ * calls to this function may then pass \c NULL for \p attributes, in which case
+ * the implementation should use the \p attributes from a previous call to this
+ * function as the seed for tracking, or as a prior for localizing the object
+ * in the current frame. In this way, \ref janus_detect need only be called once
+ * for videos, at the start of the frame sequence.
  *
  * This function may write to \p attributes, reflecting additional information
  * gained during augmentation.
@@ -527,8 +529,8 @@ JANUS_EXPORT janus_error janus_allocate_template(janus_template *template_);
  * verification or \ref janus_enroll for gallery construction.
  *
  * \param[in] image The image containing the detected object to be recognized.
- * \param[in,out] attributes Location and metadata associated with the detected
- *                       object to recognize.
+ * \param[in,out] attributes Location and metadata associated with a single
+ *                          detected object to recognize.
  * \param[in,out] template_ The template to contain the object's recognition
  *                          information.
  * \remark This function is \ref reentrant.
