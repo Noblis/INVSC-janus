@@ -377,6 +377,12 @@ typedef struct janus_image
  *
  * | Light Pink-toned | Light Yellow-toned | Medium Pink/Brown-toned | Medium Yellow/Brown-toned | Medium-Dark Brown | Dark Brown |
  * | 1                | 2                  | 3                       | 4                         | 5                 | 6          |
+ *
+ * \subsection facial_hair Facial Hair
+ * For this task, there are four possible types of facial hair.  Select the facial hair type that is closest to the description below.
+ * | No Facial Hair | Moustache | Goatee | Beard |
+ * | 0              | 1         | 2      | 3     |
+ *
  */
 typedef struct janus_attributes
 {
