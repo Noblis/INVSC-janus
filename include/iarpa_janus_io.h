@@ -83,22 +83,6 @@ JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 JANUS_EXPORT janus_error janus_error_from_string(const char *error);
 
 /*!
- * \brief #janus_attribute to string
- * \param[in] attribute Attribute code to stringify.
- * \note Memory for the return value is managed internally and should not be
- *       freed.
- * \see janus_enum
- */
-JANUS_EXPORT const char *janus_attribute_to_string(janus_attribute attribute);
-
-/*!
- * \brief #janus_attribute from string.
- * \param[in] attribute String to decode.
- * \see janus_enum
- */
-JANUS_EXPORT janus_attribute janus_attribute_from_string(const char *attribute);
-
-/*!
  * \brief Read an image from disk.
  * \param[in] file_name Path to the image file.
  * \param[out] image Address to store the decoded image.

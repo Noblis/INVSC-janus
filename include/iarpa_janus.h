@@ -43,7 +43,6 @@ extern "C" {
  * ----------------- | -------------  | ---------------------- | -----------
  * iarpa_janus.h     | \ref janus     | **Yes**                | \copybrief janus
  * iarpa_janus_io.h  | \ref janus_io  | No (Provided)          | \copybrief janus_io
- * iarpa_janus_aux.h | \ref janus_aux | No (Phases 2 & 3 only) | \copybrief janus_aux
  *
  * - [<b>Source Code</b>](https://github.com/biometrics/janus) [github.com]
  * - [<b>Program Homepage</b>]
@@ -116,20 +115,20 @@ extern "C" {
 #endif
 
 #define JANUS_VERSION_MAJOR 0
-#define JANUS_VERSION_MINOR 3
+#define JANUS_VERSION_MINOR 4
 #define JANUS_VERSION_PATCH 0
 
 /*!
  * \defgroup janus Janus
- * \brief Mandatory interface for Phase 1.
+ * \brief Mandatory interface for Phase 2.
  *
  * All Janus performers should adhere to this interface.
  *
  * \section Overview
  * A Janus application begins with a call to \ref janus_initialize. New
  * templates are constructed with \ref janus_allocate_template and provided
- * image data with \ref janus_augment. Templates are freed after use with
- * \ref janus_free_template.
+ * image data with \ref janus_detect followed by \ref janus_augment. Templates
+ * are freed after use with \ref janus_free_template.
  *
  * Templates can be used for verification with \ref janus_flatten_template and
  * \ref janus_verify, or search with \ref janus_enroll,
@@ -180,12 +179,11 @@ typedef enum janus_error
     JANUS_INVALID_VIDEO      , /*!< Could not decode video file */
     JANUS_MISSING_TEMPLATE_ID, /*!< Expected a missing template ID */
     JANUS_MISSING_FILE_NAME  , /*!< Expected a missing file name */
-    JANUS_NULL_ATTRIBUTE_LIST, /*!< Null #janus_attribute_list */
+    JANUS_NULL_ATTRIBUTES    , /*!< Null #janus_attributes */
     JANUS_MISSING_ATTRIBUTES , /*!< Not all required attributes were
                                     provided */
-    JANUS_FAILURE_TO_ENROLL  , /*!< Could not construct a template
-                                    from the provided image and
-                                    attributes */
+    JANUS_FAILURE_TO_ENROLL  , /*!< Could not construct a template from the
+                                    provided image and attributes */
     JANUS_NOT_IMPLEMENTED    , /*!< Optional functions may return this value in
                                     lieu of a meaninful implementation */
     JANUS_NUM_ERRORS           /*!< Idiom to iterate over all errors */
@@ -236,21 +234,24 @@ typedef struct janus_image
 } janus_image;
 
 /*!
- * \brief A measurement made on a #janus_image.
+ * \brief Attributes for a particular object in an image.
  *
- * These attributes are provided from manual annotation for Phase 1.
- * Phases 2 and 3 will introduce API calls for automated detection and tracking.
- * Additional attributes and training data will be added over the duration of
- * the program.
+ * Attributes associated with an object.
+ * Values of \c NaN ([isnan](http://www.cplusplus.com/reference/cmath/isnan/))
+ * indicate that the attribute value is unknown.
  *
  * \section attribute_definitions Attribute Definitions
- * Images were annotated with attributes using crowd sourcing.
+ * Attributes collected for images in the Janus program were annotated using
+ * crowd sourcing.
  * As a result, attributes are defined in layman's terms, instead of strict
  * scientific definitions.
  * Below are the instructions given to workers for each attribute, which should
  * act as a de-facto definition of the attribute.
  * In some cases instructions evolved slightly over time, reflecting lessons
  * learned from communicating with the workers.
+ *
+ * As implementations of the Janus API leverage divergent algorithms and data
+ * sets, the precise semantics of each attribute may differ by implementation.
  *
  * \subsection face Face
  * [Instructions with images.]
@@ -383,48 +384,81 @@ typedef struct janus_image
  * | 0              | 1         | 2      | 3     |
  *
  */
-typedef enum janus_attribute
+typedef struct janus_attributes
 {
-    JANUS_INVALID_ATTRIBUTE = 0, /*!< Catch-all error code */
-    JANUS_FRAME                , /*!< Video frame number, -1 (or not present)
-                                      for still images */
-    JANUS_FACE_X               , /*!< Horizontal offset to top-left corner of
-                                      face (pixels) \see face */
-    JANUS_FACE_Y               , /*!< Vertical offset to top-left corner of
-                                      face (pixels) \see face */
-    JANUS_FACE_WIDTH           , /*!< Face horizontal size (pixels) \see face */
-    JANUS_FACE_HEIGHT          , /*!< Face vertical size (pixels) \see face */
-    JANUS_RIGHT_EYE_X          , /*!< Face landmark (pixels) \see right_eye */
-    JANUS_RIGHT_EYE_Y          , /*!< Face landmark (pixels) \see right_eye */
-    JANUS_LEFT_EYE_X           , /*!< Face landmark (pixels) \see left_eye */
-    JANUS_LEFT_EYE_Y           , /*!< Face landmark (pixels) \see left_eye */
-    JANUS_NOSE_BASE_X          , /*!< Face landmark (pixels) \see nose_base */
-    JANUS_NOSE_BASE_Y          , /*!< Face landmark (pixels) \see nose_base */
-    JANUS_FACE_YAW             , /*!< Face yaw estimation (degrees) */
-    JANUS_FOREHEAD_VISIBLE     , /*!< Visibility of forehead
-                                      \see forehead_visible */
-    JANUS_EYES_VISIBLE         , /*!< Visibility of eyes \see eyes_visible */
-    JANUS_NOSE_MOUTH_VISIBLE   , /*!< Visibility of nose and mouth
-                                      \see nouse_mouth_visible */
-    JANUS_INDOOR               , /*!< Image was captured indoors \see indoor */
-    JANUS_GENDER               , /*!< Gender of subject of interest,
-                                      1 for male, 0 for female */
-    JANUS_AGE                  , /*!< Approximate age of subject \see age */
-    JANUS_SKIN_TONE            , /*!< Skin tone of subject \see skin_tone */
-    JANUS_FACIAL_HAIR          , /*!< Facial hair of subject \see facial_hair */
-    JANUS_NUM_ATTRIBUTES         /*!< Idiom to iterate over all attributes */
-} janus_attribute;
+    double detection_confidence; /*!< \brief A higher value indicates greater
+                                             detection confidence. */
+    double face_x; /*!< \brief Horizontal offset to top-left corner of face
+                               (pixels) \see \ref face. */
+    double face_y; /*!< \brief Vertical offset to top-left corner of face
+                               (pixels) \see \ref face. */
+    double face_width; /*!< \brief Face horizontal size (pixels)
+                                   \see \ref face. */
+    double face_height; /*!< \brief Face vertical size (pixels)
+                                    \see \ref face. */
+    double right_eye_x; /*!< \brief Face landmark (pixels)
+                                    \see \ref right_eye. */
+    double right_eye_y; /*!< \brief Face landmark (pixels)
+                                    \see \ref right_eye. */
+    double left_eye_x; /*!< \brief Face landmark (pixels) \see \ref left_eye. */
+    double left_eye_y; /*!< \brief Face landmark (pixels) \see \ref left_eye. */
+    double nose_base_x; /*!< \brief Face landmark (pixels)
+                                    \see \ref nose_base. */
+    double nose_base_y; /*!< \brief Face landmark (pixels)
+                                    \see \ref nose_base. */
+    double face_yaw; /*!< \brief Face yaw estimation (degrees). */
+    double forehead_visible; /*!< \brief Visibility of forehead
+                                  \see forehead_visible. */
+    double eyes_visible; /*!< \brief Visibility of eyes
+                                     \see \ref eyes_visible. */
+    double nose_mouth_visible; /*!< \brief Visibility of nose and mouth
+                                    \see nouse_mouth_visible. */
+    double indoor; /*!< \brief Image was captured indoors \see \ref indoor. */
+    double gender; /*!< \brief Gender of subject of interest, 1 for male, 0 for
+                        female. */
+    double age; /*!< \brief Approximate age of subject (years) \see \ref age. */
+    double skin_tone; /*!< \brief Skin tone of subject \see \ref skin_tone. */
+    double frame_rate; /*!< \brief Frames per second, or 0 for images. */
+} janus_attributes;
 
 /*!
- * \brief A list of #janus_attribute and value pairs all belonging to a the same
- *        object in a particular image.
+ * \brief Detect objects in a #janus_image.
+ *
+ * Each object is represented by a #janus_attributes. In the case that the
+ * number of detected objects is greater than \p num_requested, the
+ * implementation may choose which detections to exclude, potentially returning
+ * early before scanning the entire image. Detected objects can then be used in
+ * \ref janus_augment.
+ *
+ * \section detection_guarantees Detection Guarantees
+ * The first \p num_actual elements of \p attributes_array will be populated by
+ * decreasing janus_attributes::detection_confidence.
+ *
+ * Each of the \p num_actual detections will have values for at least the
+ * following attributes:
+ *  - janus_attributes::detection_confidence
+ *  - janus_attributes::face_x
+ *  - janus_attributes::face_y
+ *  - janus_attributes::face_width
+ *  - janus_attributes::face_height
+ *
+ * Any attribute of the \p num_actual detections without a value will be set to
+ * \c NaN.
+ *
+ * \param[in] image Image to detect objects in.
+ * \param[out] attributes_array Pre-allocated array of uninitialized
+ *                              #janus_attributes. Expected to be at least
+ *                              \p num_requested * \c sizeof(#janus_attributes)
+ *                              bytes long.
+ * \param[in] num_requested Length of \p attributes_array.
+ * \param[out] num_actual Length of \p attributes_array actually populated with
+ *                        detected objects by the implementation.
+ * \remark This function is \ref thread_safe.
  */
-typedef struct janus_attribute_list
-{
-    size_t size; /*!< \brief Size of #attributes and #values. */
-    janus_attribute *attributes; /*!< \brief Array of #janus_attribute. */
-    double *values; /*!< \brief Array of corresponding attribute values. */
-} janus_attribute_list;
+JANUS_EXPORT janus_error janus_detect(const janus_image image,
+                                      janus_attributes *attributes_array,
+                                      const size_t num_requested,
+                                      size_t *num_actual);
 
 /*!
  * \brief Call once at the start of the application, before making any other
@@ -457,8 +491,7 @@ JANUS_EXPORT janus_error janus_finalize();
  * \brief Contains the recognition information for an object.
  *
  * Create a new template with \ref janus_allocate_template.
- * Add images and videos to the template using \ref janus_augment and
- * \ref janus_track.
+ * Add images and videos to the template using \ref janus_augment.
  * Finalize the template for comparison with \ref janus_flatten_template.
  * \see janus_flat_template
  */
@@ -486,37 +519,31 @@ JANUS_EXPORT janus_error janus_allocate_template(janus_template *template_);
 /*!
  * \brief Add an image to the template.
  *
- * For video frames, call \ref janus_track first.
+ * The \p attributes should be provided from a prior call to \ref janus_detect.
+ * As a special case, if janus_attributes::frame_rate is greater than zero, the
+ * \p image should be treated as the first frame in a video sequence. Subsequent
+ * calls to this function may then pass \c NULL for \p attributes, in which case
+ * the implementation should use the \p attributes from a previous call to this
+ * function as the seed for tracking, or as a prior for localizing the object
+ * in the current frame. In this way, \ref janus_detect need only be called once
+ * for videos, at the start of the frame sequence.
+ *
+ * This function may write to \p attributes, reflecting additional information
+ * gained during augmentation.
  *
  * Augmented templates can then be passed to \ref janus_flatten_template for
  * verification or \ref janus_enroll for gallery construction.
  *
  * \param[in] image The image containing the detected object to be recognized.
- * \param[in] attributes Location and metadata associated with the detected
- *                       object to recognize.
+ * \param[in,out] attributes Location and metadata associated with a single
+ *                          detected object to recognize.
  * \param[in,out] template_ The template to contain the object's recognition
  *                          information.
  * \remark This function is \ref reentrant.
  */
 JANUS_EXPORT janus_error janus_augment(const janus_image image,
-                                       const janus_attribute_list attributes,
+                                       janus_attributes *attributes,
                                        janus_template template_);
-
-/*!
- * \brief Enable or disable object tracking for the template.
- *
- * Call this function before the first, and after the last, video frame is added
- * with \ref janus_augment.
- *
- * \param[in] template_ The template to contain the tracked object.
- * \param[in] enabled If true, images provided in subsequent calls to
- *                    \ref janus_augment with template_ are sequential frames in
- *                    a video.
- * \remark This function is \ref reentrant.
- * \see janus_augment
- */
-JANUS_EXPORT janus_error janus_track(janus_template template_,
-                                     int enabled);
 
 /*!
  * \brief Free memory for a template previously allocated by
@@ -640,6 +667,11 @@ typedef janus_data *janus_flat_gallery;
  * The implementation may assume that multiple templates with the same
  * \p template_id belong to the same identity.
  *
+ * \section gallery_size Gallery Size
+ * Several functions depend on the notion of a "gallery size". The \em size of
+ * a \p gallery is the number of templates in it, which is equal to the number
+ * of calls made to \ref janus_enroll with it.
+ *
  * \param[in] template_ The template to add.
  * \param[in] template_id A unique identifier for the template.
  * \param[in] gallery The gallery to take ownership of the template.
@@ -667,11 +699,7 @@ JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
  *                    finalized gallery from.
  * \param[in,out] flat_gallery A pre-allocated buffer provided by the calling
  *                             application no smaller than
- *                             \ref janus_max_template_size * \a gallery_size
- *                             to contain the finalized gallery. \a gallery_size
- *                             is the number of templates in \a gallery, which
- *                             is equal to the number of calls made to
- *                             \ref janus_enroll with \a gallery.
+ *                             \ref janus_max_template_size * \ref gallery_size.
  * \param[out] bytes Size of the buffer actually used to store the gallery.
  * \remark This function is \ref reentrant.
  */
@@ -687,21 +715,23 @@ JANUS_EXPORT janus_error janus_flatten_gallery(const janus_gallery gallery,
  * less than or equal to requested_returns, depending on the contents of the
  * gallery.
  *
- * The returned \p similarities \em may be normalized by the implementation based on the contents of the \p gallery.
- * Therefore, similarity scores returned from searches against different galleries are \em not guaranteed to be comparable.
+ * The returned \p similarities \em may be normalized by the implementation
+ * based on the contents of the \p gallery. Therefore, similarity scores
+ * returned from searches against different galleries are \em not guaranteed to
+ * be comparable.
  *
- * \param [in] probe Probe to search for.
- * \param [in] probe_bytes Size of probe.
- * \param [in] gallery Gallery to search against.
- * \param [in] gallery_bytes Size of gallery.
- * \param [in] num_requested_returns The desired number of returned results.
- * \param [out] template_ids Buffer to contain the \ref janus_template_id of the
- *                           top matching gallery templates.
- * \param [out] similarities Buffer to contain the similarity scores of the top
- *                           matching templates.
- * \param [out] num_actual_returns The number of populated elements in
- *                                 template_ids and similarities. This value
- *                                 could be zero.
+ * \param[in] probe Probe to search for.
+ * \param[in] probe_bytes Size of probe.
+ * \param[in] gallery Gallery to search against.
+ * \param[in] gallery_bytes Size of gallery.
+ * \param[in] num_requested_returns The desired number of returned results.
+ * \param[out] template_ids Buffer to contain the \ref janus_template_id of the
+ *                          top matching gallery templates.
+ * \param[out] similarities Buffer to contain the similarity scores of the top
+ *                          matching templates.
+ * \param[out] num_actual_returns The number of populated elements in
+ *                                template_ids and similarities. This value
+ *                                could be zero.
  * \remark This function is \ref thread_safe.
  * \see janus_verify
  */
@@ -709,11 +739,46 @@ JANUS_EXPORT janus_error janus_search(const janus_flat_template probe,
                                       const size_t probe_bytes,
                                       const janus_flat_gallery gallery,
                                       const size_t gallery_bytes,
-                                      const int num_requested_returns,
+                                      const size_t num_requested_returns,
                                       janus_template_id *template_ids,
                                       float *similarities,
-                                      int *num_actual_returns);
+                                      size_t *num_actual_returns);
 
+/*!
+ * \brief Cluster a gallery into a set of identities.
+ *
+ * The output of this function is two arrays, \p template_ids and \p cluster_ids
+ * of equal length, serving as a mapping between templates and clusters.
+ *
+ * \section clustering_hint Clustering Hint
+ * Clustering is generally considered to be an ill-defined problem, and most
+ * algorithms require some help determining the appropriate number of clusters.
+ * The \p hint parameter helps influence the number of clusters, though the
+ * implementation is free to ignore it.
+ * - If \p hint is in the range [-1, 1] then it is a clustering
+ * \em aggressiveness, with \c -1 favoring more clusters (fewer templates per
+ * cluster), and \c 1 favoring fewer clusters (more templates per cluster).
+ * - If \p hint is greater than 1 then it is a clustering \em count, indicating
+ * the suggested number of clusters.
+ * - The suggested default value for \p hint is \c 0.
+ *
+ * \note The implementation of this function is optional, and may return
+ *       #JANUS_NOT_IMPLEMENTED.
+ *
+ * \param[in] gallery The gallery to cluster.
+ * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
+ * \param[out] template_ids A pre-allocated array provided by the calling
+ *                          application large enough to hold \ref gallery_size
+ *                          elements.
+ * \param[out] cluster_ids A pre-allocated array provided by the calling
+ *                         application large enough to hold \red gallery_size
+ *                         elements.
+ * \remark This function is \ref thread_safe.
+ */
+JANUS_EXPORT janus_error janus_cluster(const janus_flat_gallery gallery,
+                                       const double hint,
+                                       janus_template_id *template_ids,
+                                       int *cluster_ids);
 /*! @}*/
 
 #ifdef __cplusplus
