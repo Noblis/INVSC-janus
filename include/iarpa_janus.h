@@ -621,96 +621,81 @@ JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
                                       float *similarity);
 
 /*!
- * \brief Unique identifier for a \ref janus_template.
+ * \brief Unique identifier for a \ref janus_flat_template.
  *
- * Associate a template with a unique id using \ref janus_enroll.
- * Retrieve the unique id from a search using \ref janus_search.
+ * Associate a template with a unique identifier during
+ * \ref janus_create_gallery.
+ * Retrieve the unique identifier from \ref janus_search and \ref janus_cluster.
  */
-typedef int janus_template_id;
+typedef size_t janus_template_id;
 
 /*!
- * \brief A set of \ref janus_template.
+ * \brief Galleries are represented in persistent storage as folders on disk.
  *
- * Can be extended with additional templates using \ref janus_enroll.
+ * A \ref janus_gallery_path is the path to the gallery folder.
+ * It is created by \ref janus_create_gallery and accessed by
+ * \ref janus_open_gallery.
+ */
+typedef const char *janus_gallery_path;
+
+/*!
+ * \brief Construct a gallery on disk.
+ *
+ * Access the constructed gallery with \ref janus_open_gallery.
+ *
+ * \note The caller is advised to memory map \p templates in the event that they
+ * approach or exceed the available system memory.
+ *
+ * \param[in] templates Array of templates to comprise the gallery.
+ * \param[in] templates_bytes Array of sizes for each template.
+ * \param[in] template_ids Array of \ref janus_template_id for each template.
+ * \param[in] num_templates Length of \p templates, \p templates_bytes, and
+ *                          \p template_ids.
+ * \param[in] gallery_path Path to an empty read-write folder to store the
+ *                         gallery.
+ * \remark This function is \ref reentrant.
+ */
+JANUS_EXPORT janus_error janus_create_gallery(const janus_flat_template
+                                                                     *templates,
+                                              const size_t *templates_bytes,
+                                              const janus_template_id
+                                                                  *template_ids,
+                                              const size_t num_templates,
+                                              janus_gallery_path gallery_path);
+
+/*!
+ * \brief An opaque reference to a \ref janus_gallery_path.
+ *
+ * Initialize with \ref janus_open_gallery and free with
+ * \ref janus_close_gallery.
+ * Used to perform searches with \ref janus_search and clustering with
+ * \ref janus_cluster.
  */
 typedef struct janus_gallery_type *janus_gallery;
 
 /*!
- * \brief Initialize a gallery from a folder on disk.
+ * \brief Initialize a gallery from a folder created previously with
+ *        \ref janus_create_gallery.
  *
  * Janus galleries are stored as folders on disk and accessed using the opaque
  * \ref janus_gallery type.
- * If \p path points to an empty folder, the implementation will construct a new
- * gallery.
- * Otherwise, the implementation will assume that the folder represents a
- * previously constructed gallery.
+ * Close the gallery when it is no longer needed with \ref janus_close_gallery.
  *
- * Add templates to the gallery with \ref janus_enroll.
- *
- * \param[in] path Folder to store the gallery contents.
+ * \param[in] gallery_path Read-only folder populated by a previous call to
+ *                         \ref janus_create_gallery.
  * \param[out] gallery Pointer to an uninitialized gallery.
  * \remark This function is \ref reentrant.
- * \see janus_close_gallery
  */
-JANUS_EXPORT janus_error janus_open_gallery(const char *path,
+JANUS_EXPORT janus_error janus_open_gallery(janus_gallery_path gallery_path,
                                             janus_gallery *gallery);
 
 /*!
- * \brief Free memory for a gallery previously allocated by
- * \ref janus_open_gallery and save any remaining contents to disk.
- *
- * Call this function on a gallery to save its contents before terminating the
- * application.
- * Memory associated with \p gallery will be freed.
+ * \brief Free a gallery previously initialized by \ref janus_open_gallery.
  *
  * \param[in] gallery The gallery to close.
  * \remark This function is \ref reentrant.
- * \see janus_open_gallery
  */
  JANUS_EXPORT janus_error janus_close_gallery(janus_gallery gallery);
-
-/*!
- * \brief Add a template to the gallery.
- *
- * Use \ref janus_prepare followed by \ref janus_search to search the gallery.
- *
- * It is up to the calling application to provide unique \p template_id values.
- * The implementation may assume that multiple templates with the same
- * \p template_id belong to the same identity.
- *
- * \param[in] template_ The template to add.
- * \param[in] template_id A unique identifier for the template.
- * \param[in] gallery The gallery to take ownership of the template.
- * \remark This function is \ref reentrant.
- */
-JANUS_EXPORT janus_error janus_enroll(const janus_template template_,
-                                      const janus_template_id template_id,
-                                      janus_gallery gallery);
-
-/*!
- * \brief Retrieve the gallery size.
- *
- * Several functions depend on the notion of a "gallery size".
- * The \em size of a \p gallery is the number of searchable templates in it.
- * This is generally equal to the number of successful calls made to
- * \ref janus_enroll prior to \ref janus_prepare.
- *
- * \param[in] gallery The gallery to retrieve the size of.
- * \param[out] size The number of searchable templates in \p gallery.
- */
-JANUS_EXPORT janus_error janus_gallery_size(const janus_gallery gallery,
-                                            size_t *size);
-
-/*!
- * \brief Index the gallery for search with \ref janus_search.
- *
- * This function must be called before \ref janus_search after adding new
- * template(s) with \ref janus_enroll.
- * \param[in] gallery The recognition information to construct the
- *                    finalized gallery from.
- * \remark This function is \ref reentrant.
- */
-JANUS_EXPORT janus_error janus_prepare(janus_gallery gallery);
 
 /*!
  * \brief Ranked search for a template against a gallery.
@@ -765,17 +750,21 @@ JANUS_EXPORT janus_error janus_search(const janus_flat_template probe,
  * the suggested number of clusters.
  * - The suggested default value for \p hint is \c 0.
  *
+ * \section gallery_size Gallery Size
+ * The size of the gallery is number of templates passed to
+ * \ref janus_create_gallery.
+ *
  * \note The implementation of this function is optional, and may return
  *       #JANUS_NOT_IMPLEMENTED.
  *
  * \param[in] gallery The gallery to cluster.
  * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
  * \param[out] template_ids A pre-allocated array provided by the calling
- *                          application large enough to hold
- *                          \ref janus_gallery_size elements.
+ *                          application large enough to hold \ref gallery_size
+ *                          elements.
  * \param[out] cluster_ids A pre-allocated array provided by the calling
- *                         application large enough to hold
- *                         \ref janus_gallery_size elements.
+ *                         application large enough to hold \ref gallery_size
+ *                         elements.
  * \remark This function is \ref thread_safe.
  */
 JANUS_EXPORT janus_error janus_cluster(const janus_gallery gallery,
