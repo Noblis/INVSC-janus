@@ -1,4 +1,4 @@
-// These file is designed to have no dependencies outside the C++ Standard Library
+// This file is designed to have no dependencies outside the C++ Standard Library
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -35,6 +35,7 @@ const char *janus_error_to_string(janus_error error)
         ENUM_CASE(MISSING_FILE_NAME)
         ENUM_CASE(NULL_ATTRIBUTES)
         ENUM_CASE(MISSING_ATTRIBUTES)
+        ENUM_CASE(FAILURE_TO_DETECT)
         ENUM_CASE(FAILURE_TO_ENROLL)
         ENUM_CASE(NUM_ERRORS)
         ENUM_CASE(NOT_IMPLEMENTED)
@@ -58,6 +59,7 @@ janus_error janus_error_from_string(const char *error)
     ENUM_COMPARE(MISSING_FILE_NAME, error)
     ENUM_COMPARE(NULL_ATTRIBUTES, error)
     ENUM_COMPARE(MISSING_ATTRIBUTES, error)
+    ENUM_COMPARE(FAILURE_TO_DETECT, error)
     ENUM_COMPARE(FAILURE_TO_ENROLL, error)
     ENUM_COMPARE(NUM_ERRORS, error)
     ENUM_COMPARE(NOT_IMPLEMENTED, error)
@@ -66,6 +68,7 @@ janus_error janus_error_from_string(const char *error)
 
 // For computing metrics
 static vector<double> janus_initialize_template_samples;
+static vector<double> janus_detection_samples;
 static vector<double> janus_augment_samples;
 static vector<double> janus_finalize_template_samples;
 static vector<double> janus_finalize_gallery_samples;
@@ -76,6 +79,7 @@ static vector<double> janus_template_size_samples;
 static vector<double> janus_gallery_size_samples;
 static vector<double> janus_search_samples;
 static int janus_missing_attributes_count = 0;
+static int janus_failure_to_detect_count = 0;
 static int janus_failure_to_enroll_count = 0;
 static int janus_other_errors_count = 0;
 
@@ -90,12 +94,63 @@ static void _janus_add_sample(vector<double> &samples, double sample)
 
 #endif // JANUS_CUSTOM_ADD_SAMPLE
 
+struct Rectangle
+{
+    double x, y, width, height;
+
+    Rectangle()
+        : x(0), y(0), width(0), height(0) {}
+    Rectangle(double x_, double y_, double width_, double height_)
+        : x(x_), y(y_), width(width_), height(height_) {}
+    Rectangle(const Rectangle &other)
+        : x(other.x), y(other.y), width(other.width), height(other.height) {}
+
+    Rectangle& operator=(const Rectangle &rhs)
+    {
+        x = rhs.x;
+        y = rhs.y;
+        width = rhs.width;
+        height = rhs.height;
+        return *this;
+    }
+
+    Rectangle intersected(const Rectangle &other) const
+    {
+        double x_min = max(x, other.x);
+        double x_max = min(x+width, other.x+other.width);
+        if (x_max > x_min) {
+            double y_min = max(y, other.y);
+            double y_max = min(y+height, other.y+other.height);
+            if (y_max > y_min)
+                return Rectangle(x_min, y_min, x_max-x_min, y_max-y_min);
+        }
+        return Rectangle();
+    }
+
+    double area() const { return width * height; }
+    double overlap (const Rectangle &other) const
+    {
+        const Rectangle intersection(intersected(other));
+        return intersection.area() / (area() + other.area() - intersection.area());
+    }
+};
+
 struct TemplateData
 {
     vector<string> fileNames;
     vector<janus_template_id> templateIDs;
     map<janus_template_id, int> subjectIDLUT;
-    vector<janus_attribute_list> attributeLists;
+    vector<janus_attributes*> attributeLists;
+
+    void release()
+    {
+        fileNames.clear();
+        templateIDs.clear();
+        subjectIDLUT.clear();
+        for (size_t j=0; j<attributeLists.size(); j++)
+            delete attributeLists[j];
+        attributeLists.clear();
+    }
 };
 
 struct TemplateIterator : public TemplateData
@@ -116,11 +171,9 @@ struct TemplateIterator : public TemplateData
         getline(attributeNames, attributeName, ','); // TEMPLATE_ID
         getline(attributeNames, attributeName, ','); // SUBJECT_ID
         getline(attributeNames, attributeName, ','); // FILE_NAME
-        vector<janus_attribute> attributes;
-        while (getline(attributeNames, attributeName, ',')) {
-            attributeName.erase(remove_if(attributeName.begin(), attributeName.end(), ::isspace), attributeName.end());
-            attributes.push_back(janus_attribute_from_string(attributeName.c_str()));
-        }
+        vector<string> header;
+        while (getline(attributeNames, attributeName, ','))
+            header.push_back(attributeName);
 
         // Parse rows
         while (getline(file, line)) {
@@ -133,21 +186,51 @@ struct TemplateIterator : public TemplateData
             subjectIDLUT.insert(pair<janus_template_id,int>(atoi(templateID.c_str()), atoi(subjectID.c_str())));
             fileNames.push_back(fileName);
 
-            // Construct attribute list, removing missing fields
-            janus_attribute_list attributeList;
-            attributeList.size = 0;
-            attributeList.attributes = new janus_attribute[attributes.size()];
-            attributeList.values = new double[attributes.size()];
+            // Construct attribute list
+            janus_attributes *attributes = new janus_attributes;
             for (int j=0; getline(attributeValues, attributeValue, ','); j++) {
-                if (attributeValue.empty())
-                    continue;
-                attributeList.attributes[attributeList.size] = attributes[j];
-                attributeList.values[attributeList.size] = atof(attributeValue.c_str());
-                attributeList.size++;
+                double value = attributeValue.empty() ? NAN : atof(attributeValue.c_str());
+                if (header[j].compare(string("FRAME_RATE")) == 0)
+                    attributes->frame_rate = value;
+                else if (header[j].compare(string("FACE_X")) == 0)
+                    attributes->face_x = value;
+                else if (header[j].compare(string("FACE_Y")) == 0)
+                    attributes->face_y = value;
+                else if (header[j].compare(string("FACE_WIDTH")) == 0)
+                    attributes->face_width = value;
+                else if (header[j].compare(string("FACE_HEIGHT")) == 0)
+                    attributes->face_height = value;
+                else if (header[j].compare(string("RIGHT_EYE_X")) == 0)
+                    attributes->right_eye_x = value;
+                else if (header[j].compare(string("RIGHT_EYE_Y")) == 0)
+                    attributes->right_eye_y = value;
+                else if (header[j].compare(string("LEFT_EYE_X")) == 0)
+                    attributes->left_eye_x = value;
+                else if (header[j].compare(string("LEFT_EYE_Y")) == 0)
+                    attributes->left_eye_y = value;
+                else if (header[j].compare(string("NOSE_BASE_X")) == 0)
+                    attributes->nose_base_x = value;
+                else if (header[j].compare(string("NOSE_BASE_Y")) == 0)
+                    attributes->nose_base_y = value;
+                else if (header[j].compare(string("FACE_YAW")) == 0)
+                    attributes->face_yaw = value;
+                else if (header[j].compare(string("FOREHEAD_VISIBLE")) == 0)
+                    attributes->forehead_visible = value;
+                else if (header[j].compare(string("EYES_VISIBLE")) == 0)
+                    attributes->eyes_visible = value;
+                else if (header[j].compare(string("NOSE_MOUTH_VISIBLE")) == 0)
+                    attributes->nose_mouth_visible = value;
+                else if (header[j].compare(string("INDOOR")) == 0)
+                    attributes->indoor = value;
+                else if (header[j].compare(string("GENDER")) == 0)
+                    attributes->gender = value;
+                else if (header[j].compare(string("SKIN_TONE")) == 0)
+                    attributes->skin_tone = value;
+                else if (header[j].compare(string("AGE")) == 0)
+                    attributes->age = value;
             }
-            attributeLists.push_back(attributeList);
+            attributeLists.push_back(attributes);
         }
-
         if (verbose)
             fprintf(stderr, "\rEnrolling %zu/%zu", i, attributeLists.size());
     }
@@ -162,7 +245,9 @@ struct TemplateIterator : public TemplateData
             while ((i < attributeLists.size()) && (templateIDs[i] == templateID)) {
                 templateData.templateIDs.push_back(templateIDs[i]);
                 templateData.fileNames.push_back(fileNames[i]);
-                templateData.attributeLists.push_back(attributeLists[i]);
+                janus_attributes *attributes = new janus_attributes;
+                memcpy(attributes, attributeLists[i], sizeof(janus_attributes));
+                templateData.attributeLists.push_back(attributes);
                 i++;
             }
             if (verbose)
@@ -177,15 +262,53 @@ struct TemplateIterator : public TemplateData
         JANUS_CHECK(janus_allocate_template(template_))
         _janus_add_sample(janus_initialize_template_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
+        const size_t num_requested_detections = 10;
         for (size_t i=0; i<templateData.templateIDs.size(); i++) {
+            janus_attributes *attributes = new janus_attributes;
+            memcpy(attributes, templateData.attributeLists[i], sizeof(janus_attributes));
+
             janus_image image;
 
             start = clock();
             JANUS_ASSERT(janus_read_image((data_path + templateData.fileNames[i]).c_str(), &image))
             _janus_add_sample(janus_read_image_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
+            size_t num_actual_detections = 0;
+            janus_attributes *attributes_array = new janus_attributes[num_requested_detections];
+
             start = clock();
-            const janus_error error = janus_augment(image, templateData.attributeLists[i], *template_);
+            janus_error error = janus_detect(image, attributes_array, num_requested_detections, &num_actual_detections);
+            _janus_add_sample(janus_detection_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+            if (error == JANUS_FAILURE_TO_DETECT || num_actual_detections == 0) {
+                janus_failure_to_detect_count++;
+                if (verbose)
+                    printf("Failure to detect face in %s\n", templateData.fileNames[i].c_str());
+            } else if (error != JANUS_SUCCESS) {
+                janus_other_errors_count++;
+                printf("Warning: %s on: %s\n", janus_error_to_string(error),templateData.fileNames[i].c_str());
+            } else {
+                double overlap = 0.5;
+                Rectangle truth(attributes->face_x, attributes->face_y, attributes->face_width, attributes->face_height);
+                for (size_t j=0; j<min(num_requested_detections, num_actual_detections); j++) {
+                    Rectangle detected(attributes_array[j].face_x, attributes_array[j].face_y, attributes_array[j].face_width, attributes_array[j].face_height);
+                    if (detected.overlap(truth) > overlap) {
+                        overlap = detected.overlap(truth);
+                        attributes->face_x = detected.x;
+                        attributes->face_y = detected.y;
+                        attributes->face_width = detected.width;
+                        attributes->face_height = detected.height;
+                    }
+                }
+                if (overlap == 0.5) {
+                    janus_failure_to_detect_count++;
+                    if (verbose)
+                        printf("Failure to detect face in %s\n", templateData.fileNames[i].c_str());
+                }
+            }
+            delete[] attributes_array;
+
+            start = clock();
+            error = janus_augment(image, attributes, *template_);
             if (error == JANUS_MISSING_ATTRIBUTES) {
                 janus_missing_attributes_count++;
                 if (verbose)
@@ -203,11 +326,15 @@ struct TemplateIterator : public TemplateData
             start = clock();
             janus_free_image(image);
             _janus_add_sample(janus_free_image_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
+            delete attributes;
         }
 
         *templateID = templateData.templateIDs[0];
         return JANUS_SUCCESS;
     }
+
+    ~TemplateIterator() { release(); }
 };
 
 janus_error janus_create_template(const char *data_path, janus_metadata metadata, janus_template *template_, janus_template_id *template_id)
@@ -237,6 +364,7 @@ janus_error janus_create_templates(const char *data_path, janus_metadata metadat
         file.write((char*)flat_template_, bytes);
 
         delete[] flat_template_;
+        templateData.release();
         templateData = ti.next();
     }
     file.close();
@@ -256,7 +384,7 @@ janus_error janus_create_gallery(const char *data_path, janus_metadata metadata,
     while (!templateData.templateIDs.empty()) {
         JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID, verbose))
         JANUS_CHECK(janus_enroll(template_, templateID, gallery))
-        JANUS_CHECK(janus_free_template(template_))
+        templateData.release();
         templateData = ti.next();
     }
     return JANUS_SUCCESS;
@@ -354,7 +482,7 @@ janus_data* janus_read_templates(const char *template_file, size_t *bytes)
     return templates;
 }
 
-janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, int num_requested_returns)
+janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns)
 {
     TemplateData targetMetadata = TemplateIterator(target_metadata, false);
     TemplateData queryMetadata = TemplateIterator(query_metadata, false);
@@ -371,7 +499,7 @@ janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes
     while (q_templates < query_templates + query_bytes) {
         janus_template_id *template_ids = new janus_template_id[num_requested_returns];
         float *similarities = new float[num_requested_returns];
-        int num_actual_returns;
+        size_t num_actual_returns;
 
         janus_template_id query_template_id = *reinterpret_cast<janus_template_id*>(q_templates);
         q_templates += sizeof(query_template_id);
@@ -391,7 +519,7 @@ janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes
             int diff = num_requested_returns - num_actual_returns;
             memcpy(similarity_matrix, similarities, sizeof(float)*num_actual_returns);
             similarity_matrix += num_actual_returns;
-            for (int i=num_actual_returns; i<num_requested_returns; i++) {
+            for (size_t i=num_actual_returns; i<num_requested_returns; i++) {
                 similarity_matrix[num_queries*num_requested_returns+i] = -std::numeric_limits<float>::max();
             }
             similarity_matrix += diff;
@@ -399,7 +527,7 @@ janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes
             memcpy(similarity_matrix, similarities, sizeof(float)*num_actual_returns);
             similarity_matrix += num_actual_returns;
         }
-        for (int j=0; j<num_requested_returns; j++) {
+        for (size_t j=0; j<num_requested_returns; j++) {
             if (j<num_actual_returns) {
                 truth[num_queries*num_requested_returns+j] = (queryMetadata.subjectIDLUT[query_template_id] == targetMetadata.subjectIDLUT[template_ids[j]] ? 0xff : 0x7f);
             } else {
@@ -515,6 +643,7 @@ janus_metrics janus_get_metrics()
 {
     janus_metrics metrics;
     metrics.janus_initialize_template_speed = calculateMetric(janus_initialize_template_samples);
+    metrics.janus_detection_speed           = calculateMetric(janus_detection_samples);
     metrics.janus_augment_speed             = calculateMetric(janus_augment_samples);
     metrics.janus_finalize_template_speed   = calculateMetric(janus_finalize_template_samples);
     metrics.janus_read_image_speed          = calculateMetric(janus_read_image_samples);
@@ -525,6 +654,7 @@ janus_metrics janus_get_metrics()
     metrics.janus_search_speed              = calculateMetric(janus_search_samples);
     metrics.janus_template_size             = calculateMetric(janus_template_size_samples);
     metrics.janus_missing_attributes_count  = janus_missing_attributes_count;
+    metrics.janus_failure_to_detect_count   = janus_failure_to_detect_count;
     metrics.janus_failure_to_enroll_count   = janus_failure_to_enroll_count;
     metrics.janus_other_errors_count        = janus_other_errors_count;
     return metrics;
@@ -540,6 +670,7 @@ void janus_print_metrics(janus_metrics metrics)
 {
     printf(     "API Symbol               \tMean\tStdDev\tUnits\tCount\n");
     printMetric("janus_initialize_template", metrics.janus_initialize_template_speed);
+    printMetric("janus_detect             ", metrics.janus_detection_speed);
     printMetric("janus_augment            ", metrics.janus_augment_speed);
     printMetric("janus_finalize_template  ", metrics.janus_finalize_template_speed);
     printMetric("janus_read_image         ", metrics.janus_read_image_speed);
@@ -552,6 +683,7 @@ void janus_print_metrics(janus_metrics metrics)
     printf("\n\n");
     printf("janus_error             \tCount\n");
     printf("JANUS_MISSING_ATTRIBUTES\t%d\n", metrics.janus_missing_attributes_count);
+    printf("JANUS_FAILURE_TO_DETECT \t%d\n", metrics.janus_failure_to_detect_count);
     printf("JANUS_FAILURE_TO_ENROLL \t%d\n", metrics.janus_failure_to_enroll_count);
     printf("All other errors        \t%d\n", metrics.janus_other_errors_count);
 }

@@ -182,6 +182,8 @@ typedef enum janus_error
     JANUS_NULL_ATTRIBUTES    , /*!< Null #janus_attributes */
     JANUS_MISSING_ATTRIBUTES , /*!< Not all required attributes were
                                     provided */
+    JANUS_FAILURE_TO_DETECT  , /*!< Could not localize a face within the
+                                    provided image */
     JANUS_FAILURE_TO_ENROLL  , /*!< Could not construct a template from the
                                     provided image and attributes */
     JANUS_NOT_IMPLEMENTED    , /*!< Optional functions may return this value in
