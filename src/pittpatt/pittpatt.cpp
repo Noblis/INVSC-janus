@@ -138,10 +138,19 @@ janus_image crop(const janus_image src, const janus_attributes *attributes)
     const unsigned long src_elements_per_row = src.width * channels;
 
     for (size_t i=0; i<dst.height; i++)
-        memcpy(dst.data + i*dst_elements_per_row, src.data + src_elements_per_row * (x + i) + channels*x, dst_elements_per_row);
+        memcpy(dst.data + i*dst_elements_per_row, src.data + src_elements_per_row * (y + i) + channels*x, dst_elements_per_row);
 
     return dst;
 }
+
+struct sort_first_greater {
+    bool operator()(const std::pair<float,janus_template_id> &left, const std::pair<float,janus_template_id> &right) {
+        return left.first > right.first;
+    }
+    bool operator()(const std::pair<float,ppr_face_attributes_type> &left, const std::pair<float,ppr_face_attributes_type> &right) {
+        return left.first > right.first;
+    }
+};
 
 janus_error janus_detect(const janus_image image, janus_attributes *attributes_array, const size_t num_requested, size_t *num_actual)
 {
@@ -155,16 +164,24 @@ janus_error janus_detect(const janus_image image, janus_attributes *attributes_a
     if (face_list.length == 0)
         return JANUS_FAILURE_TO_DETECT;
 
-    size_t count = 0;
+    vector<pair<float, ppr_face_attributes_type> > face_confidences;
     for (size_t i=0; i<*num_actual; i++) {
         ppr_face_type face = face_list.faces[i];
         ppr_face_attributes_type face_attributes;
         JANUS_TRY_PPR(ppr_get_face_attributes(face, &face_attributes))
-        attributes_array->face_x = face_attributes.position.x - face_attributes.dimensions.width/2;
-        attributes_array->face_y = face_attributes.position.y - face_attributes.dimensions.height/2;
-        attributes_array->face_width = face_attributes.dimensions.width;
-        attributes_array->face_height = face_attributes.dimensions.height;
-        attributes_array->detection_confidence = face_attributes.confidence;
+        face_confidences.push_back(pair<float, ppr_face_attributes_type>(face_attributes.confidence, face_attributes));
+    }
+
+    // Sort by confidence, descending
+    sort(face_confidences.begin(), face_confidences.end(), sort_first_greater());
+
+    size_t count = 0;
+    for (size_t i=0; i<face_confidences.size(); i++) {
+        attributes_array->face_x = face_confidences[i].second.position.x - face_confidences[i].second.dimensions.width/2;
+        attributes_array->face_y = face_confidences[i].second.position.y - face_confidences[i].second.dimensions.height/2;
+        attributes_array->face_width = face_confidences[i].second.dimensions.width;
+        attributes_array->face_height = face_confidences[i].second.dimensions.height;
+        attributes_array->detection_confidence = face_confidences[i].first;
         attributes_array++;
         if (++count >= num_requested)
             break;
@@ -190,9 +207,11 @@ janus_error janus_augment(const janus_image image, janus_attributes *attributes,
 
         int extractable;
         ppr_is_template_extractable(ppr_context, face, &extractable);
-        if (extractable)
+        if (extractable) {
+            // Only extract a single face template
             ppr_extract_face_template(ppr_context, ppr_image, &face);
             break;
+        }
     }
 
     template_->ppr_face_lists.push_back(face_list);
@@ -336,12 +355,6 @@ janus_error janus_enroll(const janus_template template_, const janus_template_id
 
     return JANUS_SUCCESS;
 }
-
-struct sort_first_greater {
-    bool operator()(const std::pair<float,janus_template_id> &left, const std::pair<float,janus_template_id> &right) {
-        return left.first > right.first;
-    }
-};
 
 janus_error janus_flatten_gallery(const janus_gallery gallery, janus_flat_gallery flat_gallery, size_t *bytes)
 {
