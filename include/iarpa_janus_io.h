@@ -219,7 +219,7 @@ JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, i
  * \param[in] mask Mask matrix file to be created.
  * \param[in] num_requested_returns Desired number of returned results for each call to janus_search.
  */
-JANUS_EXPORT janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, int num_requested_returns);
+JANUS_EXPORT janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns);
 
 /*!
  * \brief Create similarity and mask matricies from two galleries with calls to janus_verify.
@@ -252,6 +252,7 @@ struct janus_metric
 struct janus_metrics
 {
     struct janus_metric janus_initialize_template_speed; /*!< \brief ms */
+    struct janus_metric janus_detection_speed; /*!< \brif ms */
     struct janus_metric janus_augment_speed; /*!< \brief ms */
     struct janus_metric janus_finalize_template_speed; /*!< \brief ms */
     struct janus_metric janus_read_image_speed; /*!< \brief ms */
@@ -262,6 +263,7 @@ struct janus_metrics
     struct janus_metric janus_finalize_gallery_speed; /*!< \brief ms */
     struct janus_metric janus_template_size; /*!< \brief KB */
     int          janus_missing_attributes_count; /*!< \brief Count of \ref JANUS_MISSING_ATTRIBUTES */
+    int          janus_failure_to_detect_count; /*!< \brief Count of \ref JANUS_FAILURE_TO_DETECT */
     int          janus_failure_to_enroll_count; /*!< \brief Count of \ref JANUS_FAILURE_TO_ENROLL */
     int          janus_other_errors_count; /*!< \brief Count of \ref janus_error excluding \ref JANUS_MISSING_ATTRIBUTES, \ref JANUS_FAILURE_TO_ENROLL, and \ref JANUS_SUCCESS */
 };
@@ -279,20 +281,17 @@ JANUS_EXPORT void janus_print_metrics(struct janus_metrics metrics);
 
 /*!
  * \page janus_enum Enum Naming Convention
- * #janus_attribute, #janus_color_space, #janus_error and enum values follow a
- * \c CAPITAL_CASE naming convention. Functions #janus_attribute_to_string and
- * #janus_error_to_string return a string for the corresponding enum by
+ * #janus_color_space, #janus_error and enum values follow a
+ * \c CAPITAL_CASE naming convention. Function #janus_error_to_string
+ * returns a string for the corresponding enum by
  * removing the leading \c JANUS_:
  * \code
- * janus_attribute_to_string(JANUS_RIGHT_EYE_X); // returns "RIGHT_EYE_X"
+ * janus_error_to_string(JANUS_FAILURE_TO_ENROLL); // returns "FAILURE_TO_ENROLL"
  * \endcode
- * Functions #janus_attribute_from_string and #janus_error_from_string provide
- * the opposite functionality:
+ * Function #janus_error_from_string provides the opposite functionality:
  * \code
- * janus_attribute_from_string("RIGHT_EYE_X"); // returns JANUS_RIGHT_EYE_X
+ * janus_error_from_string("FAILURE_TO_ENROLL"); // returns JANUS_FAILURE_TO_ENROLL
  * \endcode
- * \note #janus_attribute_from_string is used to decode #janus_metadata
- * files, so attribute column names should follow this naming convention.
  */
 
 #ifdef __cplusplus

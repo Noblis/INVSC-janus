@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
         }
 
     JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm))
-    int num_requested_returns = atoi(argv[9]);
+    size_t num_requested_returns = atoi(argv[9]);
 
     std::ifstream target;
     target.open(argv[3], std::ios::binary | std::ios::ate);
