@@ -36,8 +36,8 @@ extern "C" {
  * \mainpage
  * \section overview Overview
  *
- * *libjanus* is a *C* API for the IARPA Janus program consisting of three
- * header files:
+ * *libjanus* is a *C* API for the IARPA Janus program consisting of two header
+ * files:
  *
  * Header            | Documentation  | Required               | Description
  * ----------------- | -------------  | ---------------------- | -----------
@@ -120,21 +120,21 @@ extern "C" {
 
 /*!
  * \defgroup janus Janus
- * \brief Mandatory interface for Phase 2.
- *
- * All Janus performers should adhere to this interface.
+ * \brief Mandatory interface for Phase 2 of the Janus program.
  *
  * \section Overview
- * A Janus application begins with a call to \ref janus_initialize. New
- * templates are constructed with \ref janus_allocate_template and provided
- * image data with \ref janus_detect followed by \ref janus_augment. Templates
- * are freed after use with \ref janus_free_template.
+ * A Janus application begins with a call to \ref janus_initialize.
+ * New templates are constructed with \ref janus_allocate_template and provided
+ * image data with \ref janus_detect followed by \ref janus_augment.
+ * Templates are finalized prior to comparison with \ref janus_flatten_template,
+ * and freed after finalization with \ref janus_free_template.
  *
- * Templates can be used for verification with \ref janus_flatten_template and
- * \ref janus_verify, or search with \ref janus_enroll,
- * \ref janus_prepare and \ref janus_search.
+ * Finalized templates can be used for verification with \ref janus_verify, or
+ * search with \ref janus_search.
+ * Galleries are managed with \ref janus_write_gallery, \ref janus_open_gallery
+ * and \ref janus_close_gallery.
  *
- * All Janus applications end with a call to \ref janus_finalize.
+ * A Janus application ends with a call to \ref janus_finalize.
  *
  * \section thread_safety Thread Safety
  * All functions are marked one of:
@@ -148,11 +148,7 @@ extern "C" {
  *   Can not be called simultaneously from multiple threads.
  *
  * \section implementer_notes Implementer Notes
- * - Define \c JANUS_LIBRARY during compilation to export Janus symbols and
- *   compile a Unix implementation with \c \-fvisibility=hidden.
- * - Follow the <a href="http://www.pathname.com/fhs/">Filesystem Hierarchy
- *   Standard</a> by organizing the implementation into \c bin, \c include,
- *   \c lib, \c share and \c src sub-folders.
+ * Define \c JANUS_LIBRARY during compilation to export Janus symbols.
  *
  * \addtogroup janus
  * @{
@@ -218,14 +214,13 @@ janus_data get_intensity(janus_image image, size_t channel, size_t column,
                                                                      size_t row)
 {
     const size_t columnStep = (image.image_format == JANUS_COLOR ? 3 : 1);
-    const size_t rowStep = image.columns * columnStep;
-    const size_t index = row*rowStep + column*columnStep + channel;
+    const size_t index = row*image.step + column*columnStep + channel;
     return image.data[index];
 }
 \endcode
  *
- * (0, 0) corresponds to the top-left corner of the image.
- * (width-1, height-1) corresponds to the bottom-right corner of the image.
+ * Coordinate (0, 0) corresponds to the top-left corner of the image.
+ * Coordinate (width-1, height-1) corresponds to the bottom-right corner of the image.
  */
 typedef struct janus_image
 {
@@ -370,6 +365,7 @@ typedef struct janus_image
  * , are:
  *
  * | 0 - 19 | 20 - 34 | 35 - 49 | 50-64 | 65+ | Unknown |
+ * |--------|---------|---------|-------|-----|---------|
  * | 1      | 2       | 3       | 4     | 5   | 0       |
  *
  * If image quality is low, please take your best guess.
@@ -378,12 +374,14 @@ typedef struct janus_image
  * Skin tone is generalized into 6 categories described below, along with
  * their corresponding values in the #janus_metadata.
  *
- * | Light Pink-toned | Light Yellow-toned | Medium Pink/Brown-toned | Medium Yellow/Brown-toned | Medium-Dark Brown | Dark Brown |
- * | 1                | 2                  | 3                       | 4                         | 5                 | 6          |
+ * | Light Pink | Light Yellow | Medium Pink/Brown | Medium Yellow/Brown | Medium-Dark Brown | Dark Brown |
+ * |------------|--------------|-------------------|---------------------|-------------------|------------|
+ * | 1          | 2            | 3                 | 4                   | 5                 | 6          |
  *
  * \subsection facial_hair Facial Hair
  * For this task, there are four possible types of facial hair.  Select the facial hair type that is closest to the description below.
  * | No Facial Hair | Moustache | Goatee | Beard |
+ * |----------------|-----------|--------|-------|
  * | 0              | 1         | 2      | 3     |
  *
  */
@@ -499,8 +497,6 @@ JANUS_EXPORT janus_error janus_finalize();
  * \brief Contains the recognition information for an object.
  *
  * Create a new template with \ref janus_allocate_template.
- * Add images and videos to the template using \ref janus_augment.
- * Finalize the template for comparison with \ref janus_flatten_template.
  * \see janus_flat_template
  */
 typedef struct janus_template_type *janus_template;
@@ -540,7 +536,7 @@ JANUS_EXPORT janus_error janus_allocate_template(janus_template *template_);
  * gained during augmentation.
  *
  * Augmented templates can then be passed to \ref janus_flatten_template for
- * verification or \ref janus_enroll for gallery construction.
+ * verification or \ref janus_write_gallery for gallery construction.
  *
  * \param[in] image The image containing the detected object to be recognized.
  * \param[in,out] attributes Location and metadata associated with a single
@@ -567,7 +563,7 @@ JANUS_EXPORT janus_error janus_augment(const janus_image image,
 /*!
  * \brief A finalized representation of a template suitable for comparison.
  *
- * Ideally comparison should occur directly against the janus_flat_template.
+ * Ideally the comparison should occur without a memory copy.
  * Alternatively, the implementation may temporarily unmarshall this buffer into
  * a more suitable data structure.
  * \see janus_template
@@ -584,8 +580,8 @@ typedef janus_data *janus_flat_template;
 JANUS_EXPORT size_t janus_max_template_size();
 
 /*!
- * \brief Create a finalized template representation for verification with
- *        \ref janus_verify.
+ * \brief Create a finalized template representation for \ref janus_verify,
+ *        \ref janus_write_gallery or \ref janus_search.
  * \param[in] template_ The recognition information to construct the
  *                      finalized template from.
  * \param[in,out] flat_template A pre-allocated buffer provided by the calling
@@ -626,7 +622,7 @@ JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
  * \brief Unique identifier for a \ref janus_flat_template.
  *
  * Associate a template with a unique identifier during
- * \ref janus_create_gallery.
+ * \ref janus_write_gallery.
  * Retrieve the unique identifier from \ref janus_search and \ref janus_cluster.
  */
 typedef size_t janus_template_id;
@@ -635,7 +631,7 @@ typedef size_t janus_template_id;
  * \brief Galleries are represented in persistent storage as folders on disk.
  *
  * A \ref janus_gallery_path is the path to the gallery folder.
- * It is created by \ref janus_create_gallery and accessed by
+ * Galleries are created by \ref janus_write_gallery and accessed by
  * \ref janus_open_gallery.
  */
 typedef const char *janus_gallery_path;
@@ -657,7 +653,7 @@ typedef const char *janus_gallery_path;
  *                         gallery.
  * \remark This function is \ref reentrant.
  */
-JANUS_EXPORT janus_error janus_create_gallery(const janus_flat_template
+JANUS_EXPORT janus_error janus_write_gallery(const janus_flat_template
                                                                      *templates,
                                               const size_t *templates_bytes,
                                               const janus_template_id
@@ -666,7 +662,7 @@ JANUS_EXPORT janus_error janus_create_gallery(const janus_flat_template
                                               janus_gallery_path gallery_path);
 
 /*!
- * \brief An opaque reference to a \ref janus_gallery_path.
+ * \brief An opaque reference to a read-only \ref janus_gallery_path.
  *
  * Initialize with \ref janus_open_gallery and free with
  * \ref janus_close_gallery.
@@ -676,15 +672,15 @@ JANUS_EXPORT janus_error janus_create_gallery(const janus_flat_template
 typedef struct janus_gallery_type *janus_gallery;
 
 /*!
- * \brief Initialize a gallery from a folder created previously with
- *        \ref janus_create_gallery.
+ * \brief Initialize a gallery from a folder created in a previous call to
+ *        \ref janus_write_gallery.
  *
  * Janus galleries are stored as folders on disk and accessed using the opaque
  * \ref janus_gallery type.
  * Close the gallery when it is no longer needed with \ref janus_close_gallery.
  *
  * \param[in] gallery_path Read-only folder populated by a previous call to
- *                         \ref janus_create_gallery.
+ *                         \ref janus_write_gallery.
  * \param[out] gallery Pointer to an uninitialized gallery.
  * \remark This function is \ref reentrant.
  */
@@ -754,7 +750,7 @@ JANUS_EXPORT janus_error janus_search(const janus_flat_template probe,
  *
  * \section gallery_size Gallery Size
  * The size of the gallery is number of templates passed to
- * \ref janus_create_gallery.
+ * \ref janus_write_gallery.
  *
  * \note The implementation of this function is optional, and may return
  *       #JANUS_NOT_IMPLEMENTED.

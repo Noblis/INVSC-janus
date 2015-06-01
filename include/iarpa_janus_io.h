@@ -69,15 +69,15 @@ extern "C" {
 /*!
  * \brief #janus_error to string.
  * \param[in] error Error code to stringify.
- * \note Memory for the return value is managed internally and should not be
- *       freed.
- * \see janus_enum
+ * \note Memory for the return value is static and should not be freed.
+ * \remark This function is \ref thread_safe.
  */
 JANUS_EXPORT const char *janus_error_to_string(janus_error error);
 
 /*!
  * \brief #janus_error from string.
  * \param[in] error String to decode.
+ * \remark This function is \ref thread_safe.
  * \see janus_enum
  */
 JANUS_EXPORT janus_error janus_error_from_string(const char *error);
@@ -86,13 +86,16 @@ JANUS_EXPORT janus_error janus_error_from_string(const char *error);
  * \brief Read an image from disk.
  * \param[in] file_name Path to the image file.
  * \param[out] image Address to store the decoded image.
+ * \remark This function is \ref reentrant.
  * \see janus_free_image
  */
-JANUS_EXPORT janus_error janus_read_image(const char *file_name, janus_image *image);
+JANUS_EXPORT janus_error janus_read_image(const char *file_name,
+                                                            janus_image *image);
 
 /*!
  * \brief Frees the memory previously allocated for a #janus_image.
  * \param[in] image #janus_image to free.
+ * \remark This function is \ref reentrant.
  * \see janus_allocate_image
  */
 JANUS_EXPORT void janus_free_image(janus_image image);
@@ -106,23 +109,28 @@ typedef struct janus_video_type *janus_video;
  * \brief Returns a video ready for reading.
  * \param[in] file_name Path to image file.
  * \param[out] video Address to store the allocated video.
+ * \remark This function is \ref reentrant.
  * \see janus_read_frame janus_close_video
  */
-JANUS_EXPORT janus_error janus_open_video(const char *file_name, janus_video *video);
+JANUS_EXPORT janus_error janus_open_video(const char *file_name,
+                                                            janus_video *video);
 
 /*!
  * \brief Returns the current frame and advances the video to the next frame.
  * \param[in] video Video to decode.
  * \param[out] image Address to store the allocated image.
+ * \remark This function is \ref reentrant.
  * \see janus_open_video janus_free_image
  */
 JANUS_EXPORT janus_error janus_read_frame(janus_video video, janus_image *image);
 
 /*!
  * \brief Closes a video previously opened by \ref janus_open_video.
- * \param[in] video The video to close.
+ *
  * Call this function to deallocate the memory allocated to decode the video
  * after the desired frames have been read.
+ * \param[in] video The video to close.
+ * \remark This function is \ref reentrant.
  */
 JANUS_EXPORT void janus_close_video(janus_video video);
 
@@ -146,10 +154,9 @@ TEMPLATE_ID        , SUBJECT_ID, FILE_NAME, MEDIA_ID, FRAME, <janus_attribute>, 
  * - \c FILE_NAME is a path to the image or video file on disk.
  * - \c MEDIA_ID is a unique integer identifier indicating rows that belong to the same piece of media (image or video clip).
  * - \c FRAME is the video frame number and -1 (or empty string) for still images.
- * - \a \<janus_attribute\> adheres to \ref janus_enum.
  * - All rows associated with the same \c TEMPLATE_ID occur sequentially.
  * - All rows associated with the same \c TEMPLATE_ID and \c FILE_NAME occur sequentially ordered by \c FRAME.
- * - A cell is empty when no value is available for the specified #janus_attribute.
+ * - A cell is empty when no value is available for the specified attribute.
  *
  * \par Examples:
  * - [meds.csv](https://raw.githubusercontent.com/biometrics/janus/master/data/meds.csv)
@@ -164,6 +171,7 @@ typedef const char *janus_metadata;
  * \param [in] metadata #janus_metadata file to enroll.
  * \param [out] template_ Constructed template.
  * \param [out] template_id Template ID from metadata.
+ * \remark This function is \ref thread_unsafe.
  */
 JANUS_EXPORT janus_error janus_create_template(const char *data_path, janus_metadata metadata, janus_template *template_, janus_template_id *template_id);
 
@@ -173,6 +181,7 @@ JANUS_EXPORT janus_error janus_create_template(const char *data_path, janus_meta
  * \param [in] metadata #janus_metadata to enroll.
  * \param [in] gallery_file File to save the gallery to.
  * \param [in] verbose Print information and warnings during gallery enrollment.
+ * \remark This function is \ref thread_unsafe.
  */
 JANUS_EXPORT janus_error janus_create_templates(const char *data_path, janus_metadata metadata, const char *gallery_file, int verbose);
 
@@ -182,6 +191,7 @@ JANUS_EXPORT janus_error janus_create_templates(const char *data_path, janus_met
  * \param [in] metadata #janus_metadata to enroll.
  * \param [in] gallery File to save the templates to.
  * \param [in] verbose Print information and warnings during gallery enrollment.
+ * \remark This function is \ref thread_unsafe.
  */
 JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, int verbose);
 
@@ -203,6 +213,7 @@ typedef const char *janus_matrix;
  * \param[in] target Target gallery file name recorded in the matrix header.
  * \param[in] query Query gallery file name recorded in the matrix header.
  * \param[in] matrix File to write the matrix to.
+ * \remark This function is \ref thread_safe.
  */
 JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_metadata target, janus_metadata query, janus_matrix matrix);
 
@@ -218,6 +229,7 @@ JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, i
  * \param[in] simmat Similarity matrix file to be created.
  * \param[in] mask Mask matrix file to be created.
  * \param[in] num_requested_returns Desired number of returned results for each call to janus_search.
+ * \remark This function is \ref thread_unsafe.
  */
 JANUS_EXPORT janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns);
 
@@ -231,6 +243,7 @@ JANUS_EXPORT janus_error janus_evaluate_search(janus_flat_gallery target, size_t
  * \param[in] query_metadata metadata file for \p query.
  * \param[in] simmat Similarity matrix file to be created.
  * \param[in] mask Mask matrix file to be created.
+ * \remark This function is \ref thread_unsafe.
  */
 JANUS_EXPORT janus_error janus_evaluate_verify(const char *target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask);
 
@@ -252,7 +265,7 @@ struct janus_metric
 struct janus_metrics
 {
     struct janus_metric janus_initialize_template_speed; /*!< \brief ms */
-    struct janus_metric janus_detection_speed; /*!< \brif ms */
+    struct janus_metric janus_detection_speed; /*!< \brief ms */
     struct janus_metric janus_augment_speed; /*!< \brief ms */
     struct janus_metric janus_finalize_template_speed; /*!< \brief ms */
     struct janus_metric janus_read_image_speed; /*!< \brief ms */
@@ -268,31 +281,20 @@ struct janus_metrics
     int          janus_other_errors_count; /*!< \brief Count of \ref janus_error excluding \ref JANUS_MISSING_ATTRIBUTES, \ref JANUS_FAILURE_TO_ENROLL, and \ref JANUS_SUCCESS */
 };
 
-/*! \brief Retrieve and reset performance metrics. */
+/*!
+ * \brief Retrieve and reset performance metrics.
+ * \remark This function is \ref thread_unsafe.
+ */
 JANUS_EXPORT struct janus_metrics janus_get_metrics();
 
 /*!
  * \brief Print metrics to stdout.
  * \note Will only print metrics with count > 0 occurrences.
+ * \remark This function is \ref thread_unsafe.
  */
 JANUS_EXPORT void janus_print_metrics(struct janus_metrics metrics);
 
 /*! @}*/
-
-/*!
- * \page janus_enum Enum Naming Convention
- * #janus_color_space, #janus_error and enum values follow a
- * \c CAPITAL_CASE naming convention. Function #janus_error_to_string
- * returns a string for the corresponding enum by
- * removing the leading \c JANUS_:
- * \code
- * janus_error_to_string(JANUS_FAILURE_TO_ENROLL); // returns "FAILURE_TO_ENROLL"
- * \endcode
- * Function #janus_error_from_string provides the opposite functionality:
- * \code
- * janus_error_from_string("FAILURE_TO_ENROLL"); // returns JANUS_FAILURE_TO_ENROLL
- * \endcode
- */
 
 #ifdef __cplusplus
 }
