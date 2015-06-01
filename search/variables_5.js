@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mean',['mean',['../structjanus__metric.html#a5e6e98e632d255655d0ecf8c667d481d',1,'janus_metric']]]
+  ['gender',['gender',['../structjanus__attributes.html#acafb460080a4b9351418cdeff9a1c583',1,'janus_attributes']]]
 ];

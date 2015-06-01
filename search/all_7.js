@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['objects',['objects',['../structjanus__object__list__type.html#aa0d04fcfc82bb000cd767e345fa47151',1,'janus_object_list_type']]]
+  ['indoor',['indoor',['../structjanus__attributes.html#ad52579cc2667fea6e4e86f469a156791',1,'janus_attributes']]]
 ];

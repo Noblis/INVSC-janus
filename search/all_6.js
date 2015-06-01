@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mean',['mean',['../structjanus__metric.html#a5e6e98e632d255655d0ecf8c667d481d',1,'janus_metric']]]
+  ['height',['height',['../structjanus__image.html#ad1e37bdcfd132c6b72ceb6c1de874f66',1,'janus_image']]]
 ];

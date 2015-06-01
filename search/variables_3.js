@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['height',['height',['../structjanus__image.html#ad1e37bdcfd132c6b72ceb6c1de874f66',1,'janus_image']]]
+  ['eyes_5fvisible',['eyes_visible',['../structjanus__attributes.html#af667c27d0c5f5a8f4af9230367afdbbe',1,'janus_attributes']]]
 ];

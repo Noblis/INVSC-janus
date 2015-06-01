@@ -1,15 +1,10 @@
 var searchData=
 [
-  ['janus_5faugment_5fspeed',['janus_augment_speed',['../structjanus__metrics.html#a57f8771e3054926b7bf170e4e26c70c5',1,'janus_metrics']]],
-  ['janus_5fcompare_5fspeed',['janus_compare_speed',['../structjanus__metrics.html#a5c2d4c2878aa303dee08af5f36bad476',1,'janus_metrics']]],
-  ['janus_5ffailure_5fto_5fenroll_5fcount',['janus_failure_to_enroll_count',['../structjanus__metrics.html#a68f2c46151eae37ac2fe8471e2f6d9c9',1,'janus_metrics']]],
-  ['janus_5ffinalize_5ftemplate_5fspeed',['janus_finalize_template_speed',['../structjanus__metrics.html#ab02be1817f15b4d650f88d0073cbf9ca',1,'janus_metrics']]],
-  ['janus_5ffree_5fimage_5fspeed',['janus_free_image_speed',['../structjanus__metrics.html#ae439a18ea9a9c73798aa3353c0b70bc2',1,'janus_metrics']]],
-  ['janus_5fgallery_5fsize_5fspeed',['janus_gallery_size_speed',['../structjanus__metrics.html#a1ea9ea82a6bfd9dc0e41f4ca9401f5e0',1,'janus_metrics']]],
-  ['janus_5finitialize_5ftemplate_5fspeed',['janus_initialize_template_speed',['../structjanus__metrics.html#a08ec3fa0190b065ddb72df5dd747968c',1,'janus_metrics']]],
-  ['janus_5fmissing_5fattributes_5fcount',['janus_missing_attributes_count',['../structjanus__metrics.html#a99b852d5d6f53bdbad86d8bbe71ae817',1,'janus_metrics']]],
-  ['janus_5fother_5ferrors_5fcount',['janus_other_errors_count',['../structjanus__metrics.html#af15135c320545daa8744283d255eaa44',1,'janus_metrics']]],
-  ['janus_5fread_5fimage_5fspeed',['janus_read_image_speed',['../structjanus__metrics.html#a04c4c8a3937594049589e3577b8c31e2',1,'janus_metrics']]],
-  ['janus_5ftemplate_5fsize',['janus_template_size',['../structjanus__metrics.html#ac24b03aee6cc1745ad46a2603cc40527',1,'janus_metrics']]],
-  ['janus_5fverify_5fspeed',['janus_verify_speed',['../structjanus__metrics.html#a95dad26af2689c65089391b1ebecd822',1,'janus_metrics']]]
+  ['face_5fheight',['face_height',['../structjanus__attributes.html#ad372c599888c24f3105f3a6010d84cb0',1,'janus_attributes']]],
+  ['face_5fwidth',['face_width',['../structjanus__attributes.html#ad79876a2b52d6a1a5d1290a7d401e46a',1,'janus_attributes']]],
+  ['face_5fx',['face_x',['../structjanus__attributes.html#ae601c39225ae377dfa1728ef5b8b245b',1,'janus_attributes']]],
+  ['face_5fy',['face_y',['../structjanus__attributes.html#afc92218bb77128e6e2c10337d3413545',1,'janus_attributes']]],
+  ['face_5fyaw',['face_yaw',['../structjanus__attributes.html#ad2d7296926b116e6c5c1ba8a232d3404',1,'janus_attributes']]],
+  ['forehead_5fvisible',['forehead_visible',['../structjanus__attributes.html#a696065f9d8af60676c04f8bb4d5cdb08',1,'janus_attributes']]],
+  ['frame_5frate',['frame_rate',['../structjanus__attributes.html#a131779fc6f0017884cd80e7f5af87f72',1,'janus_attributes']]]
 ];
