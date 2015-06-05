@@ -358,7 +358,9 @@ janus_error janus_open_gallery(janus_gallery_path gallery_path, janus_gallery *g
         templates_ += template_bytes;
 
         ppr_unflatten(flat_template, template_bytes, &(*gallery)->ppr_gallery, template_id);
+        delete[] flat_template;
     }
+    delete[] templates;
     return JANUS_SUCCESS;
 }
 
