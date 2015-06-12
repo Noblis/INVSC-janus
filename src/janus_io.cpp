@@ -375,18 +375,43 @@ janus_error janus_create_templates(const char *data_path, janus_metadata metadat
 
 #ifndef JANUS_CUSTOM_CREATE_GALLERY
 
-janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, int verbose)
+janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery_path gallery_path, int verbose)
 {
+    vector<janus_flat_template> templates;
+    vector<size_t> template_bytes;
+    vector<janus_template_id> template_ids;
+    size_t num_templates = 0;
+
     TemplateIterator ti(metadata, true);
     janus_template template_;
     janus_template_id templateID;
     TemplateData templateData = ti.next();
     while (!templateData.templateIDs.empty()) {
         JANUS_CHECK(TemplateIterator::create(data_path, templateData, &template_, &templateID, verbose))
-        JANUS_CHECK(janus_enroll(template_, templateID, gallery))
+
+        size_t bytes;
+        janus_data *buffer = new janus_data[janus_max_template_size()];
+        JANUS_ASSERT(janus_flatten_template(template_, buffer, &bytes))
+        JANUS_ASSERT(janus_free_template(template_))
+
+        janus_flat_template flat_template;
+        flat_template = new janus_data[bytes];
+        memcpy(flat_template, buffer, bytes);
+        delete[] buffer;
+
+        templates.push_back(flat_template);
+        template_bytes.push_back(bytes);
+        template_ids.push_back(templateID);
+        num_templates++;
+
         templateData.release();
         templateData = ti.next();
     }
+    JANUS_ASSERT(janus_write_gallery(&templates[0], &template_bytes[0], &template_ids[0], num_templates, gallery_path))
+
+    for (size_t i=0; i<templates.size(); i++)
+        delete[] templates[i];
+
     return JANUS_SUCCESS;
 }
 
@@ -482,8 +507,10 @@ janus_data* janus_read_templates(const char *template_file, size_t *bytes)
     return templates;
 }
 
-janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns)
+janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns)
 {
+    janus_gallery target_gallery;
+    JANUS_ASSERT(janus_open_gallery(target, &target_gallery))
     TemplateData targetMetadata = TemplateIterator(target_metadata, false);
     TemplateData queryMetadata = TemplateIterator(query_metadata, false);
     size_t query_size = queryMetadata.templateIDs.size();
@@ -510,7 +537,7 @@ janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes
         q_templates += query_template_bytes;
 
         clock_t start = clock();
-        JANUS_CHECK(janus_search(query_template_flat, query_template_bytes, target, target_bytes, num_requested_returns, template_ids, similarities, &num_actual_returns))
+        JANUS_CHECK(janus_search(query_template_flat, query_template_bytes, target_gallery, num_requested_returns, template_ids, similarities, &num_actual_returns))
         _janus_add_sample(janus_search_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
         _janus_add_sample(janus_template_size_samples, query_template_bytes / 1024.0);
 

@@ -189,11 +189,11 @@ JANUS_EXPORT janus_error janus_create_templates(const char *data_path, janus_met
  * \brief High-level function for enrolling a gallery from a metadata file.
  * \param [in] data_path Prefix path to files in metadata.
  * \param [in] metadata #janus_metadata to enroll.
- * \param [in] gallery File to save the templates to.
+ * \param [in] gallery_path Path to gallery folder.
  * \param [in] verbose Print information and warnings during gallery enrollment.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery gallery, int verbose);
+JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery_path gallery_path, int verbose);
 
 /*!
  * \brief A dense binary 2D matrix file.
@@ -221,8 +221,7 @@ JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, i
  * \brief Create similarity and mask matricies from two galleries with calls to janus_search.
  *
  * The \c SUBJECT_ID field is used to determine ground truth match/non-match in the mask.
- * \param[in] target flat_gallery to constitute the columns of the matrix.
- * \param[in] target_bytes size of target gallery.
+ * \param[in] target Path to gallery being seached against on disk.
  * \param[in] query Templates file created fron janus_create_templates to constitute the rows for the matrix.
  * \param[in] target_metadata metadata file for \p target.
  * \param[in] query_metadata metadata file for \p query.
@@ -231,7 +230,7 @@ JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, i
  * \param[in] num_requested_returns Desired number of returned results for each call to janus_search.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_evaluate_search(janus_flat_gallery target, size_t target_bytes, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns);
+JANUS_EXPORT janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns);
 
 /*!
  * \brief Create similarity and mask matricies from two galleries with calls to janus_verify.
