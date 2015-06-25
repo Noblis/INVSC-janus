@@ -448,6 +448,15 @@ struct FlatTemplate
         delete[] buffer;
     }
 
+    FlatTemplate(size_t bytes, janus_flat_template flat_template)
+    {
+        data = new Data();
+        data->ref_count = 1;
+        data->bytes = bytes;
+        data->flat_template = flat_template;
+        data->error = JANUS_SUCCESS;
+    }
+
     FlatTemplate(const FlatTemplate& other)
     {
         *this = other;
@@ -640,6 +649,53 @@ janus_error janus_evaluate_verify(const char *target, const char *query, janus_m
     delete[] truth;
     delete[] query_templates;
     delete[] target_templates;
+    return JANUS_SUCCESS;
+}
+
+janus_error janus_verify_pairwise(const char *comparisons_file, const char *templates_file, const char *match_scores)
+{
+    // Read in comparison templates
+    size_t bytes;
+    janus_data *templates = janus_read_templates(templates_file, &bytes);
+    janus_data *templates_ = templates;
+
+    map<janus_template_id, FlatTemplate> template_map;
+    while (templates_ < templates + bytes) {
+        janus_template_id template_id = *reinterpret_cast<janus_template_id*>(templates_);
+        templates_ += sizeof(template_id);
+        size_t template_bytes = *reinterpret_cast<size_t*>(templates_);
+        templates_ += sizeof(template_bytes);
+        janus_flat_template temp = new janus_data[template_bytes];
+        memcpy(temp, templates_, template_bytes);
+        templates_ += template_bytes;
+        _janus_add_sample(janus_template_size_samples, template_bytes / 1024.0);
+
+        template_map.insert(pair<janus_template_id,FlatTemplate>(template_id, FlatTemplate(template_bytes, temp)));
+    }
+
+    ofstream output;
+    output.open(match_scores);
+    output << "ENROLL_TEMPLATE_ID VERIF_TEMPLATE_ID ENROLL_TEMPLATE_SIZE_BYTES VERIF_TEMPLATE_SIZE_BYTES RETCODE SIMILARITY_SCORE\n";
+
+    string line;
+    ifstream file(comparisons_file);
+    while(getline(file, line)) {
+        janus_template_id enroll_id, verif_id;
+        string value;
+        istringstream template_ids(line);
+        getline(template_ids, value, ',');
+        enroll_id = atoi(value.c_str());
+        getline(template_ids, value, ',');
+        verif_id = atoi(value.c_str());
+
+        // compare templates and record result
+        float similarity;
+        janus_error error = template_map[enroll_id].compareTo(template_map[verif_id], &similarity);
+        output << enroll_id << " " << verif_id << " " << template_map[enroll_id].data->bytes
+               << " " << template_map[verif_id].data->bytes << " " << error << " " << (error ? -1 : similarity) << "\n";
+    }
+    output.close();
+
     return JANUS_SUCCESS;
 }
 
