@@ -652,8 +652,12 @@ janus_error janus_evaluate_verify(const char *target, const char *query, janus_m
     return JANUS_SUCCESS;
 }
 
-janus_error janus_verify_pairwise(const char *comparisons_file, const char *templates_file, const char *match_scores)
+janus_error janus_verify_pairwise(const char *comparisons_file, const char *templates_file, janus_metadata template_metadata, janus_matrix simmat, janus_matrix mask, const char *match_scores)
 {
+    TemplateData metadata = TemplateIterator(template_metadata, false);
+    vector<float> similarities;
+    vector<unsigned char> truth;
+
     // Read in comparison templates
     size_t bytes;
     janus_data *templates = janus_read_templates(templates_file, &bytes);
@@ -675,7 +679,7 @@ janus_error janus_verify_pairwise(const char *comparisons_file, const char *temp
 
     ofstream output;
     output.open(match_scores);
-    output << "ENROLL_TEMPLATE_ID VERIF_TEMPLATE_ID ENROLL_TEMPLATE_SIZE_BYTES VERIF_TEMPLATE_SIZE_BYTES RETCODE SIMILARITY_SCORE\n";
+    output << "ENROLL_TEMPLATE_ID VERIF_TEMPLATE_ID ENROLL_TEMPLATE_SIZE_BYTES VERIF_TEMPLATE_SIZE_BYTES RETCODE SIMILARITY_SCORE" << endl;
 
     string line;
     ifstream file(comparisons_file);
@@ -692,9 +696,14 @@ janus_error janus_verify_pairwise(const char *comparisons_file, const char *temp
         float similarity;
         janus_error error = template_map[enroll_id].compareTo(template_map[verif_id], &similarity);
         output << enroll_id << " " << verif_id << " " << template_map[enroll_id].data->bytes
-               << " " << template_map[verif_id].data->bytes << " " << error << " " << (error ? -1 : similarity) << "\n";
+               << " " << template_map[verif_id].data->bytes << " " << error << " " << (error ? -1 : similarity) << endl;
+        similarities.push_back(similarity);
+        truth.push_back(metadata.subjectIDLUT[enroll_id] == metadata.subjectIDLUT[verif_id] ? 0xff : 0x7f);
     }
     output.close();
+
+    JANUS_CHECK(janus_write_matrix(&similarities[0], (int)similarities.size(), 1, false, template_metadata, template_metadata, simmat))
+    JANUS_CHECK(janus_write_matrix(&truth[0], (int)truth.size(), 1, true, template_metadata, template_metadata, mask))
 
     return JANUS_SUCCESS;
 }
