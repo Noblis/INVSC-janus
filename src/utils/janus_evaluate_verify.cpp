@@ -39,10 +39,10 @@ int main(int argc, char *argv[])
         printf("Metadata files must be \".csv\" format. \n");
         return 1;
     } else if (strcmp(ext5, "mtx") != 0) {
-        printf("Similarity matrix files should be \".mtx\" format.");
+        printf("Similarity matrix files should be \".mtx\" format.\n");
         return 1;
     } else if (strcmp(ext6, "mask") != 0) {
-        printf("Mask matrix files should be \".mask\" format.");
+        printf("Mask matrix files should be \".mask\" format.\n");
         return 1;
     }
 

@@ -34,22 +34,22 @@ int main(int argc, char *argv[])
     const char *ext6 = get_ext(argv[8]);
 
     if (strcmp(ext1, "csv") != 0) {
-        printf("Comparison list must be \".csv\" format.");
+        printf("Comparison list must be \".csv\" format.\n");
         return 1;
     } else if (strcmp(ext2, "gal") != 0) {
-        printf("Templates file must be \".gal\" format.");
+        printf("Templates file must be \".gal\" format.\n");
         return 1;
     } else if (strcmp(ext3, "csv") != 0) {
-        printf("Metadata files must be \".csv\" format. \n");
+        printf("Metadata files must be \".csv\" format.\n");
         return 1;
     } else if (strcmp(ext4, "mtx") != 0) {
-        printf("Similarity matrix files should be \".mtx\" format.");
+        printf("Similarity matrix files should be \".mtx\" format.\n");
         return 1;
     } else if (strcmp(ext5, "mask") != 0) {
-        printf("Mask matrix files should be \".mask\" format.");
+        printf("Mask matrix files should be \".mask\" format.\n");
         return 1;
     } else if (strcmp(ext6, "matches") != 0) {
-        printf("Match scores must be output in \".matches\" format.");
+        printf("Match scores must be output in \".matches\" format.\n");
         return 1;
     }
 

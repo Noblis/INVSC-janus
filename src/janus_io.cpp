@@ -516,7 +516,7 @@ janus_data* janus_read_templates(const char *template_file, size_t *bytes)
     return templates;
 }
 
-janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns)
+janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, const char *candidate_lists, size_t num_requested_returns)
 {
     janus_gallery target_gallery;
     JANUS_ASSERT(janus_open_gallery(target, &target_gallery))
@@ -525,6 +525,10 @@ janus_error janus_evaluate_search(janus_gallery_path target, const char *query, 
     size_t query_size = queryMetadata.templateIDs.size();
     float *similarity_matrix = new float[query_size * num_requested_returns];
     unsigned char *truth = new unsigned char[query_size * num_requested_returns];
+
+    ofstream candidate_lists_stream;
+    candidate_lists_stream.open(candidate_lists);
+    candidate_lists_stream << "SEARCH_TEMPLATE_ID CANDIDATE_RANK ENROLL_TEMPLATE_ID ENROLL_TEMPLATE_SIZE_BYTES SEARCH_TEMPLATE_SIZE_BYTES RETCODE SIMILARITY_SCORE" << endl;
 
     // Read in query template file
     size_t query_bytes;
@@ -566,8 +570,11 @@ janus_error janus_evaluate_search(janus_gallery_path target, const char *query, 
         for (size_t j=0; j<num_requested_returns; j++) {
             if (j<num_actual_returns) {
                 truth[num_queries*num_requested_returns+j] = (queryMetadata.subjectIDLUT[query_template_id] == targetMetadata.subjectIDLUT[template_ids[j]] ? 0xff : 0x7f);
+                candidate_lists_stream << query_template_id << " " << j << " " << template_ids[j] << " " << 1
+                       << " " << query_template_bytes << " " << 0 << " " << similarities[j] << endl;
             } else {
                 truth[num_queries*num_requested_returns+j] = 0x00;
+                candidate_lists_stream << "0 0 0 0 0 0 0" << endl;
             }
         }
         num_queries++;
@@ -575,6 +582,7 @@ janus_error janus_evaluate_search(janus_gallery_path target, const char *query, 
         delete[] template_ids;
         delete[] similarities;
     }
+    candidate_lists_stream.close();
     similarity_matrix -= num_queries*num_requested_returns;
     JANUS_CHECK(janus_write_matrix(similarity_matrix, num_queries, num_requested_returns, false, target_metadata, query_metadata, simmat))
     delete[] similarity_matrix;
