@@ -221,16 +221,18 @@ JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, i
  * \brief Create similarity and mask matricies from two galleries with calls to janus_search.
  *
  * The \c SUBJECT_ID field is used to determine ground truth match/non-match in the mask.
+ * Refer to <a href="http://www.nist.gov/itl/iad/ig/face.cfm"><b>face.nist.gov</b></a> for more information on IJB-A and the ".candidate_lists" format.
  * \param[in] target Path to gallery being seached against on disk.
  * \param[in] query Templates file created fron janus_create_templates to constitute the rows for the matrix.
  * \param[in] target_metadata metadata file for \p target.
  * \param[in] query_metadata metadata file for \p query.
  * \param[in] simmat Similarity matrix file to be created.
  * \param[in] mask Mask matrix file to be created.
+ * \param[in] candidate_lists Text file containing template size and score for each search's requested returns.
  * \param[in] num_requested_returns Desired number of returned results for each call to janus_search.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns);
+JANUS_EXPORT janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, const char *candidate_lists, size_t num_requested_returns);
 
 /*!
  * \brief Create similarity and mask matricies from two galleries with calls to janus_verify.
@@ -245,6 +247,20 @@ JANUS_EXPORT janus_error janus_evaluate_search(janus_gallery_path target, const 
  * \remark This function is \ref thread_unsafe.
  */
 JANUS_EXPORT janus_error janus_evaluate_verify(const char *target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask);
+
+/*!
+ * \brief High-level function for executing a list of template comparisons.
+ *
+ * Refer to <a href="http://www.nist.gov/itl/iad/ig/face.cfm"><b>face.nist.gov</b></a> for more information on IJB-A and the ".matches" format.
+ * \param[in] comparisons_file File containing the list of template comparisons to make.
+ * \param[in] templates_file Templates file created from janus_create_templates containing the comparison templates.
+ * \param[in] template_metadata metadata file for comparison templates.
+ * \param[in] simmat Similarity matrix file to be created.
+ * \param[in] mask Mask matrix file to be created.
+ * \param[in] match_scores Output matches file with template size and score recorded for each comparison.
+ * \remark This function is \ref thread_unsafe.
+ */
+JANUS_EXPORT janus_error janus_verify_pairwise(const char *comparisons_file, const char *templates_file, janus_metadata template_metadata, janus_matrix simmat, janus_matrix mask, const char *match_scores);
 
 /*!
  * \brief A statistic.

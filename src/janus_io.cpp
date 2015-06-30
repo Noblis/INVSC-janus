@@ -448,6 +448,15 @@ struct FlatTemplate
         delete[] buffer;
     }
 
+    FlatTemplate(size_t bytes, janus_flat_template flat_template)
+    {
+        data = new Data();
+        data->ref_count = 1;
+        data->bytes = bytes;
+        data->flat_template = flat_template;
+        data->error = JANUS_SUCCESS;
+    }
+
     FlatTemplate(const FlatTemplate& other)
     {
         *this = other;
@@ -507,7 +516,7 @@ janus_data* janus_read_templates(const char *template_file, size_t *bytes)
     return templates;
 }
 
-janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, size_t num_requested_returns)
+janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, const char *candidate_lists, size_t num_requested_returns)
 {
     janus_gallery target_gallery;
     JANUS_ASSERT(janus_open_gallery(target, &target_gallery))
@@ -516,6 +525,10 @@ janus_error janus_evaluate_search(janus_gallery_path target, const char *query, 
     size_t query_size = queryMetadata.templateIDs.size();
     float *similarity_matrix = new float[query_size * num_requested_returns];
     unsigned char *truth = new unsigned char[query_size * num_requested_returns];
+
+    ofstream candidate_lists_stream;
+    candidate_lists_stream.open(candidate_lists);
+    candidate_lists_stream << "SEARCH_TEMPLATE_ID CANDIDATE_RANK ENROLL_TEMPLATE_ID ENROLL_TEMPLATE_SIZE_BYTES SEARCH_TEMPLATE_SIZE_BYTES RETCODE SIMILARITY_SCORE" << endl;
 
     // Read in query template file
     size_t query_bytes;
@@ -557,8 +570,11 @@ janus_error janus_evaluate_search(janus_gallery_path target, const char *query, 
         for (size_t j=0; j<num_requested_returns; j++) {
             if (j<num_actual_returns) {
                 truth[num_queries*num_requested_returns+j] = (queryMetadata.subjectIDLUT[query_template_id] == targetMetadata.subjectIDLUT[template_ids[j]] ? 0xff : 0x7f);
+                candidate_lists_stream << query_template_id << " " << j << " " << template_ids[j] << " " << 1
+                       << " " << query_template_bytes << " " << 0 << " " << similarities[j] << endl;
             } else {
                 truth[num_queries*num_requested_returns+j] = 0x00;
+                candidate_lists_stream << "0 0 0 0 0 0 0" << endl;
             }
         }
         num_queries++;
@@ -566,6 +582,7 @@ janus_error janus_evaluate_search(janus_gallery_path target, const char *query, 
         delete[] template_ids;
         delete[] similarities;
     }
+    candidate_lists_stream.close();
     similarity_matrix -= num_queries*num_requested_returns;
     JANUS_CHECK(janus_write_matrix(similarity_matrix, num_queries, num_requested_returns, false, target_metadata, query_metadata, simmat))
     delete[] similarity_matrix;
@@ -640,6 +657,62 @@ janus_error janus_evaluate_verify(const char *target, const char *query, janus_m
     delete[] truth;
     delete[] query_templates;
     delete[] target_templates;
+    return JANUS_SUCCESS;
+}
+
+janus_error janus_verify_pairwise(const char *comparisons_file, const char *templates_file, janus_metadata template_metadata, janus_matrix simmat, janus_matrix mask, const char *match_scores)
+{
+    TemplateData metadata = TemplateIterator(template_metadata, false);
+    vector<float> similarities;
+    vector<unsigned char> truth;
+
+    // Read in comparison templates
+    size_t bytes;
+    janus_data *templates = janus_read_templates(templates_file, &bytes);
+    janus_data *templates_ = templates;
+
+    map<janus_template_id, FlatTemplate> template_map;
+    while (templates_ < templates + bytes) {
+        janus_template_id template_id = *reinterpret_cast<janus_template_id*>(templates_);
+        templates_ += sizeof(template_id);
+        size_t template_bytes = *reinterpret_cast<size_t*>(templates_);
+        templates_ += sizeof(template_bytes);
+        janus_flat_template temp = new janus_data[template_bytes];
+        memcpy(temp, templates_, template_bytes);
+        templates_ += template_bytes;
+        _janus_add_sample(janus_template_size_samples, template_bytes / 1024.0);
+
+        template_map.insert(pair<janus_template_id,FlatTemplate>(template_id, FlatTemplate(template_bytes, temp)));
+    }
+
+    ofstream output;
+    output.open(match_scores);
+    output << "ENROLL_TEMPLATE_ID VERIF_TEMPLATE_ID ENROLL_TEMPLATE_SIZE_BYTES VERIF_TEMPLATE_SIZE_BYTES RETCODE SIMILARITY_SCORE" << endl;
+
+    string line;
+    ifstream file(comparisons_file);
+    while(getline(file, line)) {
+        janus_template_id enroll_id, verif_id;
+        string value;
+        istringstream template_ids(line);
+        getline(template_ids, value, ',');
+        enroll_id = atoi(value.c_str());
+        getline(template_ids, value, ',');
+        verif_id = atoi(value.c_str());
+
+        // compare templates and record result
+        float similarity;
+        janus_error error = template_map[enroll_id].compareTo(template_map[verif_id], &similarity);
+        output << enroll_id << " " << verif_id << " " << template_map[enroll_id].data->bytes
+               << " " << template_map[verif_id].data->bytes << " " << error << " " << (error ? -1 : similarity) << endl;
+        similarities.push_back(similarity);
+        truth.push_back(metadata.subjectIDLUT[enroll_id] == metadata.subjectIDLUT[verif_id] ? 0xff : 0x7f);
+    }
+    output.close();
+
+    JANUS_CHECK(janus_write_matrix(&similarities[0], (int)similarities.size(), 1, false, template_metadata, template_metadata, simmat))
+    JANUS_CHECK(janus_write_matrix(&truth[0], (int)truth.size(), 1, true, template_metadata, template_metadata, mask))
+
     return JANUS_SUCCESS;
 }
 
