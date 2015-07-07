@@ -257,10 +257,10 @@ size_t janus_max_template_size()
     return 33554432; // 32 MB
 }
 
+static int faceID = 0;
+
 void ppr_unflatten(const janus_flat_template template_, const size_t template_bytes, ppr_gallery_type *gallery, const janus_template_id template_id = 0)
 {
-    int faceID = 0;
-
     janus_flat_template flat_template = template_;
     while (flat_template < template_ + template_bytes) {
         const size_t flat_template_bytes = *reinterpret_cast<size_t*>(flat_template);
