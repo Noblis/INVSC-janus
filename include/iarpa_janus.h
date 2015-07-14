@@ -89,7 +89,7 @@ extern "C" {
  * The API is provided under a [BSD-like license](LICENSE.txt) and is
  * *free for academic and commercial use*.
  *
- * \subsection atribution Atribution
+ * \subsection attribution Attribution
  * This research is based upon work supported by the Office of the Director of
  * National Intelligence (ODNI), Intelligence Advanced Research Projects
  * Activity (IARPA), via the Army Research Laboratory. The views and conclusions
@@ -655,11 +655,11 @@ typedef const char *janus_gallery_path;
  */
 JANUS_EXPORT janus_error janus_write_gallery(const janus_flat_template
                                                                      *templates,
-                                              const size_t *templates_bytes,
-                                              const janus_template_id
+                                             const size_t *templates_bytes,
+                                             const janus_template_id
                                                                   *template_ids,
-                                              const size_t num_templates,
-                                              janus_gallery_path gallery_path);
+                                             const size_t num_templates,
+                                             janus_gallery_path gallery_path);
 
 /*!
  * \brief An opaque reference to a read-only \ref janus_gallery_path.

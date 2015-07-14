@@ -200,7 +200,7 @@ JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metad
  *
  * Can be either the \a similarity or \a mask matrix format described in
  * <a href="http://openbiometrics.org/doxygen/latest/MBGC_file_overview.pdf#page=12">MBGC File Overview</a>.
- * \see janus_write_matrix janus_evaluate
+ * \see janus_write_matrix janus_evaluate_search janus_evaluate_verify janus_verify_pairwise
  */
 typedef const char *janus_matrix;
 
@@ -290,10 +290,16 @@ struct janus_metrics
     struct janus_metric janus_gallery_size_speed; /*!< \brief ms */
     struct janus_metric janus_finalize_gallery_speed; /*!< \brief ms */
     struct janus_metric janus_template_size; /*!< \brief KB */
-    int          janus_missing_attributes_count; /*!< \brief Count of \ref JANUS_MISSING_ATTRIBUTES */
-    int          janus_failure_to_detect_count; /*!< \brief Count of \ref JANUS_FAILURE_TO_DETECT */
-    int          janus_failure_to_enroll_count; /*!< \brief Count of \ref JANUS_FAILURE_TO_ENROLL */
-    int          janus_other_errors_count; /*!< \brief Count of \ref janus_error excluding \ref JANUS_MISSING_ATTRIBUTES, \ref JANUS_FAILURE_TO_ENROLL, and \ref JANUS_SUCCESS */
+    int                 janus_missing_attributes_count; /*!< \brief Count of
+                                                             \ref JANUS_MISSING_ATTRIBUTES */
+    int                 janus_failure_to_detect_count; /*!< \brief Count of
+                                                            \ref JANUS_FAILURE_TO_DETECT */
+    int                 janus_failure_to_enroll_count; /*!< \brief Count of
+                                                            \ref JANUS_FAILURE_TO_ENROLL */
+    int                 janus_other_errors_count; /*!< \brief Count of \ref janus_error excluding
+                                                       \ref JANUS_MISSING_ATTRIBUTES,
+                                                       \ref JANUS_FAILURE_TO_ENROLL, and
+                                                       \ref JANUS_SUCCESS */
 };
 
 /*!
