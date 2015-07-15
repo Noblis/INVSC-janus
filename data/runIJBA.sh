@@ -30,7 +30,7 @@ if [ ! -d $RESULTS ]; then
 	mkdir $SEARCH_DIR
 fi
 
-for i in `seq 1 1`;
+for i in `seq 1 10`;
 do
 	mkdir ${VERIFY_DIR}/split${i}
 	mkdir ${SEARCH_DIR}/split${i}
