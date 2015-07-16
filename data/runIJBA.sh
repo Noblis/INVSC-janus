@@ -37,7 +37,7 @@ do
 
 	# IJB-A 1:1 
 	janus_create_templates $SDK_PATH $TEMP_PATH $IMG_DIR ${VERIFY_PROTOCOL}/split${i}/verify_metadata_${i}.csv ${RESULTS}/verify_templates_${i}.gal -algorithm $ALGORITHM
-	janus_verify_pairwise $SDK_PATH $TEMP_PATH ${VERIFY_PROTOCOL}/split${i}/verify_comparisons_${i}.csv ${RESULTS}/verify_templates_${i}.gal ${VERIFY_PROTOCOL}/split${i}/verify_metadata_${i}.csv ${RESULTS}/verify_${i}.mtx ${RESULTS}/verify_${i}.mask ${VERIFY_DIR}/split${i}/split${i}.matches
+	janus_verify_pairwise $SDK_PATH $TEMP_PATH ${VERIFY_PROTOCOL}/split${i}/verify_comparisons_${i}.csv ${RESULTS}/verify_templates_${i}.gal ${VERIFY_PROTOCOL}/split${i}/verify_metadata_${i}.csv ${RESULTS}/verify_${i}.mtx ${RESULTS}/verify_${i}.mask ${VERIFY_DIR}/split${i}/split${i}.matches -algorithm $ALGORITHM
 
 	# IJB-A 1:N 
 	janus_create_templates $SDK_PATH $TEMP_PATH $IMG_DIR ${SEARCH_PROTOCOL}/split${i}/search_probe_${i}.csv ${RESULTS}/search_probe_${i}.gal -algorithm $ALGORITHM
