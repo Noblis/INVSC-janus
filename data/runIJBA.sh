@@ -42,7 +42,7 @@ do
 	# IJB-A 1:N 
 	janus_create_templates $SDK_PATH $TEMP_PATH $IMG_DIR ${SEARCH_PROTOCOL}/split${i}/search_probe_${i}.csv ${RESULTS}/search_probe_${i}.gal -algorithm $ALGORITHM
 	janus_create_gallery $SDK_PATH $TEMP_PATH $IMG_DIR ${SEARCH_PROTOCOL}/split${i}/search_gallery_${i}.csv ${RESULTS}/search_gallery_${i}.gal -algorithm $ALGORITHM
-	janus_evaluate_search $SDK_PATH $TEMP_PATH ${RESULTS}/search_gallery_${i}.gal ${RESULTS}/search_probe_${i}.gal ${SEARCH_PROTOCOL}/split${i}/search_gallery_${i}.csv ${SEARCH_PROTOCOL}/split${i}/search_probe_${i}.csv ${RESULTS}/search_${i}.mtx ${RESULTS}/search_${i}.mask ${SEARCH_DIR}/split${i}/split{i}.candidate_lists ${NUM_RETURNS} -algorithm $ALGORITHM
+	janus_evaluate_search $SDK_PATH $TEMP_PATH ${RESULTS}/search_gallery_${i}.gal ${RESULTS}/search_probe_${i}.gal ${SEARCH_PROTOCOL}/split${i}/search_gallery_${i}.csv ${SEARCH_PROTOCOL}/split${i}/search_probe_${i}.csv ${RESULTS}/search_${i}.mtx ${RESULTS}/search_${i}.mask ${SEARCH_DIR}/split${i}/split${i}.candidate_lists ${NUM_RETURNS} -algorithm $ALGORITHM
 done
 
 cd $RESULTS
