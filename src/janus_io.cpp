@@ -556,7 +556,6 @@ janus_error janus_evaluate_search(janus_gallery_path target, const char *query, 
 
         // Write matrix of size num_queries*num_requested returns
         if (num_actual_returns < num_requested_returns) {
-            int diff = num_requested_returns - num_actual_returns;
             memcpy(similarity_matrix, similarities, sizeof(float)*num_actual_returns);
 
             for (size_t i=num_actual_returns; i<num_requested_returns; i++) {
