@@ -9,11 +9,13 @@ if(${JANUS_BUILD_PP5_WRAPPER})
 endif()
 
 option(JANUS_BUILD_OPENCV_WRAPPER "Build Janus I/O implementation using OpenCV" OFF)
-if(${JANUS_BUILD_OPENCV_WRAPPER})
+if(${JANUS_BUILD_OPENCV_WRAPPER} AND NOT ${JANUS_BUILD_PP5_WRAPPER})
   find_package(OpenCV)
-  if(OpenCV_FOUND AND PP5_FOUND)
+  if(OpenCV_FOUND)
     add_subdirectory(opencv_io)
   endif()
+elseif(${JANUS_BUILD_PP5_WRAPPER})
+  message(ERROR "You cannot build OpenCV I/O and PittPatt 5 I/O at the same time")
 endif()
 
 # Janus API documentation
