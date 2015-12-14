@@ -14,7 +14,7 @@ if(${JANUS_BUILD_OPENCV_WRAPPER} AND NOT ${JANUS_BUILD_PP5_WRAPPER})
   if(OpenCV_FOUND)
     add_subdirectory(opencv_io)
   endif()
-elseif(${JANUS_BUILD_PP5_WRAPPER})
+elseif(${JANUS_BUILD_OPENCV_WRAPPER} AND ${JANUS_BUILD_PP5_WRAPPER})
   message(ERROR "You cannot build OpenCV I/O and PittPatt 5 I/O at the same time")
 endif()
 
