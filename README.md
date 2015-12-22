@@ -1,7 +1,7 @@
-Janus
+Janice
 =====
 
-[IARPA Janus Program API](http://www.libjanus.org)
+An operational fork of the [IARPA Janus Program API](http://www.libjanus.org)
 
 # Build Instructions
 
