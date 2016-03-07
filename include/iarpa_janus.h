@@ -478,12 +478,24 @@ JANUS_EXPORT janus_error janus_detect(const janus_image image,
  * \param[in] algorithm An empty string indicating the default algorithm, or an
  *                      implementation-defined string indicating an alternative
  *                      configuration.
+ * \param[in] gpu_dev The GPU device number to be used by all subsequent
+ * 			          implementation function calls
  * \remark This function is \ref thread_unsafe and should only be called once.
  * \see janus_finalize
  */
 JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
                                           const char *temp_path,
-                                          const char *algorithm);
+                                          const char *algorithm,
+                                          const int   gpu_dev);
+
+/*!
+ * \brief Called once before template generation and gallery construction
+ *
+ * \param[in] csvfile 	Comma-delimited metadata file, identical to 25 column
+ * 			“train.csv” files present in CS2 splits.
+ * \remark Implementors must handle the case where csvfile = NULL
+ */
+JANUS_EXPORT janus_error janus_set_tuning_data(const char *imagedir, const char *csvfile = NULL);
 
 /*!
  * \brief Call once at the end of the application, after making all other calls
@@ -550,6 +562,18 @@ JANUS_EXPORT janus_error janus_augment(const janus_image image,
                                        janus_template template_);
 
 /*!
+ * \brief Commit a janus_template to disk
+ *
+ * Call this function to commit a janus_template to disk.
+ * \param[in] template_file The name of the template file on disk.
+ * \param[in] template_ The template to write to disk.
+ * \remark This function is \ref reentrant.
+ * \see janus_allocate_template
+ */
+JANUS_EXPORT janus_error janus_write_template(const char* template_file,
+                                              const janus_template template_);
+
+/*!
  * \brief Free memory for a template previously allocated by
  * \ref janus_allocate_template.
  *
@@ -592,9 +616,20 @@ JANUS_EXPORT size_t janus_max_template_size();
  * \remark This function is \ref reentrant.
  */
 JANUS_EXPORT janus_error janus_flatten_template(const janus_template template_,
-                                                janus_flat_template
-                                                                  flat_template,
+                                                janus_flat_template flat_template,
                                                 size_t *bytes);
+
+/*!
+ * \brief Commit a janus_flat_template to disk
+ *
+ * Call this function to commit a janus_flat_template to disk.
+ * \param[in] flat_template_file The name of the flat template file on disk.
+ * \param[in] flat_template_ The flat template to write to disk.
+ * \remark This function is \ref reentrant.
+ * \see janus_allocate_template
+ */
+JANUS_EXPORT janus_error janus_write_flat_template(const char* flat_template_file,
+                                                   const janus_flat_template flat_template_);
 
 /*!
  * \brief Return a similarity score for two templates.
