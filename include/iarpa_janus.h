@@ -28,15 +28,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <vector>
+#include <string>
 
 /*!
  * \mainpage
  * \section overview Overview
  *
- * *libjanus* is a *C* API for the IARPA Janus program consisting of two header
+ * *libjanus* is a *C++* API for the IARPA Janus program consisting of two header
  * files:
  *
  * Header            | Documentation  | Required               | Description
@@ -124,15 +123,21 @@ extern "C" {
  *
  * \section Overview
  * A Janus application begins with a call to \ref janus_initialize.
- * New templates are constructed with \ref janus_allocate_template and provided
- * image data with \ref janus_detect followed by \ref janus_augment.
- * Templates are finalized prior to comparison with \ref janus_flatten_template,
- * and freed after finalization with \ref janus_free_template.
+ * Image attributes such as face and landmark locations are found with
+ * \ref janus_detect. New templates are constructed with \ref janus_create_template and provided
+ * Templates can be freed after use with \ref janus_delete_template. I/O
+ * is handled by \ref janus_serialize_template and \ref janus_deserialize_template
+ * which serialize templates to byte arrays that can be stored.
  *
- * Finalized templates can be used for verification with \ref janus_verify, or
+ * Templates can be used for verification with \ref janus_verify, or
  * search with \ref janus_search.
- * Galleries are managed with \ref janus_write_gallery, \ref janus_open_gallery
- * and \ref janus_close_gallery.
+ *
+ * Galleries are created with \ref janus_create_gallery managed with
+ * \ref janus_gallery_insert and \ref janus_gallery_remove and erased
+ * with \ref janus_delete_gallery. I/O is handled in the same manner as
+ * templates with \ref janus_serialize_gallery and \ref janus_deserialize_gallery.
+ *
+ * Galleries can be used for search with \ref janus_search.
  *
  * A Janus application ends with a call to \ref janus_finalize.
  *
@@ -171,8 +176,7 @@ typedef enum janus_error
     JANUS_READ_ERROR         , /*!< Failed to read from a file */
     JANUS_WRITE_ERROR        , /*!< Failed to write to a file */
     JANUS_PARSE_ERROR        , /*!< Failed to parse file */
-    JANUS_INVALID_IMAGE      , /*!< Could not decode image file */
-    JANUS_INVALID_VIDEO      , /*!< Could not decode video file */
+    JANUS_INVALID_MEDIA      , /*!< Could not decode media file */
     JANUS_MISSING_TEMPLATE_ID, /*!< Expected a missing template ID */
     JANUS_MISSING_FILE_NAME  , /*!< Expected a missing file name */
     JANUS_NULL_ATTRIBUTES    , /*!< Null #janus_attributes */
@@ -182,9 +186,13 @@ typedef enum janus_error
                                     provided image */
     JANUS_FAILURE_TO_ENROLL  , /*!< Could not construct a template from the
                                     provided image and attributes */
+    JANUS_FAILURE_TO_SERIALIZE, /*!< Could not serialize a template or
+                                     gallery */
+    JANUS_FAILURE_TO_DESERIALIZE, /*!< Could not deserialize a template
+                                       or gallery */
     JANUS_NOT_IMPLEMENTED    , /*!< Optional functions may return this value in
                                     lieu of a meaninful implementation */
-    JANUS_NUM_ERRORS           /*!< Idiom to iterate over all errors */
+    JANUS_NUM_ERRORS         /*!< Idiom to iterate over all errors */
 } janus_error;
 
 /*!
@@ -202,19 +210,22 @@ typedef enum janus_color_space
 } janus_color_space;
 
 /*!
- * \brief Common representation for still images and video frames.
+ * \brief Common representation for still images and videos.
  *
  * Pixels are stored in _row-major_ order.
  * In other words, pixel layout with respect to decreasing memory spatial
- * locality is \a channel, \a column, \a row.
+ * locality is \a channel, \a column, \a row \a frames.
  * Thus pixel intensity can be retrieved as follows:
  *
 \code
 janus_data get_intensity(janus_image image, size_t channel, size_t column,
-                                                                     size_t row)
+                                            size_t row, size_t frame)
 {
-    const size_t columnStep = (image.image_format == JANUS_COLOR ? 3 : 1);
-    const size_t index = row*image.step + column*columnStep + channel;
+    const size_t columnStep = (image.color_space == JANUS_BGR24 ? 3 : 1);
+    const size_t rowStep    = image.width * columnStep;
+    const size_t index      = frame * image.step + row * rowStep
+                                                 + column * columnStep
+                                                 + channel;
     return image.data[index];
 }
 \endcode
@@ -222,14 +233,16 @@ janus_data get_intensity(janus_image image, size_t channel, size_t column,
  * Coordinate (0, 0) corresponds to the top-left corner of the image.
  * Coordinate (width-1, height-1) corresponds to the bottom-right corner of the image.
  */
-typedef struct janus_image
+typedef struct janus_media
 {
-    janus_data *data; /*!< \brief Data buffer. */
+    std::vector<janus_data*> data; /*! < \brief A collection of image data of size N,
+                                                where is the number of frames in a video
+                                                or 1 in the case of a still image. */
     size_t width;     /*!< \brief Column count in pixels. */
     size_t height;    /*!< \brief Row count in pixels. */
-    size_t step;      /*!< \brief Bytes per row, including padding. */
+    size_t step;      /*!< \brief Bytes per frame, including padding. */
     janus_color_space color_space; /*!< \brief Arrangement of #data. */
-} janus_image;
+} janus_media;
 
 /*!
  * \brief Attributes for a particular object in an image.
@@ -387,8 +400,6 @@ typedef struct janus_image
  */
 typedef struct janus_attributes
 {
-    double detection_confidence; /*!< \brief A higher value indicates greater
-                                             detection confidence. */
     double face_x; /*!< \brief Horizontal offset to top-left corner of face
                                (pixels) \see \ref face. */
     double face_y; /*!< \brief Vertical offset to top-left corner of face
@@ -408,63 +419,46 @@ typedef struct janus_attributes
     double nose_base_y; /*!< \brief Face landmark (pixels)
                                     \see \ref nose_base. */
     double face_yaw; /*!< \brief Face yaw estimation (degrees). */
-    double forehead_visible; /*!< \brief Visibility of forehead
+    bool forehead_visible; /*!< \brief Visibility of forehead
                                   \see forehead_visible. */
-    double eyes_visible; /*!< \brief Visibility of eyes
+    bool eyes_visible; /*!< \brief Visibility of eyes
                                      \see \ref eyes_visible. */
-    double nose_mouth_visible; /*!< \brief Visibility of nose and mouth
+    bool nose_mouth_visible; /*!< \brief Visibility of nose and mouth
                                     \see nouse_mouth_visible. */
-    double indoor; /*!< \brief Image was captured indoors \see \ref indoor. */
+    bool indoor; /*!< \brief Image was captured indoors \see \ref indoor. */
+
+    double frame_number; /*!< \brief Frame number or -1 for images. */
+} janus_attributes;
+
+/*!
+ * \brief A list of janus_attributes representing a single identity in a
+ *        \ref janus_media instance.
+ */
+typedef struct janus_track
+{
+    std::vector<janus_attributes> track;
+
+    double detection_confidence; /*!< \brief A higher value indicates greater
+                                             detection confidence. */
     double gender; /*!< \brief Gender of subject of interest, 1 for male, 0 for
                         female. */
     double age; /*!< \brief Approximate age of subject (years) \see \ref age. */
     double skin_tone; /*!< \brief Skin tone of subject \see \ref skin_tone. */
+
     double frame_rate; /*!< \brief Frames per second, or 0 for images. */
-} janus_attributes;
+} janus_track;
 
 /*!
- * \brief Detect objects in a #janus_image.
+ * \brief An association between a piece of media and metadata.
  *
- * Each object is represented by a #janus_attributes. In the case that the
- * number of detected objects is greater than \p num_requested, the
- * implementation may choose which detections to exclude, potentially returning
- * early before scanning the entire image. Detected objects can then be used in
- * \ref janus_augment.
- *
- * \section detection_guarantees Detection Guarantees
- * The first \p num_actual elements of \p attributes_array will be populated by
- * decreasing janus_attributes::detection_confidence.
- *
- * Each of the \p num_actual detections will have values for at least the
- * following attributes:
- *  - janus_attributes::detection_confidence
- *  - janus_attributes::face_x
- *  - janus_attributes::face_y
- *  - janus_attributes::face_width
- *  - janus_attributes::face_height
- *
- * Any attribute of the \p num_actual detections without a value will be set to
- * \c NaN.
- *
- * \param[in] image Image to detect objects in.
- * \param[out] attributes_array Pre-allocated array of uninitialized
- *                              #janus_attributes. Expected to be at least
- *                              \p num_requested * \c sizeof(#janus_attributes)
- *                              bytes long.
- * \param[in] num_requested Length of \p attributes_array.
- * \param[out] num_actual The number of detections made by the system. If
- *                        \p num_actual <= \p num_requested, then \p num_actual
- *                        is the length of \p attributes_array populated with
- *                        detected objects by the implementation. Otherwise,
- *                        \p num_actual > \p num_requested, then
- *                        \p attributes_array is fully populated and there were
- *                        additional detections that weren't returned.
- * \remark This function is \ref thread_safe.
+ * All metadata in an association can be assumed to belong to a
+ * single subject.
  */
-JANUS_EXPORT janus_error janus_detect(const janus_image image,
-                                      janus_attributes *attributes_array,
-                                      const size_t num_requested,
-                                      size_t *num_actual);
+typedef struct janus_association
+{
+    janus_media media;
+    std::vector<janus_track> metadata;
+} janus_association;
 
 /*!
  * \brief Call once at the start of the application, before making any other
@@ -483,153 +477,157 @@ JANUS_EXPORT janus_error janus_detect(const janus_image image,
  * \remark This function is \ref thread_unsafe and should only be called once.
  * \see janus_finalize
  */
-JANUS_EXPORT janus_error janus_initialize(const char *sdk_path,
-                                          const char *temp_path,
-                                          const char *algorithm,
-                                          const int   gpu_dev);
+JANUS_EXPORT janus_error janus_initialize(const std::string &sdk_path,
+                                          const std::string &temp_path,
+                                          const std::string &algorithm,
+                                          const int gpu_dev);
 
 /*!
- * \brief Called once before template generation and gallery construction
+ * \brief Detect objects in a #janus_media.
  *
- * \param[in] csvfile 	Comma-delimited metadata file, identical to 25 column
- * 			“train.csv” files present in CS2 splits.
- * \remark Implementors must handle the case where csvfile = NULL
+ * Each object is represented by a #janus_track. Detected objects
+ * can then be used to create #janus_assocation and passed to
+ * \ref janus_create_template.
+ *
+ * \note The number of attributes in a track can never exceed the
+ * number of frames in a janus_media instance. Still images should
+ * return tracks of length 1.
+ *
+ * \section face_size Minimum Face Size
+ * A minimum size of faces to be detected may be specified by the
+ * caller of \ref janus_detect. This size will be given as a pixel
+ * value and corresponds to the width of the face.
+ *
+ * \section detection_guarantees Detection Guarantees
+ * The returned tracks will be ordered by decreasing
+ * janus_track::detection_confidence.
+ *
+ * Each of the tracks will have values for at least janus_track::detection_confidence.
+ * Each of the janus_attributes within a track will have values for
+ *  - janus_attributes::face_x
+ *  - janus_attributes::face_y
+ *  - janus_attributes::face_width
+ *  - janus_attributes::face_height
+ *  - janus_attributes::frame_number
+ *
+ * Any attribute of the track or a janus_attributes within the track
+ * without a value will be set to \c NaN.
+ *
+ * \param[in] media Media to detect objects in.
+ * \param[in] min_face_size The minimum width of detected faces that should be returned. The value is in pixels.
+ * \param[out] tracks Empty vector to be filled with detected objects.
+ * \remark This function is \ref thread_safe.
  */
-JANUS_EXPORT janus_error janus_set_tuning_data(const char *imagedir, const char *csvfile = NULL);
-
-/*!
- * \brief Call once at the end of the application, after making all other calls
- * to the API.
- * \remark This function is \ref thread_unsafe and should only be called once.
- * \see janus_initialize
- */
-JANUS_EXPORT janus_error janus_finalize();
+JANUS_EXPORT janus_error janus_detect(const janus_media &media,
+                                      const size_t min_face_size,
+                                      std::vector<janus_track> &tracks);
 
 /*!
  * \brief Contains the recognition information for an object.
- *
- * Create a new template with \ref janus_allocate_template.
- * \see janus_flat_template
  */
 typedef struct janus_template_type *janus_template;
 
-/*!
- * \brief Allocate memory for an empty template.
- *
- * Memory is managed by the implementation and guaranteed until
- * \ref janus_free_template.
- *
- * Add images to the template with \ref janus_augment.
- *
- * \code
- * janus_template template_;
- * janus_error error = janus_allocate_template(&template_);
- * assert(!error);
- * \endcode
- *
- * \param[in] template_ An uninitialized template.
- * \remark This function is \ref reentrant.
- */
-JANUS_EXPORT janus_error janus_allocate_template(janus_template *template_);
+typedef enum janus_template_role {
+    ENROLLMENT_11 = 0,
+    VERIFICATION_11 = 1,
+    ENROLLMENT_1N = 2,
+    IDENTIFICATION = 3,
+    CLUSTERING = 4
+} janus_template_role;
 
 /*!
- * \brief Add an image to the template.
+ * \brief Build a template from a list of janus_associations
  *
- * The \p attributes should be provided from a prior call to \ref janus_detect.
- * As a special case, if janus_attributes::frame_rate is greater than zero, the
- * \p image should be treated as the first frame in a video sequence. Subsequent
- * calls to this function may then pass \c NULL for \p attributes, in which case
- * the implementation should use the \p attributes from a previous call to this
- * function as the seed for tracking, or as a prior for localizing the object
- * in the current frame. In this way, \ref janus_detect need only be called once
- * for videos, at the start of the frame sequence.
+ * All media necessary to build a complete template will be passed in at
+ * one time and the constructed template is expected to be suitable for
+ * verification and search.
  *
- * This function may write to \p attributes, reflecting additional information
- * gained during augmentation.
- *
- * Augmented templates can then be passed to \ref janus_flatten_template for
- * verification or \ref janus_write_gallery for gallery construction.
- *
- * \param[in] image The image containing the detected object to be recognized.
- * \param[in,out] attributes Location and metadata associated with a single
- *                          detected object to recognize.
- * \param[in,out] template_ The template to contain the object's recognition
- *                          information.
+ * \param[in] associations A vector of associations between a piece of media
+ *                         and relevant metadata. All of the associations provided
+ *                         are guaranteed to be of a single subject
+ * \param[in] role An enumeration describing the intended function for the created template.
+ *                 Implementors are not required to have different types of templates for any/all
+ *                 of the roles specified but can if they choose.
+ * \param[out] template_ The template to contain the subject's recognition information.
  * \remark This function is \ref reentrant.
  */
-JANUS_EXPORT janus_error janus_augment(const janus_image image,
-                                       janus_attributes *attributes,
-                                       janus_template template_);
+JANUS_EXPORT janus_error janus_create_template(const std::vector<janus_association> &associations,
+                                               const janus_template_role role,
+                                               janus_template &template_);
 
 /*!
- * \brief Commit a janus_template to disk
+ * \brief Build a list of templates from a single piece of janus_media
  *
- * Call this function to commit a janus_template to disk.
- * \param[in] template_file The name of the template file on disk.
- * \param[in] template_ The template to write to disk.
- * \remark This function is \ref reentrant.
- * \see janus_allocate_template
+ * There is no guarantee on the number of individual subjects appearing in the media
+ * and implementors should create as many templates as necessary to represent all of
+ * the people they find.
+ *
+ * Implementors must return a single janus_track for each template they create. The track
+ * must have all of the metadata fields specified in \ref detection_guarantees.
+ *
+ * \param[in] media An image or a video containing an unknown number of identities
+ * \param[in] role An enumeration describing the intended function for the created template.
+ *                 Implementors are not required to have different types of templates for any/all
+ *                 of the roles specified but can if they choose.
+ * \param[out] templates A list of templates containing recognition information for all of the
+ *                       identities discovered in the media.
+ * \param[out] tracks A list of metadata corresponding to the return templates.
  */
-JANUS_EXPORT janus_error janus_write_template(const char* template_file,
-                                              const janus_template template_);
+JANUS_EXPORT janus_error janus_create_template(const janus_media &media,
+                                               const janus_template_role role,
+                                               std::vector<janus_template> &templates,
+                                               std::vector<janus_track> &tracks);
 
 /*!
- * \brief Free memory for a template previously allocated by
- * \ref janus_allocate_template.
+ * \brief Serialize a template to a byte array
+ *
+ * The array could be stored on disk, sent to a database, or
+ * whatever else the implementor decides.
+ *
+ * \param[in] template_ The template to serialize
+ * \param[out] data Unallocated byte array to store the serialized template
+ * \param[out] template_bytes Length of the serialized template
+ * \remark This function is \ref thread_safe
+ */
+JANUS_EXPORT janus_error janus_serialize_template(const janus_template &template_,
+                                                  janus_data *&data,
+                                                  size_t &template_bytes);
+
+/*!
+ * \brief Convert a byte array to a janus_template
+ *
+ * The byte array was initially created with #janus_serialize_template
+ *
+ * \param[in] data Byte array of serialized template data
+ * \param[in] template_bytes Size of \p data
+ * \param[out] template_ Unallocated template to hold deserialized template
+ * \remark This function is \ref thread_safe
+ */
+JANUS_EXPORT janus_error janus_deserialize_template(const janus_data *data,
+                                                    const size_t template_bytes,
+                                                    janus_template &template_);
+
+/*!
+ * \brief Delete a serialized template
+ *
+ * Call this function on a serialized template after it is no longer needed.
+ *
+ * \param[in,out] template_ The serialized template to delete.
+ * \param[in] template_bytes Size of \p data
+ * \remark This function is \ref reentrant.
+ */
+JANUS_EXPORT janus_error janus_delete_serialized_template(janus_data *&template_,
+                                                          const size_t template_bytes);
+
+/*!
+ * \brief Delete a template
  *
  * Call this function on a template after it is no longer needed.
- * \param[in] template_ The template to deallocate.
- * \remark This function is \ref reentrant.
- * \see janus_allocate_template
- */
- JANUS_EXPORT janus_error janus_free_template(janus_template template_);
-
-/*!
- * \brief A finalized representation of a template suitable for comparison.
  *
- * Ideally the comparison should occur without a memory copy.
- * Alternatively, the implementation may temporarily unmarshall this buffer into
- * a more suitable data structure.
- * \see janus_template
- */
-typedef janus_data *janus_flat_template;
-
-/*!
- * \brief The maximum size of templates generated by
- *        \ref janus_flatten_template.
- *
- * Should be less than or equal to 32 MB.
- * \remark This function is \ref thread_safe.
- */
-JANUS_EXPORT size_t janus_max_template_size();
-
-/*!
- * \brief Create a finalized template representation for \ref janus_verify,
- *        \ref janus_write_gallery or \ref janus_search.
- * \param[in] template_ The recognition information to construct the
- *                      finalized template from.
- * \param[in,out] flat_template A pre-allocated buffer provided by the calling
- *                              application no smaller than
- *                              \ref janus_max_template_size to contain the
- *                              finalized template.
- * \param[out] bytes Size of the buffer actually used to store the template.
+ * \param[in,out] template_ The template to delete.
  * \remark This function is \ref reentrant.
  */
-JANUS_EXPORT janus_error janus_flatten_template(const janus_template template_,
-                                                janus_flat_template flat_template,
-                                                size_t *bytes);
-
-/*!
- * \brief Commit a janus_flat_template to disk
- *
- * Call this function to commit a janus_flat_template to disk.
- * \param[in] flat_template_file The name of the flat template file on disk.
- * \param[in] flat_template_ The flat template to write to disk.
- * \remark This function is \ref reentrant.
- * \see janus_allocate_template
- */
-JANUS_EXPORT janus_error janus_write_flat_template(const char* flat_template_file,
-                                                   const janus_flat_template flat_template_);
+JANUS_EXPORT janus_error janus_delete_template(janus_template &template_);
 
 /*!
  * \brief Return a similarity score for two templates.
@@ -640,103 +638,122 @@ JANUS_EXPORT janus_error janus_write_flat_template(const char* flat_template_fil
  * the order of \p a and \p b will not change \p similarity.
  *
  * \param[in] a The first template to compare.
- * \param[in] a_bytes Size of template a.
  * \param[in] b The second template to compare.
- * \param[in] b_bytes Size of template b.
  * \param[out] similarity Higher values indicate greater similarity.
  * \remark This function is \ref thread_safe.
  * \see janus_search
  */
-JANUS_EXPORT janus_error janus_verify(const janus_flat_template a,
-                                      const size_t a_bytes,
-                                      const janus_flat_template b,
-                                      const size_t b_bytes,
-                                      float *similarity);
+JANUS_EXPORT janus_error janus_verify(const janus_template &a,
+                                      const janus_template &b,
+                                      double &similarity);
 
 /*!
- * \brief Unique identifier for a \ref janus_flat_template.
+ * \brief Unique identifier for a \ref janus_template.
  *
  * Associate a template with a unique identifier during
- * \ref janus_write_gallery.
+ * \ref janus_create_gallery.
  * Retrieve the unique identifier from \ref janus_search and \ref janus_cluster.
  */
 typedef size_t janus_template_id;
 
 /*!
- * \brief Galleries are represented in persistent storage as folders on disk.
- *
- * A \ref janus_gallery_path is the path to the gallery folder.
- * Galleries are created by \ref janus_write_gallery and accessed by
- * \ref janus_open_gallery.
- */
-typedef const char *janus_gallery_path;
-
-/*!
- * \brief Construct a gallery on disk.
- *
- * Access the constructed gallery with \ref janus_open_gallery.
- *
- * \note The caller is advised to memory map \p templates in the event that they
- * approach or exceed the available system memory.
- *
- * \param[in] templates Array of templates to comprise the gallery.
- * \param[in] templates_bytes Array of sizes for each template.
- * \param[in] template_ids Array of \ref janus_template_id for each template.
- * \param[in] num_templates Length of \p templates, \p templates_bytes, and
- *                          \p template_ids.
- * \param[in] gallery_path Path to an empty read-write folder to store the
- *                         gallery.
- * \remark This function is \ref reentrant.
- */
-JANUS_EXPORT janus_error janus_write_gallery(const janus_flat_template
-                                                                     *templates,
-                                             const size_t *templates_bytes,
-                                             const janus_template_id
-                                                                  *template_ids,
-                                             const size_t num_templates,
-                                             janus_gallery_path gallery_path);
-
-/*!
- * \brief An opaque reference to a read-only \ref janus_gallery_path.
- *
- * Initialize with \ref janus_open_gallery and free with
- * \ref janus_close_gallery.
- * Used to perform searches with \ref janus_search and clustering with
- * \ref janus_cluster.
+ * \brief A collection of templates for search
  */
 typedef struct janus_gallery_type *janus_gallery;
 
 /*!
- * \brief Initialize a gallery from a folder created in a previous call to
- *        \ref janus_write_gallery.
+ * \brief Create a gallery from a list of templates.
  *
- * Janus galleries are stored as folders on disk and accessed using the opaque
- * \ref janus_gallery type.
- * Close the gallery when it is no longer needed with \ref janus_close_gallery.
+ * The created gallery should be suitable for search.
  *
- * \param[in] gallery_path Read-only folder populated by a previous call to
- *                         \ref janus_write_gallery.
- * \param[out] gallery Pointer to an uninitialized gallery.
- * \remark This function is \ref reentrant.
+ * \param[in] templates List of templates to construct the gallery
+ * \param[in] ids list of unique ids to associate with the templates in the gallery
+ * \param[out] gallery The created gallery
+ * \remark This function is \ref thread_safe
  */
-JANUS_EXPORT janus_error janus_open_gallery(janus_gallery_path gallery_path,
-                                            janus_gallery *gallery);
+JANUS_EXPORT janus_error janus_create_gallery(const std::vector<janus_template> &templates,
+                                              const std::vector<janus_template_id> &ids,
+                                              janus_gallery &gallery);
 
 /*!
- * \brief Free a gallery previously initialized by \ref janus_open_gallery.
+ * \brief Serialize a gallery to a byte array
  *
- * \param[in] gallery The gallery to close.
+ * The array could be stored on disk, sent to a database, or
+ * whatever else the implementor decides.
+ *
+ * \param[in] gallery The gallery to serialize
+ * \param[out] data Unallocated byte array to store the serialized gallery
+ * \param[out] gallery_bytes Length of the serialized gallery
+ * \remark This function is \ref thread_safe
+ */
+JANUS_EXPORT janus_error janus_serialize_gallery(const janus_gallery &gallery,
+                                                 janus_data *&data,
+                                                 size_t &gallery_bytes);
+
+/*!
+ * \brief Convert a byte array to a janus_gallery
+ *
+ * The byte array was initially created with #janus_serialize_gallery
+ *
+ * \param[in] data Byte array of serialized gallery data
+ * \param[in] gallery_bytes Size of \p data
+ * \param[out] gallery Unallocated gallery to hold deserialized gallery
+ * \remark This function is \ref thread_safe
+ */
+JANUS_EXPORT janus_error janus_deserialize_gallery(const janus_data *data,
+                                                   const size_t gallery_bytes,
+                                                   janus_gallery &gallery);
+
+/*!
+ * \brief Insert a template into a gallery.
+ *
+ * \param[in,out] gallery The gallery to insert the template into
+ * \param[in] template_ The template to insert
+ * \param[in] id Unique id for the new template
+ * \remark This function \ref reentrant
+ */
+JANUS_EXPORT janus_error janus_gallery_insert(janus_gallery &gallery,
+                                              const janus_template &template_,
+                                              const janus_template_id id);
+
+/*!
+ * \brief Remove a template from a gallery.
+ *
+ * \param[in,out] gallery The gallery to remove a template from
+ * \param[in] id Unique id for the template to delete
+ * \remark This function \ref reentrant
+ */
+JANUS_EXPORT janus_error janus_gallery_remove(janus_gallery &gallery,
+                                              const janus_template_id id);
+
+/*!
+ * \brief Delete a gallery
+ *
+ * Call this function on a gallery after it is no longer needed.
+ *
+ * \param[in,out] gallery The gallery to delete.
  * \remark This function is \ref reentrant.
  */
- JANUS_EXPORT janus_error janus_close_gallery(janus_gallery gallery);
+JANUS_EXPORT janus_error janus_delete_gallery(janus_gallery &gallery);
+
+/*!
+ * \brief Delete a serialized gallery
+ *
+ * Call this function on a serialized gallery after it is no longer needed.
+ *
+ * \param[in,out] gallery The serialized gallery to delete.
+ * \param[in] gallery_bytes Size of \p data
+ * \remark This function is \ref reentrant.
+ */
+JANUS_EXPORT janus_error janus_delete_serialized_gallery(janus_data *&gallery,
+                                                         const size_t gallery_bytes);
 
 /*!
  * \brief Ranked search for a template against a gallery.
  *
- * \p template_ids and \p similarities should be pre-allocated buffers large
- * enough to contain \p requested_returns elements. \p actual_returns will be
- * less than or equal to requested_returns, depending on the contents of the
- * gallery.
+ * \p template_ids and \p similarities are empty vectors to hold the return
+ * scores. The number of returns should be less than or equal to \p num_requested_returns,
+ * depending on the contents of the gallery.
  *
  * The returned \p similarities \em may be normalized by the implementation
  * based on the contents of the \p gallery. Therefore, similarity scores
@@ -744,70 +761,82 @@ JANUS_EXPORT janus_error janus_open_gallery(janus_gallery_path gallery_path,
  * be comparable.
  *
  * \param[in] probe Probe to search for.
- * \param[in] probe_bytes Size of probe.
  * \param[in] gallery Gallery to search against.
  * \param[in] num_requested_returns The desired number of returned results.
- * \param[out] template_ids Buffer to contain the \ref janus_template_id of the
- *                          top matching gallery templates.
- * \param[out] similarities Buffer to contain the similarity scores of the top
- *                          matching templates.
- * \param[out] num_actual_returns The number of populated elements in
- *                                template_ids and similarities. This value
- *                                could be zero.
+ * \param[out] template_ids Empty vector to contain the \ref janus_template_id
+ *                          of the top matching gallery templates.
+ * \param[out] similarities Empty vector to contain the similarity scores of
+ *                          the top matching templates.
  * \remark This function is \ref thread_safe.
  * \see janus_verify
  */
-JANUS_EXPORT janus_error janus_search(const janus_flat_template probe,
-                                      const size_t probe_bytes,
-                                      const janus_gallery gallery,
+JANUS_EXPORT janus_error janus_search(const janus_template &probe,
+                                      const janus_gallery &gallery,
                                       const size_t num_requested_returns,
-                                      janus_template_id *template_ids,
-                                      float *similarities,
-                                      size_t *num_actual_returns);
+                                      std::vector<janus_template_id> &template_ids,
+                                      std::vector<double> &similarities);
 
 /*!
- * \brief Cluster a gallery into a set of identities.
+ * \brief Cluster a collection of unlabelled people into distinct identites.
  *
- * The output of this function is two arrays, \p template_ids and \p cluster_ids
- * of equal length, serving as a mapping between templates and clusters.
+ * Bounding boxes for all subjects of interest in the media will be provided.
+ *
+ * \section clusters Clusters
+ * Clusters are represented as a list of lists of <int, double> pairs. Each
+ * pairing consists of the cluster id and the cluster confidence and corresponds
+ * to an instance of an identity in a single piece of \ref janus_media.
  *
  * \section clustering_hint Clustering Hint
  * Clustering is generally considered to be an ill-defined problem, and most
  * algorithms require some help determining the appropriate number of clusters.
  * The \p hint parameter helps influence the number of clusters, though the
  * implementation is free to ignore it.
- * - If \p hint is in the range [-1, 1] then it is a clustering
- * \em aggressiveness, with \c -1 favoring more clusters (fewer templates per
- * cluster), and \c 1 favoring fewer clusters (more templates per cluster).
- * - If \p hint is greater than 1 then it is a clustering \em count, indicating
- * the suggested number of clusters.
- * - The suggested default value for \p hint is \c 0.
- *
- * \section gallery_size Gallery Size
- * The size of the gallery is number of templates passed to
- * \ref janus_write_gallery.
+ * The goal of the hint is to provide an order of magnitude estimation for the
+ * number of identities that appear in a set of media. As such it will be a
+ * multiple of 10 (10, 100, 1000 etc.).
  *
  * \note The implementation of this function is optional, and may return
  *       #JANUS_NOT_IMPLEMENTED.
  *
- * \param[in] gallery The gallery to cluster.
+ * \param[in] associations The collection of media and relevant detection information to cluster
  * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
- * \param[out] template_ids A pre-allocated array provided by the calling
- *                          application large enough to hold \ref gallery_size
- *                          elements.
- * \param[out] cluster_ids A pre-allocated array provided by the calling
- *                         application large enough to hold \ref gallery_size
- *                         elements.
+ * \param[out] clusters A list of lists of cluster pairs, see \ref clusters.
  * \remark This function is \ref thread_safe.
  */
-JANUS_EXPORT janus_error janus_cluster(const janus_gallery gallery,
-                                       const double hint,
-                                       janus_template_id *template_ids,
-                                       int *cluster_ids);
-/*! @}*/
+typedef std::pair<int, double> cluster_pair;
+JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_association> &associations,
+                                       const size_t hint,
+                                       std::vector<std::vector<cluster_pair> > &clusters);
 
-#ifdef __cplusplus
-}
-#endif
+/*!
+ * \brief Cluster an unlabelled set of media into distinct identities.
+ *
+ * No bounding box information will be provided and all people must be detected
+ * by the implementor. These detections should be return as a list of lists of
+ * janus_tracks.
+ *
+ * \note The implementation of this function is optional, and may return
+ *       #JANUS_NOT_IMPLEMENTED
+ *
+ * \param[in] media The collection of media to cluster.
+ * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
+ * \param[out] clusters A list of lists of cluster pairs, see \ref clusters.
+ * \param[out] tracks A list of lists of tracks that must be the same size as #clusters.
+ *                    Each track should provide detection information for the associated
+ *                    \ref cluster_pair.
+ */
+JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_media> &media,
+                                       const size_t hint,
+                                       std::vector<std::vector<cluster_pair> > &clusters,
+                                       std::vector<std::vector<janus_track> > &tracks);
+/*!
+ * \brief Call once at the end of the application, after making all other calls
+ * to the API.
+ * \remark This function is \ref thread_unsafe and should only be called once.
+ * \see janus_initialize
+ */
+JANUS_EXPORT janus_error janus_finalize();
+
+/*! @}*/
 
 #endif /* IARPA_JANUS_H */

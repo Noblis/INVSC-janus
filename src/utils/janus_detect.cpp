@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
-#include <fstream>
+#include <math.h>
 
-#include <iarpa_janus.h>
-#include <iarpa_janus_io.h>
+#include "iarpa_janus.h"
+#include "iarpa_janus_io.h"
+
+using namespace std;
 
 const char *get_ext(const char *filename) {
     const char *dot = strrchr(filename, '.');
@@ -13,24 +15,24 @@ const char *get_ext(const char *filename) {
 
 void printUsage()
 {
-    printf("Usage: janus_create_gallery sdk_path temp_path templates_list_file gallery_file [-algorithm <algorithm>] [-verbose]\n");
+    printf("Usage: janus_detect sdk_path temp_path data_path images_file min_face_size detection_list_file [-algorithm <algorithm>] [-verbose]\n");
 }
 
 int main(int argc, char *argv[])
 {
-    int requiredArgs = 5;
+    int requiredArgs = 7;
 
-    if ((argc < requiredArgs) || (argc > 8)) {
+    if ((argc < requiredArgs) || (argc > 10)) {
         printUsage();
         return 1;
     }
 
-    const char *ext1 = get_ext(argv[3]);
+    const char *ext1 = get_ext(argv[4]);
     if (strcmp(ext1, "csv") != 0) {
-        printf("template_list_file must be \".csv\" format.\n");
+        printf("images_file must be \".csv\" format.\n");
         return 1;
-    } 
-    
+    }
+
     char *algorithm = "";
     bool verbose = false;
 
@@ -46,8 +48,8 @@ int main(int argc, char *argv[])
     }
 
     JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
-    JANUS_ASSERT(janus_create_gallery_helper(argv[3], argv[4], verbose));
-    JANUS_ASSERT(janus_finalize());
+    JANUS_ASSERT(janus_detect_helper(argv[3], argv[4], atoi(argv[4]), argv[5], verbose))
+    JANUS_ASSERT(janus_finalize())
 
     return EXIT_SUCCESS;
 }

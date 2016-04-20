@@ -26,10 +26,6 @@
 
 #include <iarpa_janus.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*!
  * \defgroup janus_io Janus I/O
  * \brief Media decoding and evaluation harness.
@@ -89,8 +85,7 @@ JANUS_EXPORT janus_error janus_error_from_string(const char *error);
  * \remark This function is \ref reentrant.
  * \see janus_free_image
  */
-JANUS_EXPORT janus_error janus_read_image(const char *file_name,
-                                                            janus_image *image);
+JANUS_EXPORT janus_error janus_load_media(const std::string &filename, janus_media &media);
 
 /*!
  * \brief Frees the memory previously allocated for a #janus_image.
@@ -98,41 +93,7 @@ JANUS_EXPORT janus_error janus_read_image(const char *file_name,
  * \remark This function is \ref reentrant.
  * \see janus_allocate_image
  */
-JANUS_EXPORT void janus_free_image(janus_image image);
-
-/*!
- * \brief Handle to a private video decoding type.
- */
-typedef struct janus_video_type *janus_video;
-
-/*!
- * \brief Returns a video ready for reading.
- * \param[in] file_name Path to image file.
- * \param[out] video Address to store the allocated video.
- * \remark This function is \ref reentrant.
- * \see janus_read_frame janus_close_video
- */
-JANUS_EXPORT janus_error janus_open_video(const char *file_name,
-                                                            janus_video *video);
-
-/*!
- * \brief Returns the current frame and advances the video to the next frame.
- * \param[in] video Video to decode.
- * \param[out] image Address to store the allocated image.
- * \remark This function is \ref reentrant.
- * \see janus_open_video janus_free_image
- */
-JANUS_EXPORT janus_error janus_read_frame(janus_video video, janus_image *image);
-
-/*!
- * \brief Closes a video previously opened by \ref janus_open_video.
- *
- * Call this function to deallocate the memory allocated to decode the video
- * after the desired frames have been read.
- * \param[in] video The video to close.
- * \remark This function is \ref reentrant.
- */
-JANUS_EXPORT void janus_close_video(janus_video video);
+JANUS_EXPORT janus_error janus_free_media(janus_media &media);
 
 /*!
  * \brief File name for a Janus Metadata File
@@ -166,101 +127,57 @@ TEMPLATE_ID        , SUBJECT_ID, FILE_NAME, MEDIA_ID, FRAME, <janus_attribute>, 
 typedef const char *janus_metadata;
 
 /*!
- * \brief High-level function for enrolling a template from a metadata file.
+ * \brief High-level helper function for running face detection on a list of images
  * \param [in] data_path Prefix path to files in metadata.
- * \param [in] metadata #janus_metadata file to enroll.
- * \param [out] template_ Constructed template.
- * \param [out] template_id Template ID from metadata.
- * \remark This function is \ref thread_unsafe.
+ * \param [in] metadata #janus_metadata to detect faces in
+ * \param [in] min_face_size The minimum width, in pixels, for detected faces
+ * \param [in] detection_list_file The path to the file to store detection information
+ * \param [in] verbose Print information and warnings during detection
+ * \remark This function is \ref thread_unsafe
  */
-JANUS_EXPORT janus_error janus_create_template(const char *data_path, janus_metadata metadata, janus_template *template_, janus_template_id *template_id);
+JANUS_EXPORT janus_error janus_detect_helper(const std::string &data_path, janus_metadata metadata, const size_t min_face_size, const std::string &detection_list_file, bool verbose);
 
 /*!
- * \brief High-level function for enrolling templates from a metadata file and writing templates to disk.
+ * \brief High-level helper function for enrolling templates from a metadata file and writing templates to disk.
  * \param [in] data_path Prefix path to files in metadata.
  * \param [in] metadata #janus_metadata to enroll.
- * \param [in] gallery_file File to save the gallery to.
+ * \param [in] output_path Directory to save the templates to
+ * \param [in] output_file CSV file to hold the filenames, template ids, and subject_ids for the saved templates.
+ *                         The format is templateID,subjectID,filename\n
+ * \param [in] role The role for the templates
+ * \param [in] verbose Print information and warnings during template enrollment.
+ * \remark This function is \ref thread_unsafe.
+ */
+JANUS_EXPORT janus_error janus_create_templates_helper(const std::string &data_path, janus_metadata metadata, const std::string &templates_path, const std::string &templates_list_file, const janus_template_role role, bool verbose);
+
+/*!
+ * \brief High-level helper function for enrolling a gallery from a metadata file.
+ * \param [in] templates_file Text file of templates to enroll into the gallery
+ * \param [in] gallery_file File to save the gallery to
  * \param [in] verbose Print information and warnings during gallery enrollment.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_create_templates(const char *data_path, janus_metadata metadata, const char *gallery_file, int verbose);
+JANUS_EXPORT janus_error janus_create_gallery_helper(const std::string &templates_list_file, const std::string &gallery_file, bool verbose);
 
 /*!
- * \brief High-level function for enrolling a gallery from a metadata file.
- * \param [in] data_path Prefix path to files in metadata.
- * \param [in] metadata #janus_metadata to enroll.
- * \param [in] gallery_path Path to gallery folder.
- * \param [in] verbose Print information and warnings during gallery enrollment.
+ * \brief High-level helper function for running verification on two equal sized lists of templates
+ * \param [in] templates_list_file_a The first list of templates
+ * \param [in] templates_list_file_b The second list of templates
+ * \param [in] scores_file The file to write scores to. Scores are written template_id_a,template_id_b,similarity,genuine_match\n
+ * \param [in] verbose Print information and warnings during verification.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_create_gallery(const char *data_path, janus_metadata metadata, janus_gallery_path gallery_path, int verbose);
+JANUS_EXPORT janus_error janus_verify_helper(const std::string &templates_list_file_a, const std::string &templates_list_file_b, const std::string &scores_file, bool verbose);
 
 /*!
- * \brief A dense binary 2D matrix file.
- *
- * Can be either the \a similarity or \a mask matrix format described in
- * <a href="http://openbiometrics.org/doxygen/latest/MBGC_file_overview.pdf#page=12">MBGC File Overview</a>.
- * \see janus_write_matrix janus_evaluate_search janus_evaluate_verify janus_verify_pairwise
- */
-typedef const char *janus_matrix;
-
-/*!
- * \brief Utility function for creating a \ref janus_matrix.
- * \param[in] data Matrix data.
- * \param[in] rows Matrix rows.
- * \param[in] columns Matrix columns.
- * \param[in] is_mask If non-zero, data is a uint8_t* of mask values, otherwise data is treated as a float* of similarity values.
- * \param[in] target Target gallery file name recorded in the matrix header.
- * \param[in] query Query gallery file name recorded in the matrix header.
- * \param[in] matrix File to write the matrix to.
- * \remark This function is \ref thread_safe.
- */
-JANUS_EXPORT janus_error janus_write_matrix(void *data, int rows, int columns, int is_mask, janus_metadata target, janus_metadata query, janus_matrix matrix);
-
-/*!
- * \brief Create similarity and mask matricies from two galleries with calls to janus_search.
- *
- * The \c SUBJECT_ID field is used to determine ground truth match/non-match in the mask.
- * Refer to <a href="http://www.nist.gov/itl/iad/ig/face.cfm"><b>face.nist.gov</b></a> for more information on IJB-A and the ".candidate_lists" format.
- * \param[in] target Path to gallery being seached against on disk.
- * \param[in] query Templates file created fron janus_create_templates to constitute the rows for the matrix.
- * \param[in] target_metadata metadata file for \p target.
- * \param[in] query_metadata metadata file for \p query.
- * \param[in] simmat Similarity matrix file to be created.
- * \param[in] mask Mask matrix file to be created.
- * \param[in] candidate_lists Text file containing template size and score for each search's requested returns.
- * \param[in] num_requested_returns Desired number of returned results for each call to janus_search.
+ * \brief High-level helper function for running verification on two equal sized lists of templates
+ * \param [in] templates_list_file List of templates to enroll as probes
+ * \param [in] gallery_file Path to the gallery to search against
+ * \param [in] candidate_list File to write the candidate lists to. Each line in the file has the format probe_template_id,rank,gallery_template_id,similarity,genuine_match\n
+ * \param [in] verbose Print information and warnings during search.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_evaluate_search(janus_gallery_path target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask, const char *candidate_lists, size_t num_requested_returns);
-
-/*!
- * \brief Create similarity and mask matricies from two galleries with calls to janus_verify.
- *
- * The \c SUBJECT_ID field is used to determine ground truth match/non-match in the mask.
- * \param[in] target Templates file created from janus_create_templates to constitute the columns of the matrix.
- * \param[in] query Templates file created from janus_create_templates to constitute the rows for the matrix.
- * \param[in] target_metadata metadata file for \p target.
- * \param[in] query_metadata metadata file for \p query.
- * \param[in] simmat Similarity matrix file to be created.
- * \param[in] mask Mask matrix file to be created.
- * \remark This function is \ref thread_unsafe.
- */
-JANUS_EXPORT janus_error janus_evaluate_verify(const char *target, const char *query, janus_metadata target_metadata, janus_metadata query_metadata, janus_matrix simmat, janus_matrix mask);
-
-/*!
- * \brief High-level function for executing a list of template comparisons.
- *
- * Refer to <a href="http://www.nist.gov/itl/iad/ig/face.cfm"><b>face.nist.gov</b></a> for more information on IJB-A and the ".matches" format.
- * \param[in] comparisons_file File containing the list of template comparisons to make.
- * \param[in] templates_file Templates file created from janus_create_templates containing the comparison templates.
- * \param[in] template_metadata metadata file for comparison templates.
- * \param[in] simmat Similarity matrix file to be created.
- * \param[in] mask Mask matrix file to be created.
- * \param[in] match_scores Output matches file with template size and score recorded for each comparison.
- * \remark This function is \ref thread_unsafe.
- */
-JANUS_EXPORT janus_error janus_verify_pairwise(const char *comparisons_file, const char *templates_file, janus_metadata template_metadata, janus_matrix simmat, janus_matrix mask, const char *match_scores);
+JANUS_EXPORT janus_error janus_search_helper(const std::string &probes_list_file, const std::string &gallery_list_file, const std::string &gallery_file, int num_requested_returns, const std::string &candidate_list, bool verbose);
 
 /*!
  * \brief A statistic.
@@ -279,16 +196,25 @@ struct janus_metric
  */
 struct janus_metrics
 {
-    struct janus_metric janus_initialize_template_speed; /*!< \brief ms */
+    struct janus_metric janus_load_media_speed; /*!< \brief ms */
+    struct janus_metric janus_free_media_speed; /*!< \brief ms */
     struct janus_metric janus_detection_speed; /*!< \brief ms */
-    struct janus_metric janus_augment_speed; /*!< \brief ms */
-    struct janus_metric janus_finalize_template_speed; /*!< \brief ms */
-    struct janus_metric janus_read_image_speed; /*!< \brief ms */
-    struct janus_metric janus_free_image_speed; /*!< \brief ms */
+    struct janus_metric janus_create_template_speed; /*!< \brief ms */
+    struct janus_metric janus_serialize_template_speed; /*!< \brief ms */
+    struct janus_metric janus_deserialize_template_speed; /*!< \brief ms */
+    struct janus_metric janus_delete_serialized_template_speed; /*!< \brief ms */
+    struct janus_metric janus_delete_template_speed; /*!< \brief ms */
     struct janus_metric janus_verify_speed; /*!< \brief ms */
+    struct janus_metric janus_create_gallery_speed; /*!< \brief ms */
+    struct janus_metric janus_gallery_insert_speed; /*!< \brief ms */
+    struct janus_metric janus_gallery_remove_speed; /*!< \brief ms */
+    struct janus_metric janus_serialize_gallery_speed; /*!< \brief ms */
+    struct janus_metric janus_deserialize_gallery_speed; /*!< \brief ms */
+    struct janus_metric janus_delete_serialized_gallery_speed; /*!< \brief ms */
+    struct janus_metric janus_delete_gallery_speed; /*!< \brief ms */
     struct janus_metric janus_search_speed; /*!< \brief ms */
-    struct janus_metric janus_gallery_size_speed; /*!< \brief ms */
-    struct janus_metric janus_finalize_gallery_speed; /*!< \brief ms */
+
+    struct janus_metric janus_gallery_size; /*!< \brief KB */
     struct janus_metric janus_template_size; /*!< \brief KB */
     int                 janus_missing_attributes_count; /*!< \brief Count of
                                                              \ref JANUS_MISSING_ATTRIBUTES */
@@ -316,9 +242,5 @@ JANUS_EXPORT struct janus_metrics janus_get_metrics();
 JANUS_EXPORT void janus_print_metrics(struct janus_metrics metrics);
 
 /*! @}*/
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* IARPA_JANUS_IO_H */

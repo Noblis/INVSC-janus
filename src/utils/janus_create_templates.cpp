@@ -12,46 +12,40 @@ const char *get_ext(const char *filename) {
 
 void printUsage()
 {
-    printf("Usage: janus_create_templates sdk_path temp_path data_path metadata_file gallery_file [-algorithm <algorithm>] [-verbose]\n");
+    printf("Usage: janus_create_templates sdk_path temp_path data_path metadata_file templates_dir template_list_file template_role [-algorithm <algorithm>] [-verbose]\n");
 }
 
 int main(int argc, char *argv[])
 {
-    int requiredArgs = 6;
-
-    if ((argc < requiredArgs) || (argc > 9)) {
+    int requiredArgs = 8;
+    if ((argc < requiredArgs) || (argc > 12)) {
         printUsage();
         return 1;
     }
 
     const char *ext1 = get_ext(argv[4]);
-    const char *ext2 = get_ext(argv[5]);
     if (strcmp(ext1, "csv") != 0) {
         printf("metadata_file must be \".csv\" format.\n");
         return 1;
-    } else if (strcmp(ext2, "gal") != 0) {
-        printf("gallery_file must be \".gal\" format. \n");
-        return 1;
-    }
+    } 
 
-    char *algorithm = NULL;
-    int verbose = 0;
+    char *algorithm = "";
+    bool verbose = false;
 
-    for (int i=0; i<argc-requiredArgs; i++)
+    for (int i = 0; i < argc - requiredArgs; i++) {
         if (strcmp(argv[requiredArgs+i],"-algorithm") == 0)
             algorithm = argv[requiredArgs+(++i)];
         else if (strcmp(argv[requiredArgs+i],"-verbose") == 0)
-            verbose = 1;
+            verbose = true;
         else {
             fprintf(stderr, "Unrecognized flag: %s\n", argv[requiredArgs+i]);
             return 1;
         }
+    }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm))
-    JANUS_ASSERT(janus_create_templates(argv[3], argv[4], argv[5], verbose))
+    JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
+    JANUS_ASSERT(janus_create_templates_helper(argv[3], argv[4], argv[5], argv[6], static_cast<janus_template_role>(atoi(argv[7])), verbose))
     JANUS_ASSERT(janus_finalize())
-
-    janus_print_metrics(janus_get_metrics());
 
     return EXIT_SUCCESS;
 }
