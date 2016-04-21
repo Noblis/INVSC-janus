@@ -356,7 +356,7 @@ janus_error janus_verify(const janus_template &a, const janus_template &b, doubl
     JANUS_TRY_PPR(ppr_compare_galleries(ppr_context, gallery_a, gallery_b, &simmat))
     float fsimilarity;
     JANUS_TRY_PPR(ppr_get_subject_similarity_score(ppr_context, simmat, 0, 0, &fsimilarity))
-    similarity = fsimilarity;
+    similarity = fsimilarity + 1.5;
 
     ppr_free_gallery(gallery_a);
     ppr_free_gallery(gallery_b);
@@ -497,7 +497,7 @@ janus_error janus_search(const janus_template &probe, const janus_gallery &galle
         int target_subject_id = id_list.ids[i];
         float score;
         JANUS_TRY_PPR(ppr_get_subject_similarity_score(ppr_context, simmat, 0, target_subject_id, &score))
-        scores.push_back(make_pair(score, target_subject_id));
+        scores.push_back(make_pair(score + 1.5, target_subject_id));
     }
 
     ppr_free_id_list(id_list);

@@ -10,6 +10,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <assert.h>
 
 #include <iarpa_janus_io.h>
@@ -287,7 +288,7 @@ struct TemplateIterator : public TemplateData
         return templateData;
     }
 
-    static janus_error create(const std::string &data_path, const TemplateData templateData, const janus_template_role role, janus_template *template_, janus_template_id *templateID, bool verbose)
+    static janus_error create(const string &data_path, const TemplateData templateData, const janus_template_role role, janus_template *template_, janus_template_id *templateID, bool verbose)
     {
         clock_t start;
 
@@ -343,7 +344,7 @@ struct TemplateIterator : public TemplateData
 
 #ifndef JANUS_CUSTOM_CREATE_TEMPLATES
 
-janus_error janus_create_templates_helper(const std::string &data_path, janus_metadata metadata, const std::string &templates_path, const std::string &templates_list_file, const janus_template_role role, bool verbose)
+janus_error janus_create_templates_helper(const string &data_path, janus_metadata metadata, const string &templates_path, const string &templates_list_file, const janus_template_role role, bool verbose)
 {
     clock_t start;
 
@@ -355,7 +356,7 @@ janus_error janus_create_templates_helper(const std::string &data_path, janus_me
     janus_template_id templateID;
 
     // Set up file I/O
-    ofstream templates_list_stream(templates_list_file.c_str(), std::ios::out | std::ios::ate);
+    ofstream templates_list_stream(templates_list_file.c_str(), ios::out | ios::ate);
 
     TemplateData templateData = ti.next();
     while (!templateData.templateIDs.empty()) {
@@ -410,7 +411,7 @@ janus_error janus_create_templates_helper(const std::string &data_path, janus_me
 
 #endif // JANUS_CUSTOM_CREATE_TEMPLATES
 
-static janus_error janus_load_templates_from_file(const std::string &templates_list_file, vector<janus_template> &templates, vector<janus_template_id> &template_ids, vector<int> &subject_ids)
+static janus_error janus_load_templates_from_file(const string &templates_list_file, vector<janus_template> &templates, vector<janus_template_id> &template_ids, vector<int> &subject_ids)
 {
     clock_t start;
 
@@ -455,7 +456,7 @@ static janus_error janus_load_templates_from_file(const std::string &templates_l
 
 #ifndef JANUS_CUSTOM_CREATE_GALLERY
 
-janus_error janus_create_gallery_helper(const std::string &templates_list_file, const std::string &gallery_file, bool verbose)
+janus_error janus_create_gallery_helper(const string &templates_list_file, const string &gallery_file, bool verbose)
 {
     clock_t start;
 
@@ -505,7 +506,7 @@ janus_error janus_create_gallery_helper(const std::string &templates_list_file, 
 
 #ifndef JANUS_CUSTOM_VERIFY
 
-janus_error janus_verify_helper(const std::string &templates_list_file_a, const std::string &templates_list_file_b, const std::string &scores_file, bool verbose)
+janus_error janus_verify_helper(const string &templates_list_file_a, const string &templates_list_file_b, const string &scores_file, bool verbose)
 {
     clock_t start;
 
@@ -542,7 +543,23 @@ janus_error janus_verify_helper(const std::string &templates_list_file_a, const 
 
 #ifndef JANUS_CUSTOM_SEARCH
 
-janus_error janus_search_helper(const std::string &probes_list_file, const std::string &gallery_list_file, const std::string &gallery_file, int num_requested_returns, const std::string &candidate_list_file, bool verbose)
+janus_error janus_ensure_size(const vector<janus_template_id> &all_ids, vector<janus_template_id> &return_ids, vector<double> &similarities)
+{
+    set<janus_template_id> return_lookup(return_ids.begin(), return_ids.end());
+
+    return_ids.reserve(all_ids.size()); similarities.reserve(all_ids.size());
+    for (size_t i = 0; i < all_ids.size(); i++) {
+        janus_template_id id = all_ids[i];
+        if (return_lookup.find(id) == return_lookup.end()) {
+            return_ids.push_back(id);
+            similarities.push_back(0.0);
+        }
+    }
+
+    return JANUS_SUCCESS;
+}
+
+janus_error janus_search_helper(const string &probes_list_file, const string &gallery_list_file, const string &gallery_file, int num_requested_returns, const string &candidate_list_file, bool verbose)
 {
     clock_t start;
 
@@ -584,15 +601,17 @@ janus_error janus_search_helper(const std::string &probes_list_file, const std::
 
     ofstream candidate_stream(candidate_list_file.c_str(), ios::out | ios::ate);
     for (size_t i = 0; i < probe_templates.size(); i++) {
-        vector<janus_template_id> gallery_template_ids;
+        vector<janus_template_id> return_template_ids;
         vector<double> similarities;
         start = clock();
-        JANUS_CHECK(janus_search(probe_templates[i], gallery, num_requested_returns, gallery_template_ids, similarities));
+        JANUS_CHECK(janus_search(probe_templates[i], gallery, num_requested_returns, return_template_ids, similarities));
         _janus_add_sample(janus_search_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
 
-        for (size_t j = 0; j < gallery_template_ids.size(); j++)
-            candidate_stream << probe_template_ids[i] << "," << i << "," << gallery_template_ids[j] << "," << similarities[j]
-                             << "," << (probe_subject_ids[i] == subjectIDLUT[gallery_template_ids[j]] ? "true" : "false") << "\n";
+        janus_ensure_size(gallery_template_ids, return_template_ids, similarities);
+
+        for (size_t j = 0; j < return_template_ids.size(); j++)
+            candidate_stream << probe_template_ids[i] << "," << j << "," << return_template_ids[j] << "," << similarities[j]
+                             << "," << (probe_subject_ids[i] == subjectIDLUT[return_template_ids[j]] ? "true" : "false") << "\n";
 
         start = clock();
         JANUS_CHECK(janus_delete_template(probe_templates[i]))
@@ -624,8 +643,8 @@ static janus_metric calculateMetric(const vector<double> &samples)
             metric.stddev += pow(samples[i] - metric.mean, 2.0);
         metric.stddev = sqrt(metric.stddev / samples.size());
     } else {
-        metric.mean = std::numeric_limits<double>::quiet_NaN();
-        metric.stddev = std::numeric_limits<double>::quiet_NaN();
+        metric.mean = numeric_limits<double>::quiet_NaN();
+        metric.stddev = numeric_limits<double>::quiet_NaN();
     }
 
     return metric;
