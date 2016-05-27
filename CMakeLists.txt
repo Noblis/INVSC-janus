@@ -1,5 +1,5 @@
 project(janus)
-cmake_minimum_required(VERSION 2.8.6)
+cmake_minimum_required(VERSION 3.0)
 
 set(JANUS_NAME "Janus")
 set(JANUS_DESCRIPTION "IARPA Janus Program API")
@@ -22,4 +22,7 @@ if(UNIX)
 endif()
 
 include(CTest)
-add_subdirectory(src)
+
+if(JANUS_IMPLEMENTATION AND JANUS_IO_IMPLEMENTATION)
+  add_subdirectory(src)
+endif()

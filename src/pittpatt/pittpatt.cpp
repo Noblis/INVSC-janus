@@ -318,7 +318,7 @@ janus_error janus_verify(const janus_template &a, const janus_template &b, doubl
     ppr_gallery_type gallery_a;
     JANUS_TRY_PPR(ppr_create_gallery(ppr_context, &gallery_a))
 
-    int subject_id = 0, face_id = 0;
+    int face_id = 0;
     for (size_t i = 0; i < a->ppr_face_lists.size(); i++) {
         const ppr_face_list_type &face_list = a->ppr_face_lists[i];
         for (int j = 0; j < face_list.length; j++) {
@@ -329,14 +329,14 @@ janus_error janus_verify(const janus_template &a, const janus_template &b, doubl
             if (!has_template)
                 continue;
 
-            JANUS_TRY_PPR(ppr_add_face(ppr_context, &gallery_a, face, subject_id, face_id++))
+            JANUS_TRY_PPR(ppr_add_face(ppr_context, &gallery_a, face, 0, face_id++))
         }
     }
-    subject_id++;
 
     ppr_gallery_type gallery_b;
     JANUS_TRY_PPR(ppr_create_gallery(ppr_context, &gallery_b))
 
+    face_id = 0
     for (size_t i = 0; i < b->ppr_face_lists.size(); i++) {
         const ppr_face_list_type &face_list = b->ppr_face_lists[i];
         for (int j = 0; j < face_list.length; j++) {
@@ -347,10 +347,9 @@ janus_error janus_verify(const janus_template &a, const janus_template &b, doubl
             if (!has_template)
                 continue;
 
-            JANUS_TRY_PPR(ppr_add_face(ppr_context, &gallery_b, face, subject_id, face_id++))
+            JANUS_TRY_PPR(ppr_add_face(ppr_context, &gallery_b, face, 0, face_id++))
         }
     }
-    subject_id++;
 
     ppr_similarity_matrix_type simmat;
     JANUS_TRY_PPR(ppr_compare_galleries(ppr_context, gallery_a, gallery_b, &simmat))
