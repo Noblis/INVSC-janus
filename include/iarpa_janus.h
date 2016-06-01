@@ -804,7 +804,7 @@ JANUS_EXPORT janus_error janus_search(const janus_template &probe,
 typedef std::pair<int, double> cluster_pair;
 JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_template> &templates,
                                        const size_t hint,
-                                       std::vector<std::vector<cluster_pair> > &clusters);
+                                       std::vector<cluster_pair> &clusters);
 
 /*!
  * \brief Call once at the end of the application, after making all other calls
