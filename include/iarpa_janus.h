@@ -457,7 +457,7 @@ typedef struct janus_track
 typedef struct janus_association
 {
     janus_media media;
-    std::vector<janus_track> metadata;
+    janus_track metadata;
 } janus_association;
 
 /*!

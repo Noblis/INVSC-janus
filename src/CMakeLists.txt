@@ -8,7 +8,7 @@ if(${JANUS_IMPLEMENTATION} STREQUAL pittpatt)
 endif()
 
 if(${JANUS_IO_IMPLEMENTATION} STREQUAL opencv_io)
-  find_package(OpenCV)
+  find_package(OpenCV 3.1)
   if(OpenCV_FOUND)
     add_subdirectory(opencv_io)
   endif()

@@ -305,7 +305,7 @@ struct TemplateIterator : public TemplateData
 
             janus_association association;
             association.media = media;
-            association.metadata.push_back(templateData.tracks[i]);
+            association.metadata = templateData.tracks[i];
             associations.push_back(association);
         }
 
