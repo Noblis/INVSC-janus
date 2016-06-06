@@ -634,17 +634,16 @@ JANUS_EXPORT janus_error janus_delete_template(janus_template &template_);
  *
  * Higher scores indicate greater similarity.
  *
- * The returned \p similarity score is \em symmetric. In other words, swapping
- * the order of \p a and \p b will not change \p similarity.
+ * The returned \p similarity score can be \em asymmetric.
  *
- * \param[in] a The first template to compare.
- * \param[in] b The second template to compare.
+ * \param[in] reference The reference template to compare against. This template was enrolled with the ENROLLMENT_11 template role.
+ * \param[in] verification The verification template to compare with the reference. This template was enrolled with the VERIFICATION_11 template role.
  * \param[out] similarity Higher values indicate greater similarity.
  * \remark This function is \ref thread_safe.
  * \see janus_search
  */
-JANUS_EXPORT janus_error janus_verify(const janus_template &a,
-                                      const janus_template &b,
+JANUS_EXPORT janus_error janus_verify(const janus_template &reference,
+                                      const janus_template &verification,
                                       double &similarity);
 
 /*!
