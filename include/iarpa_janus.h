@@ -777,9 +777,7 @@ JANUS_EXPORT janus_error janus_search(const janus_template &probe,
                                       std::vector<double> &similarities);
 
 /*!
- * \brief Cluster a collection of unlabelled people into distinct identites.
- *
- * Bounding boxes for all subjects of interest in the media will be provided.
+ * \brief Cluster a collection of templates into unique identities.
  *
  * \section clusters Clusters
  * Clusters are represented as a list of lists of <int, double> pairs. Each
@@ -798,37 +796,16 @@ JANUS_EXPORT janus_error janus_search(const janus_template &probe,
  * \note The implementation of this function is optional, and may return
  *       #JANUS_NOT_IMPLEMENTED.
  *
- * \param[in] associations The collection of media and relevant detection information to cluster
+ * \param[in] templates The collection of templates to cluster.
  * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
  * \param[out] clusters A list of lists of cluster pairs, see \ref clusters.
  * \remark This function is \ref thread_safe.
  */
 typedef std::pair<int, double> cluster_pair;
-JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_association> &associations,
+JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_template> &templates,
                                        const size_t hint,
-                                       std::vector<std::vector<cluster_pair> > &clusters);
+                                       std::vector<cluster_pair> &clusters);
 
-/*!
- * \brief Cluster an unlabelled set of media into distinct identities.
- *
- * No bounding box information will be provided and all people must be detected
- * by the implementor. These detections should be return as a list of lists of
- * janus_tracks.
- *
- * \note The implementation of this function is optional, and may return
- *       #JANUS_NOT_IMPLEMENTED
- *
- * \param[in] media The collection of media to cluster.
- * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
- * \param[out] clusters A list of lists of cluster pairs, see \ref clusters.
- * \param[out] tracks A list of lists of tracks that must be the same size as #clusters.
- *                    Each track should provide detection information for the associated
- *                    \ref cluster_pair.
- */
-JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_media> &media,
-                                       const size_t hint,
-                                       std::vector<std::vector<cluster_pair> > &clusters,
-                                       std::vector<std::vector<janus_track> > &tracks);
 /*!
  * \brief Call once at the end of the application, after making all other calls
  * to the API.
