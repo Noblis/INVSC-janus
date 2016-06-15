@@ -363,15 +363,6 @@ janus_error janus_create_templates_helper(const string &data_path, janus_metadat
     while (!templateData.templateIDs.empty()) {
         JANUS_CHECK(TemplateIterator::create(data_path, templateData, role, &template_, &templateID, verbose))
 
-        // Serialize the template to a byte array. The array should be allocated by the function call
-        janus_data *data = NULL; size_t data_len;
-        start = clock();
-        JANUS_CHECK(janus_serialize_template(template_, data, data_len));
-        _janus_add_sample(janus_serialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
-
-        // Add the template size to the metric logger
-        _janus_add_sample(janus_template_size_samples, data_len / 1000.);
-
         // Useful strings
         char templateIDBuffer[10], subjectIDBuffer[10];
         sprintf(templateIDBuffer, "%zu", templateID);
@@ -380,19 +371,15 @@ janus_error janus_create_templates_helper(const string &data_path, janus_metadat
         const string subjectIDString(subjectIDBuffer);
         const string templateOutputFile = templates_path + templateIDString + ".template";
 
-        // Write the serialized template to disk
+        // Serialize the template to a file.
         ofstream template_stream(templateOutputFile.c_str(), ios::out | ios::binary);
-        template_stream.write((char *)(&data_len), sizeof(size_t));
-        template_stream.write((char *)data, data_len);
+        start = clock();
+        JANUS_CHECK(janus_serialize_template(template_, template_stream));
+        _janus_add_sample(janus_serialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
         template_stream.close();
 
         // Write the template metadata to the list
         templates_list_stream << templateIDString << "," << subjectIDString << "," << templateOutputFile << "\n";
-
-        // Delete the serialized template
-        start = clock();
-        JANUS_CHECK(janus_delete_serialized_template(data, data_len));
-        _janus_add_sample(janus_delete_serialized_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
 
         // Delete the actual template
         start = clock();
@@ -431,24 +418,13 @@ static janus_error janus_load_templates_from_file(const string &templates_list_f
 
         // Load the serialized template from disk
         ifstream template_stream(template_file.c_str(), ios::in | ios::binary);
-        size_t data_len;
-        template_stream.read((char *)(&data_len), sizeof(size_t));
-
-        janus_data *data = new janus_data[data_len];
-        template_stream.read((char *)data, data_len);
-        if (!template_stream)
-            return JANUS_UNKNOWN_ERROR;
-
-        // Deserialize the template
         janus_template template_ = NULL;
         start = clock();
-        JANUS_CHECK(janus_deserialize_template(data, data_len, template_));
+        JANUS_CHECK(janus_deserialize_template(template_, template_stream));
         _janus_add_sample(janus_deserialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        template_stream.close();
 
         templates.push_back(template_);
-
-        // Delete the serialized data (The harness does it since it allocated it)
-        delete[] data;
     }
     templates_list_stream.close();
 
@@ -477,25 +453,12 @@ janus_error janus_create_gallery_helper(const string &templates_list_file, const
     janus_prepare_gallery(gallery);
     _janus_add_sample(janus_prepare_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
 
-    // Serialize the gallery to a byte array. The array should be allocated by the function call
-    janus_data *data = NULL; size_t data_len;
-    start = clock();
-    JANUS_CHECK(janus_serialize_gallery(gallery, data, data_len));
-    _janus_add_sample(janus_serialize_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
-
-    // Add the gallery size to the metric logger (convert from bytes to KB)
-    _janus_add_sample(janus_gallery_size_samples, data_len / 1000.);
-
-    // Write the serialized gallery to disk
+    // Serialize the gallery to a file.
     ofstream gallery_stream(gallery_file.c_str(), ios::out | ios::binary);
-    gallery_stream.write((char *)(&data_len), sizeof(size_t));
-    gallery_stream.write((char *)data, data_len);
-    gallery_stream.close();
-
-    // Delete the serialized template
     start = clock();
-    JANUS_CHECK(janus_delete_serialized_gallery(data, data_len));
-    _janus_add_sample(janus_delete_serialized_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    JANUS_CHECK(janus_serialize_gallery(gallery, gallery_stream));
+    _janus_add_sample(janus_serialize_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    gallery_stream.close();
 
     // Delete the actual gallery
     start = clock();
@@ -589,21 +552,10 @@ janus_error janus_search_helper(const string &probes_list_file, const string &ga
 
     // Load the serialized gallery from disk
     ifstream gallery_stream(gallery_file.c_str(), ios::in | ios::binary);
-    size_t data_len;
-    gallery_stream.read((char *)(&data_len), sizeof(size_t));
-    janus_data *data = new janus_data[data_len];
-    gallery_stream.read((char *)data, data_len);
-    if (!gallery_stream)
-        return JANUS_UNKNOWN_ERROR;
-
-    // Deserialize the template
     janus_gallery gallery = NULL;
     start = clock();
-    JANUS_CHECK(janus_deserialize_gallery(data, data_len, gallery));
+    JANUS_CHECK(janus_deserialize_gallery(gallery, gallery_stream));
     _janus_add_sample(janus_deserialize_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
-
-    // Delete the serialized data (The harness does it because it allocated it)
-    delete[] data;
 
     ofstream candidate_stream(candidate_list_file.c_str(), ios::out | ios::ate);
     for (size_t i = 0; i < probe_templates.size(); i++) {
