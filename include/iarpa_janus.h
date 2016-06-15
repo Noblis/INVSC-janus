@@ -663,7 +663,8 @@ typedef struct janus_gallery_type *janus_gallery;
 /*!
  * \brief Create a gallery from a list of templates.
  *
- * The created gallery should be suitable for search.
+ * The created gallery does not need to be suitable for search. \ref janus_prepare_gallery
+ * will be called on this gallery before it used in any search.
  *
  * \param[in] templates List of templates to construct the gallery
  * \param[in] ids list of unique ids to associate with the templates in the gallery
@@ -704,7 +705,15 @@ JANUS_EXPORT janus_error janus_deserialize_gallery(const janus_data *data,
                                                    janus_gallery &gallery);
 
 /*!
- * \brief Insert a template into a gallery.
+ * \brief Prepare a gallery to be searched against
+ *
+ * \param[in,out] gallery The gallery to prepare.
+ */
+JANUS_EXPORT janus_error janus_prepare_gallery(janus_gallery &gallery);
+
+/*!
+ * \brief Insert a template into a gallery. After insertion the gallery does
+ * not need to be suitable for search.
  *
  * \param[in,out] gallery The gallery to insert the template into
  * \param[in] template_ The template to insert
@@ -716,7 +725,8 @@ JANUS_EXPORT janus_error janus_gallery_insert(janus_gallery &gallery,
                                               const janus_template_id id);
 
 /*!
- * \brief Remove a template from a gallery.
+ * \brief Remove a template from a gallery. After removal the gallery does
+ * not need to be suitable for search.
  *
  * \param[in,out] gallery The gallery to remove a template from
  * \param[in] id Unique id for the template to delete
@@ -749,6 +759,8 @@ JANUS_EXPORT janus_error janus_delete_serialized_gallery(janus_data *&gallery,
 
 /*!
  * \brief Ranked search for a template against a gallery.
+ *
+ * Prior to be passed to search the gallery must be prepared with \ref janus_prepare_gallery.
  *
  * \p template_ids and \p similarities are empty vectors to hold the return
  * scores. The number of returns should be less than or equal to \p num_requested_returns,

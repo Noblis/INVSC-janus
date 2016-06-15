@@ -206,6 +206,7 @@ struct janus_metrics
     struct janus_metric janus_delete_template_speed; /*!< \brief ms */
     struct janus_metric janus_verify_speed; /*!< \brief ms */
     struct janus_metric janus_create_gallery_speed; /*!< \brief ms */
+    struct janus_metric janus_prepare_gallery_speed; /*!< \brief ms */
     struct janus_metric janus_gallery_insert_speed; /*!< \brief ms */
     struct janus_metric janus_gallery_remove_speed; /*!< \brief ms */
     struct janus_metric janus_serialize_gallery_speed; /*!< \brief ms */

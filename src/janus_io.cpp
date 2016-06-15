@@ -82,6 +82,7 @@ static vector<double> janus_delete_serialized_template_samples;
 static vector<double> janus_delete_template_samples;
 static vector<double> janus_verify_samples;
 static vector<double> janus_create_gallery_samples;
+static vector<double> janus_prepare_gallery_samples;
 static vector<double> janus_gallery_size_samples;
 static vector<double> janus_gallery_insert_samples;
 static vector<double> janus_gallery_remove_samples;
@@ -471,6 +472,11 @@ janus_error janus_create_gallery_helper(const string &templates_list_file, const
     janus_create_gallery(templates, template_ids, gallery);
     _janus_add_sample(janus_create_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
 
+    // Prepare the gallery for searching
+    start = clock();
+    janus_prepare_gallery(gallery);
+    _janus_add_sample(janus_prepare_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+
     // Serialize the gallery to a byte array. The array should be allocated by the function call
     janus_data *data = NULL; size_t data_len;
     start = clock();
@@ -664,6 +670,7 @@ janus_metrics janus_get_metrics()
     metrics.janus_delete_template_speed            = calculateMetric(janus_delete_template_samples);
     metrics.janus_verify_speed                     = calculateMetric(janus_verify_samples);
     metrics.janus_create_gallery_speed             = calculateMetric(janus_create_gallery_samples);
+    metrics.janus_prepare_gallery_speed            = calculateMetric(janus_prepare_gallery_samples);
     metrics.janus_gallery_size                     = calculateMetric(janus_gallery_size_samples);
     metrics.janus_gallery_insert_speed             = calculateMetric(janus_gallery_insert_samples);
     metrics.janus_gallery_remove_speed             = calculateMetric(janus_gallery_remove_samples);
@@ -698,6 +705,7 @@ void janus_print_metrics(janus_metrics metrics)
     printMetric(stderr, "janus_delete_template           ", metrics.janus_delete_template_speed);
     printMetric(stderr, "janus_verify                    ", metrics.janus_verify_speed);
     printMetric(stderr, "janus_create_gallery            ", metrics.janus_create_gallery_speed);
+    printMetric(stderr, "janus_prepare_gallery           ", metrics.janus_prepare_gallery_speed);
     printMetric(stderr, "janus_gallery_size              ", metrics.janus_gallery_size, false);
     printMetric(stderr, "janus_gallery_insert            ", metrics.janus_gallery_insert_speed);
     printMetric(stderr, "janus_gallery_remove            ", metrics.janus_gallery_remove_speed);
