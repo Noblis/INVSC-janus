@@ -170,9 +170,8 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 
 janus_media janus_crop_media(const janus_association &association)
 {
-    assert(association.metadata.size() == 1); // groundtruth should only ever have 1 track per association
     const janus_media &src = association.media;
-    const janus_track &track = association.metadata[0];
+    const janus_track &track = association.metadata;
 
     janus_media dst; dst.data.reserve(src.data.size());
     for (size_t i = 0; i < src.data.size(); i++) {
@@ -309,7 +308,7 @@ janus_error janus_delete_template(janus_template &template_)
     return JANUS_SUCCESS;
 }
 
-janus_error janus_verify(const janus_template &a, const janus_template &b, double &similarity)
+janus_error janus_verify(const janus_template &reference, const janus_template &verification, double &similarity)
 {
     // Set the default similarity score to be a rejection score (for galleries that don't contain faces)
     similarity = -1.5;
@@ -319,8 +318,8 @@ janus_error janus_verify(const janus_template &a, const janus_template &b, doubl
     JANUS_TRY_PPR(ppr_create_gallery(ppr_context, &gallery_a))
 
     int face_id = 0;
-    for (size_t i = 0; i < a->ppr_face_lists.size(); i++) {
-        const ppr_face_list_type &face_list = a->ppr_face_lists[i];
+    for (size_t i = 0; i < reference->ppr_face_lists.size(); i++) {
+        const ppr_face_list_type &face_list = reference->ppr_face_lists[i];
         for (int j = 0; j < face_list.length; j++) {
             ppr_face_type face = face_list.faces[j];
 
@@ -336,9 +335,9 @@ janus_error janus_verify(const janus_template &a, const janus_template &b, doubl
     ppr_gallery_type gallery_b;
     JANUS_TRY_PPR(ppr_create_gallery(ppr_context, &gallery_b))
 
-    face_id = 0
-    for (size_t i = 0; i < b->ppr_face_lists.size(); i++) {
-        const ppr_face_list_type &face_list = b->ppr_face_lists[i];
+    face_id = 0;
+    for (size_t i = 0; i < verification->ppr_face_lists.size(); i++) {
+        const ppr_face_list_type &face_list = verification->ppr_face_lists[i];
         for (int j = 0; j < face_list.length; j++) {
             ppr_face_type face = face_list.faces[j];
 
@@ -418,6 +417,11 @@ janus_error janus_deserialize_gallery(const janus_data *data, const size_t galle
 
     JANUS_TRY_PPR(ppr_unflatten_gallery(ppr_context, flat_data, &gallery->ppr_gallery))
 
+    return JANUS_SUCCESS;
+}
+
+janus_error janus_prepare_gallery(janus_gallery &)
+{
     return JANUS_SUCCESS;
 }
 
