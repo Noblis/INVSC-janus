@@ -579,45 +579,24 @@ JANUS_EXPORT janus_error janus_create_template(const janus_media &media,
                                                std::vector<janus_track> &tracks);
 
 /*!
- * \brief Serialize a template to a byte array
- *
- * The array could be stored on disk, sent to a database, or
- * whatever else the implementor decides.
+ * \brief Serialize a template to a stream
  *
  * \param[in] template_ The template to serialize
- * \param[out] data Unallocated byte array to store the serialized template
- * \param[out] template_bytes Length of the serialized template
- * \remark This function is \ref thread_safe
+ * \param[in, out] stream Output stream to store the template.
+ * \remark This function is \ref reentrant
  */
 JANUS_EXPORT janus_error janus_serialize_template(const janus_template &template_,
-                                                  janus_data *&data,
-                                                  size_t &template_bytes);
+                                                  std::ostream &stream);
 
 /*!
- * \brief Convert a byte array to a janus_template
+ * \brief Load a janus_template from a stream
  *
- * The byte array was initially created with #janus_serialize_template
- *
- * \param[in] data Byte array of serialized template data
- * \param[in] template_bytes Size of \p data
- * \param[out] template_ Unallocated template to hold deserialized template
- * \remark This function is \ref thread_safe
+ * \param[out] template_ An unallocated template to store the loaded data
+ * \param[in, out] stream Input stream to deserialize the template from
+ * \remark This function is \ref reentrant
  */
-JANUS_EXPORT janus_error janus_deserialize_template(const janus_data *data,
-                                                    const size_t template_bytes,
-                                                    janus_template &template_);
-
-/*!
- * \brief Delete a serialized template
- *
- * Call this function on a serialized template after it is no longer needed.
- *
- * \param[in,out] template_ The serialized template to delete.
- * \param[in] template_bytes Size of \p data
- * \remark This function is \ref reentrant.
- */
-JANUS_EXPORT janus_error janus_delete_serialized_template(janus_data *&template_,
-                                                          const size_t template_bytes);
+JANUS_EXPORT janus_error janus_deserialize_template(janus_template &template_,
+                                                    std::istream &stream);
 
 /*!
  * \brief Delete a template
@@ -676,36 +655,27 @@ JANUS_EXPORT janus_error janus_create_gallery(const std::vector<janus_template> 
                                               janus_gallery &gallery);
 
 /*!
- * \brief Serialize a gallery to a byte array
- *
- * The array could be stored on disk, sent to a database, or
- * whatever else the implementor decides.
+ * \brief Serialize a gallery to a stream
  *
  * \param[in] gallery The gallery to serialize
- * \param[out] data Unallocated byte array to store the serialized gallery
- * \param[out] gallery_bytes Length of the serialized gallery
- * \remark This function is \ref thread_safe
+ * \param[in, out] stream The output stream to store the serialized gallery
+ * \remark This function is \ref reentrant
  */
 JANUS_EXPORT janus_error janus_serialize_gallery(const janus_gallery &gallery,
-                                                 janus_data *&data,
-                                                 size_t &gallery_bytes);
+                                                 std::ostream &stream);
 
 /*!
- * \brief Convert a byte array to a janus_gallery
+ * \brief Load a janus_gallery from a stream
  *
- * The byte array was initially created with #janus_serialize_gallery
- *
- * \param[in] data Byte array of serialized gallery data
- * \param[in] gallery_bytes Size of \p data
- * \param[out] gallery Unallocated gallery to hold deserialized gallery
+ * \param[out] gallery An unallocated gallery to store the loaded data
+ * \param[in, out] stream The input stream to load data from
  * \remark This function is \ref thread_safe
  */
-JANUS_EXPORT janus_error janus_deserialize_gallery(const janus_data *data,
-                                                   const size_t gallery_bytes,
-                                                   janus_gallery &gallery);
+JANUS_EXPORT janus_error janus_deserialize_gallery(janus_gallery &gallery,
+                                                   std::istream &stream);
 
 /*!
- * \brief Prepare a gallery to be searched against
+ * \brief Prepare a gallery to be searched against.
  *
  * \param[in,out] gallery The gallery to prepare.
  */
@@ -744,18 +714,6 @@ JANUS_EXPORT janus_error janus_gallery_remove(janus_gallery &gallery,
  * \remark This function is \ref reentrant.
  */
 JANUS_EXPORT janus_error janus_delete_gallery(janus_gallery &gallery);
-
-/*!
- * \brief Delete a serialized gallery
- *
- * Call this function on a serialized gallery after it is no longer needed.
- *
- * \param[in,out] gallery The serialized gallery to delete.
- * \param[in] gallery_bytes Size of \p data
- * \remark This function is \ref reentrant.
- */
-JANUS_EXPORT janus_error janus_delete_serialized_gallery(janus_data *&gallery,
-                                                         const size_t gallery_bytes);
 
 /*!
  * \brief Ranked search for a template against a gallery.
