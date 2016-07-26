@@ -8,9 +8,9 @@
 #include <map>
 #include <assert.h>
 
-#include <pittpatt_errors.h>
-#include <pittpatt_license.h>
-#include <pittpatt_sdk.h>
+#include "pittpatt_errors.h"
+#include "pittpatt_license.h"
+#include "pittpatt_sdk.h"
 
 #include <iarpa_janus.h>
 #include <iarpa_janus_io.h>
@@ -235,9 +235,10 @@ janus_error janus_create_template(const janus_media &, const janus_template_role
     return JANUS_NOT_IMPLEMENTED;
 }
 
-janus_error janus_serialize_template(const janus_template &template_, janus_data *&data, size_t &bytes)
+
+janus_error janus_serialize_template(const janus_template &template_, std::ostream &stream) 
 {
-    bytes = 0;
+    size_t bytes = 0;
 
     vector<ppr_flat_data_type> data_list;
     for (size_t i = 0; i < template_->ppr_face_lists.size(); i++) {
@@ -251,45 +252,52 @@ janus_error janus_serialize_template(const janus_template &template_, janus_data
         bytes += flat_data.length;
     }
 
-    data = new janus_data[bytes];
+    // total bytes (not including itself)
+    stream.write(reinterpret_cast<const char *>(&bytes), sizeof(size_t));
+
     for (size_t i = 0; i < data_list.size(); i++) {
         const ppr_flat_data_type &flat_data = data_list[i];
 
         const size_t templateBytes = flat_data.length;
-        memcpy(data, &templateBytes, sizeof(size_t));
-        data += sizeof(size_t);
 
-        memcpy(data, flat_data.data, templateBytes);
-        data += templateBytes;
+        // size of this template
+        stream.write(reinterpret_cast<const char *>(&templateBytes), sizeof(size_t));
+        // the template
+        stream.write(reinterpret_cast<const char *>(flat_data.data), templateBytes);
     }
-    data -= bytes;
 
     return JANUS_SUCCESS;
 }
 
-janus_error janus_deserialize_template(const janus_data *data, const size_t template_bytes, janus_template &template_)
+janus_error janus_deserialize_template(janus_template &template_, std::istream &stream)
 {
+    size_t total_bytes = 0;
+    size_t template_size = 0;
+
     template_ = new janus_template_type();
 
-    const janus_data *pointer = data;
-    while (pointer < data + template_bytes) {
-        const size_t templateBytes = *reinterpret_cast<const size_t*>(pointer);
-        pointer += sizeof(size_t);
+    // total bytes
+    stream.read(reinterpret_cast<char *>(&total_bytes), sizeof(size_t));
 
+    while (total_bytes > 0) {
+        // read size of template
+        stream.read(reinterpret_cast<char *>(&template_size), sizeof(size_t));
+        total_bytes -= sizeof(size_t);
+
+        if (total_bytes == 0) return JANUS_FAILURE_TO_DESERIALIZE;
+
+        // read template
         ppr_flat_data_type flat_data;
-        JANUS_TRY_PPR(ppr_create_flat_data(templateBytes, &flat_data))
-        memcpy(flat_data.data, pointer, templateBytes);
+        JANUS_TRY_PPR(ppr_create_flat_data(template_size, &flat_data))
+        stream.read(reinterpret_cast<char *>(flat_data.data), template_size);
+        total_bytes -= template_size;
 
+        // add to face list
         ppr_face_list_type face_list;
         JANUS_TRY_PPR(ppr_unflatten_face_list(ppr_context, flat_data, &face_list))
-
         template_->ppr_face_lists.push_back(face_list);
-
         ppr_free_flat_data(flat_data);
-
-        pointer += templateBytes;
     }
-
     return JANUS_SUCCESS;
 }
 
@@ -392,28 +400,36 @@ janus_error janus_create_gallery(const vector<janus_template> &templates, const 
     return JANUS_SUCCESS;
 }
 
-janus_error janus_serialize_gallery(const janus_gallery &gallery, janus_data *&data, size_t &gallery_bytes)
+janus_error janus_serialize_gallery(const janus_gallery &gallery, std::ostream &stream)
 {
-    gallery_bytes = 0;
+    size_t gallery_bytes = 0;
 
     ppr_flat_data_type flat_data;
     JANUS_TRY_PPR(ppr_flatten_gallery(ppr_context, gallery->ppr_gallery, &flat_data))
 
-    data = new janus_data[flat_data.length];
-    memcpy(data, flat_data.data, flat_data.length);
-
     gallery_bytes = flat_data.length;
+
+    // gallery_size
+    stream.write(reinterpret_cast<const char *>(&gallery_bytes), sizeof(size_t));
+
+    // gallery
+    stream.write(reinterpret_cast<const char *>(&flat_data.data), gallery_bytes);
 
     return JANUS_SUCCESS;
 }
 
-janus_error janus_deserialize_gallery(const janus_data *data, const size_t gallery_bytes, janus_gallery &gallery)
+janus_error janus_deserialize_gallery(janus_gallery &gallery, std::istream &stream)
 {
+    size_t gallery_bytes = 0;
     gallery = new janus_gallery_type();
 
+    // get the size of the gallery
+    stream.read(reinterpret_cast<char *>(&gallery_bytes), sizeof(size_t));
+
+    // read the gallery
     ppr_flat_data_type flat_data;
     JANUS_TRY_PPR(ppr_create_flat_data(gallery_bytes, &flat_data))
-    memcpy(flat_data.data, data, gallery_bytes);
+    stream.read(reinterpret_cast<char *>(flat_data.data), gallery_bytes);
 
     JANUS_TRY_PPR(ppr_unflatten_gallery(ppr_context, flat_data, &gallery->ppr_gallery))
 
