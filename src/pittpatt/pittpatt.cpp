@@ -128,6 +128,9 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
     vector<ppr_image_type> ppr_media;
     JANUS_TRY_PPR(to_ppr_media(media, ppr_media))
 
+    ppr_context_type *context = &ppr_context;
+    bool tracking = false;
+
     for (size_t i = 0; i < ppr_media.size(); i++) {
         ppr_face_list_type face_list;
         ppr_detect_faces(ppr_context, ppr_media[i], &face_list);
@@ -146,16 +149,16 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
         for (size_t j = 0; j < face_confidences.size(); j++) {
             janus_track track;
             janus_attributes attributes;
-            attributes.face_x = face_confidences[j].second.position.x - face_confidences[i].second.dimensions.width/2;
-            attributes.face_y = face_confidences[j].second.position.y - face_confidences[i].second.dimensions.height/2;
-            attributes.face_width = face_confidences[j].second.dimensions.width;
+            attributes.face_x = (double) (face_confidences[j].second.position.x - face_confidences[j].second.dimensions.width/2.f);
+            attributes.face_y = (double) (face_confidences[j].second.position.y - face_confidences[j].second.dimensions.height/2.f);
+            attributes.face_width = (double) face_confidences[j].second.dimensions.width;
             if (attributes.face_width < (int)min_face_size)
                 continue;
 
-            attributes.face_height = face_confidences[j].second.dimensions.height;
+            attributes.face_height = (double) face_confidences[j].second.dimensions.height;
             attributes.frame_number = i;
             track.track.push_back(attributes);
-            track.detection_confidence = face_confidences[i].first;
+            track.detection_confidence = face_confidences[j].first;
             tracks.push_back(track);
         }
 
