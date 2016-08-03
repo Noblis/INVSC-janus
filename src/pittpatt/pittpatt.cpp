@@ -69,8 +69,8 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context)
     settings.landmarks.enable = 1;
     settings.landmarks.landmark_range = PPR_LANDMARK_RANGE_COMPREHENSIVE;
     settings.landmarks.manually_detect_landmarks = 0;
-    settings.recognition.enable_extraction = 1;
-    settings.recognition.enable_comparison = 1;
+    settings.recognition.enable_extraction = 0; //1;
+    settings.recognition.enable_comparison = 0; //1;
     settings.recognition.recognizer = PPR_RECOGNIZER_MULTI_POSE;
     settings.recognition.num_comparison_threads = 1;
     settings.recognition.automatically_extract_templates = 0;
@@ -149,13 +149,13 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
         for (size_t j = 0; j < face_confidences.size(); j++) {
             janus_track track;
             janus_attributes attributes;
-            attributes.face_x = (double) (face_confidences[j].second.position.x - face_confidences[j].second.dimensions.width/2.f);
-            attributes.face_y = (double) (face_confidences[j].second.position.y - face_confidences[j].second.dimensions.height/2.f);
-            attributes.face_width = (double) face_confidences[j].second.dimensions.width;
+            attributes.face_x = (int) (face_confidences[j].second.position.x - face_confidences[j].second.dimensions.width/2.f);
+            attributes.face_y = (int) (face_confidences[j].second.position.y - face_confidences[j].second.dimensions.height/2.f);
+            attributes.face_width = (int) face_confidences[j].second.dimensions.width;
             if (attributes.face_width < (int)min_face_size)
                 continue;
 
-            attributes.face_height = (double) face_confidences[j].second.dimensions.height;
+            attributes.face_height = (int) face_confidences[j].second.dimensions.height;
             attributes.frame_number = i;
             track.track.push_back(attributes);
             track.detection_confidence = face_confidences[j].first;
