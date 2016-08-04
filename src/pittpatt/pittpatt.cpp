@@ -69,8 +69,8 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context)
     settings.landmarks.enable = 1;
     settings.landmarks.landmark_range = PPR_LANDMARK_RANGE_COMPREHENSIVE;
     settings.landmarks.manually_detect_landmarks = 0;
-    settings.recognition.enable_extraction = 0; //1;
-    settings.recognition.enable_comparison = 0; //1;
+    settings.recognition.enable_extraction = 1;
+    settings.recognition.enable_comparison = 1;
     settings.recognition.recognizer = PPR_RECOGNIZER_MULTI_POSE;
     settings.recognition.num_comparison_threads = 1;
     settings.recognition.automatically_extract_templates = 0;
@@ -129,7 +129,6 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
     JANUS_TRY_PPR(to_ppr_media(media, ppr_media))
 
     ppr_context_type *context = &ppr_context;
-    bool tracking = false;
 
     for (size_t i = 0; i < ppr_media.size(); i++) {
         ppr_face_list_type face_list;
