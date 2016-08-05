@@ -91,6 +91,7 @@ static vector<double> janus_deserialize_gallery_samples;
 static vector<double> janus_delete_serialized_gallery_samples;
 static vector<double> janus_delete_gallery_samples;
 static vector<double> janus_search_samples;
+static vector<double> janus_cluster_samples;
 static int janus_missing_attributes_count = 0;
 static int janus_failure_to_detect_count = 0;
 static int janus_failure_to_enroll_count = 0;
@@ -368,10 +369,9 @@ janus_error janus_create_templates_helper(const string &data_path, janus_metadat
         char templateIDBuffer[10], subjectIDBuffer[10];
         sprintf(templateIDBuffer, "%zu", templateID);
         const string templateIDString(templateIDBuffer);
-        sprintf(subjectIDBuffer, "%d", templateData.subjectIDLUT[templateID]);
+        sprintf(subjectIDBuffer, "%d", ti.subjectIDLUT[templateID]);
         const string subjectIDString(subjectIDBuffer);
         const string templateOutputFile = templates_path + templateIDString + ".template";
-
         // Serialize the template to a file.
         ofstream template_stream(templateOutputFile.c_str(), ios::out | ios::binary);
         start = clock();
@@ -596,6 +596,52 @@ janus_error janus_search_helper(const string &probes_list_file, const string &ga
 
 #endif // JANUS_CUSTOM_SEARCH
 
+#ifndef JANUS_CUSTOM_CLUSTER
+janus_error janus_cluster_helper(const string &templates_list_file, const size_t hint, const string &clusters_output_list, bool verbose)
+{
+    clock_t start;
+
+    vector<janus_template> cluster_templates;
+    vector<janus_template_id> cluster_template_ids;
+    vector<int> cluster_subject_ids;
+
+    vector<cluster_pair> cluster_pairs;
+
+    // load templates
+    JANUS_CHECK(janus_load_templates_from_file(templates_list_file,
+                                               cluster_templates,
+                                               cluster_template_ids,
+                                               cluster_subject_ids));
+
+    // perform clustering
+    start = clock();
+    JANUS_CHECK(janus_cluster(cluster_templates, hint, cluster_pairs));
+    _janus_add_sample(janus_cluster_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+
+    // write results and delete templates
+    ofstream cluster_stream(clusters_output_list.c_str(), ios::out | ios::ate);
+    for (int i = 0; i < cluster_templates.size(); i++) {
+        // write a row
+        cluster_stream << cluster_template_ids[i] << ","
+                       << cluster_subject_ids[i]  << ","
+                       << cluster_pairs[i].first  << ","
+                       << cluster_pairs[i].second << std::endl;
+
+        // delete templates
+        start = clock();
+        JANUS_CHECK(janus_delete_template(cluster_templates[i]))
+        _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    }
+
+    cluster_stream.close();
+
+    if (verbose)
+        janus_print_metrics(janus_get_metrics());
+
+    return JANUS_SUCCESS;
+}
+#endif // JANUS_CUSTOM_SEARCH
+
 static janus_metric calculateMetric(const vector<double> &samples)
 {
     janus_metric metric;
@@ -642,6 +688,7 @@ janus_metrics janus_get_metrics()
     metrics.janus_delete_serialized_gallery_speed  = calculateMetric(janus_delete_serialized_gallery_samples);
     metrics.janus_delete_gallery_speed             = calculateMetric(janus_delete_gallery_samples);
     metrics.janus_search_speed                     = calculateMetric(janus_search_samples);
+    metrics.janus_cluster_speed                    = calculateMetric(janus_cluster_samples);
     metrics.janus_missing_attributes_count         = janus_missing_attributes_count;
     metrics.janus_failure_to_enroll_count          = janus_failure_to_enroll_count;
     metrics.janus_other_errors_count               = janus_other_errors_count;
@@ -677,6 +724,7 @@ void janus_print_metrics(janus_metrics metrics)
     printMetric(stderr, "janus_delete_serialized_gallery ", metrics.janus_delete_serialized_gallery_speed);
     printMetric(stderr, "janus_delete_gallery            ", metrics.janus_delete_gallery_speed);
     printMetric(stderr, "janus_search                    ", metrics.janus_search_speed);
+    printMetric(stderr, "janus_cluster                   ", metrics.janus_cluster_speed);
     fprintf(stderr,     "\n\n");
     fprintf(stderr,     "janus_error                     \tCount\n");
     fprintf(stderr,     "JANUS_MISSING_ATTRIBUTES        \t%d\n", metrics.janus_missing_attributes_count);

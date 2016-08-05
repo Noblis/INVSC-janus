@@ -542,3 +542,56 @@ janus_error janus_search(const janus_template &probe, const janus_gallery &galle
 
     return JANUS_SUCCESS;
 }
+
+janus_error janus_cluster(const vector<janus_template> &templates,
+                          const size_t hint,
+                          vector<cluster_pair> &clusters)
+{
+    // PP5 arguments/data structures
+    int clustering_aggressiveness = PPR_MAX_CLUSTERING_AGGRESSIVENESS;
+    ppr_cluster_list_type cluster_list;
+
+
+    // janus data structures
+    janus_gallery cluster_gallery;
+    janus_error error = JANUS_SUCCESS;
+    vector<janus_template_id> t_ids(templates.size());
+
+    // make template_ids and make room for cluster pairs
+    std::iota(std::begin(t_ids), std::end(t_ids), 0);
+    clusters.resize(templates.size());
+    std::fill(clusters.begin(), clusters.end(), cluster_pair(-1, -1.5));
+    
+    // set the clustering aggressiveness
+    if (clustering_aggressiveness > hint)
+        clustering_aggressiveness = static_cast<int>(hint);
+
+    error = janus_create_gallery(templates, t_ids, cluster_gallery);
+
+    if (error != JANUS_SUCCESS)
+        return error;
+
+
+    JANUS_TRY_PPR(ppr_cluster_gallery(ppr_context,
+                                      reinterpret_cast<ppr_gallery_type *>(cluster_gallery),
+                                      clustering_aggressiveness,
+                                      &cluster_list));
+    
+    // unpack clusters
+    for (int cluster_id = 0; cluster_id < cluster_list.length; cluster_id++) {
+        ppr_id_list_type cluster = cluster_list.clusters[cluster_id];
+
+        for (int j = 0; j < cluster.length; j++) {
+            int t_id = cluster.ids[j];
+            clusters[t_id].first  = cluster_id;
+        }
+    }
+
+    // free PP5 structures
+    ppr_free_cluster_list(cluster_list);
+
+    // free janus structures
+    error = janus_delete_gallery(cluster_gallery);
+    return error;
+}
+
