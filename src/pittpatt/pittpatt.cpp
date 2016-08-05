@@ -266,6 +266,9 @@ janus_error janus_serialize_template(const janus_template &template_, std::ostre
         stream.write(reinterpret_cast<const char *>(&templateBytes), sizeof(size_t));
         // the template
         stream.write(reinterpret_cast<const char *>(flat_data.data), templateBytes);
+
+        // free the template data
+        ppr_free_flat_data(flat_data);
     }
 
     return JANUS_SUCCESS;
@@ -415,7 +418,9 @@ janus_error janus_serialize_gallery(const janus_gallery &gallery, std::ostream &
     stream.write(reinterpret_cast<const char *>(&gallery_bytes), sizeof(size_t));
 
     // gallery
-    stream.write(reinterpret_cast<const char *>(&flat_data.data), gallery_bytes);
+    stream.write(reinterpret_cast<const char *>(flat_data.data), gallery_bytes);
+
+    ppr_free_flat_data(flat_data);
 
     return JANUS_SUCCESS;
 }
@@ -434,6 +439,7 @@ janus_error janus_deserialize_gallery(janus_gallery &gallery, std::istream &stre
     stream.read(reinterpret_cast<char *>(flat_data.data), gallery_bytes);
 
     JANUS_TRY_PPR(ppr_unflatten_gallery(ppr_context, flat_data, &gallery->ppr_gallery))
+    ppr_free_flat_data(flat_data);
 
     return JANUS_SUCCESS;
 }

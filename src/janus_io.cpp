@@ -157,6 +157,7 @@ janus_error janus_detect_helper(const string &data_path, janus_metadata metadata
                        << track.detection_confidence << "\n";
             }
         }
+        janus_free_media(media);
     }
 
     file.close();
@@ -468,6 +469,9 @@ janus_error janus_create_gallery_helper(const string &templates_list_file, const
     if (verbose)
         janus_print_metrics(janus_get_metrics());
 
+    for (size_t i = 0; i < templates.size() ; i++)
+        janus_delete_template(templates[i]);
+
     return JANUS_SUCCESS;
 }
 
@@ -501,6 +505,12 @@ janus_error janus_verify_helper(const string &templates_list_file_a, const strin
                       << (subject_ids_a[i] == subject_ids_b[i] ? "true" : "false") << "\n";
     }
     scores_stream.close();
+
+    for (size_t i = 0; i < templates_a.size(); i++)
+        janus_delete_template(templates_a[i]);
+
+    for (size_t i = 0; i < templates_b.size(); i++)
+        janus_delete_template(templates_b[i]);
 
     if (verbose)
         janus_print_metrics(janus_get_metrics());
@@ -575,6 +585,7 @@ janus_error janus_search_helper(const string &probes_list_file, const string &ga
         JANUS_CHECK(janus_delete_template(probe_templates[i]))
         _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
     }
+    janus_delete_gallery(gallery);
     candidate_stream.close();
 
     if (verbose)

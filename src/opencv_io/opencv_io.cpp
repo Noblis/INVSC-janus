@@ -47,6 +47,6 @@ janus_error janus_load_media(const string &filename, janus_media &media)
 janus_error janus_free_media(janus_media &media)
 {
     for (size_t i = 0; i < media.data.size(); i++)
-        delete media.data[i];
+        delete [] media.data[i];
     return JANUS_SUCCESS;
 }
