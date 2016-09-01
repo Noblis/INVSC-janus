@@ -15,21 +15,29 @@ const char *get_ext(const char *filename) {
 
 void printUsage()
 {
-    printf("Usage: janus_detect sdk_path temp_path data_path images_file min_face_size detection_list_file [-algorithm <algorithm>] [-verbose]\n");
+    vector<janus_template> templates(100);
+    vector<cluster_pair> pairs;
+    printf("Usage: janus_cluster sdk_path temp_path templates_list_file hint clusters_output_list -algorithm <algorithm>] [-verbose]\n");
 }
 
 int main(int argc, char *argv[])
 {
-    int requiredArgs = 7;
+    int requiredArgs = 6;
 
     if ((argc < requiredArgs) || (argc > 10)) {
         printUsage();
         return 1;
     }
 
-    const char *ext1 = get_ext(argv[4]);
+    const char *ext1 = get_ext(argv[3]);
     if (strcmp(ext1, "csv") != 0) {
-        printf("images_file must be \".csv\" format.\n");
+        printf("templates_list_file must be \".csv\" format.\n");
+        return 1;
+    }
+
+    ext1 = get_ext(argv[5]);
+    if (strcmp(ext1, "csv") != 0) {
+        printf("clusters_output_list must be \".csv\" format.\n");
         return 1;
     }
 
@@ -48,7 +56,7 @@ int main(int argc, char *argv[])
     }
 
     JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
-    JANUS_ASSERT(janus_detect_helper(argv[3], argv[4], atoi(argv[5]), argv[6], verbose))
+    JANUS_ASSERT(janus_cluster_helper(argv[3], static_cast<size_t>(atoi(argv[4])), argv[5], verbose))
     JANUS_ASSERT(janus_finalize())
 
     return EXIT_SUCCESS;

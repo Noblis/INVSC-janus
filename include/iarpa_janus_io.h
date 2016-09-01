@@ -180,6 +180,16 @@ JANUS_EXPORT janus_error janus_verify_helper(const std::string &templates_list_f
 JANUS_EXPORT janus_error janus_search_helper(const std::string &probes_list_file, const std::string &gallery_list_file, const std::string &gallery_file, int num_requested_returns, const std::string &candidate_list, bool verbose);
 
 /*!
+ * \brief High-level helper function for clustering templates
+ * \param [in] templates_list_file The list of templates to be clustered
+ * \param [in] hint Clustering hint
+ * \param [in] clusters_output_list File to write cluster information to.
+ * \param [in] verbose Print information and warnings during verification.
+ * \remark This function is \ref thread_unsafe.
+ */
+JANUS_EXPORT janus_error janus_cluster_helper(const std::string &templates_list_file, const size_t hint, const std::string &clusters_output_list, bool verbose);
+
+/*!
  * \brief A statistic.
  * \see janus_metrics
  */
@@ -214,6 +224,7 @@ struct janus_metrics
     struct janus_metric janus_delete_serialized_gallery_speed; /*!< \brief ms */
     struct janus_metric janus_delete_gallery_speed; /*!< \brief ms */
     struct janus_metric janus_search_speed; /*!< \brief ms */
+    struct janus_metric janus_cluster_speed; /*!< \brief ms */
 
     struct janus_metric janus_gallery_size; /*!< \brief KB */
     struct janus_metric janus_template_size; /*!< \brief KB */

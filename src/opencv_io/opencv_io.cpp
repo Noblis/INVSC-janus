@@ -30,6 +30,7 @@ janus_error janus_load_media(const string &filename, janus_media &media)
             memcpy(data, frame.data, media.width * media.height * (media.color_space == JANUS_BGR24 ? 3 : 1));
             media.data.push_back(data);
         } while (video.read(frame));
+        return JANUS_SUCCESS;
     }
 
     media.width = img.cols;
@@ -46,6 +47,6 @@ janus_error janus_load_media(const string &filename, janus_media &media)
 janus_error janus_free_media(janus_media &media)
 {
     for (size_t i = 0; i < media.data.size(); i++)
-        delete media.data[i];
+        delete [] media.data[i];
     return JANUS_SUCCESS;
 }
