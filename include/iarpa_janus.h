@@ -242,6 +242,9 @@ typedef struct janus_media
     size_t height;    /*!< \brief Row count in pixels. */
     size_t step;      /*!< \brief Bytes per frame, including padding. */
     janus_color_space color_space; /*!< \brief Arrangement of #data. */
+    uint32_t id;      /*!< \brief An id for the media. In the case of multiple media objects
+                                  extracted from the same source media, for example frames
+                                  from the same video, the id will be the same. */
 } janus_media;
 
 /*!

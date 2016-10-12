@@ -175,6 +175,7 @@ janus_error janus_harness_detect(const string &data_path, janus_metadata metadat
 struct TemplateData
 {
     vector<string> filenames;
+    vector<uint32_t> mediaIds;
     vector<janus_template_id> templateIDs;
     map<janus_template_id, int> subjectIDLUT;
     vector<janus_track> tracks;
@@ -182,6 +183,7 @@ struct TemplateData
     void release()
     {
         filenames.clear();
+        mediaIds.clear();
         templateIDs.clear();
         subjectIDLUT.clear();
         tracks.clear();
@@ -226,8 +228,10 @@ struct TemplateIterator : public TemplateData
             janus_attributes attributes;
             for (int j = 0; getline(attributeValues, attributeValue, ','); j++) {
                 double value = attributeValue.empty() ? NAN : atof(attributeValue.c_str());
-                if (header[j] == "FRAME_NUMBER")
+                if (header[j] == "FRAME_NUM")
                     attributes.frame_number = value;
+                else if (header[j] == "SIGHTING_ID")
+                    mediaIds.push_back(value);
                 else if (header[j] == "FACE_X")
                     attributes.face_x = value;
                 else if (header[j] == "FACE_Y")
@@ -282,6 +286,7 @@ struct TemplateIterator : public TemplateData
             while ((i < tracks.size()) && (templateIDs[i] == templateID)) {
                 templateData.templateIDs.push_back(templateIDs[i]);
                 templateData.filenames.push_back(filenames[i]);
+                templateData.mediaIds.push_back(mediaIds[i]);
                 templateData.tracks.push_back(tracks[i]);
                 i++;
             }
@@ -305,6 +310,8 @@ struct TemplateIterator : public TemplateData
             start = clock();
             JANUS_ASSERT(janus_load_media(data_path + templateData.filenames[i], media))
             _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+
+            media.id = templateData.mediaIds[i];
 
             janus_association association;
             association.media = media;
