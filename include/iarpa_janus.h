@@ -430,7 +430,7 @@ typedef struct janus_attributes
                                     \see nouse_mouth_visible. */
     bool indoor; /*!< \brief Image was captured indoors \see \ref indoor. */
 
-    double frame_number; /*!< \brief Frame number or -1 for images. */
+    double frame_number; /*!< \brief Frame number or NAN for images. */
 } janus_attributes;
 
 /*!
