@@ -175,16 +175,16 @@ janus_error janus_detect_helper(const string &data_path, janus_metadata metadata
 struct TemplateData
 {
     vector<string> filenames;
-    vector<uint32_t> mediaIds;
     vector<janus_template_id> templateIDs;
+    vector<uint32_t> sightingIDs;
     map<janus_template_id, int> subjectIDLUT;
     vector<janus_track> tracks;
 
     void release()
     {
         filenames.clear();
-        mediaIds.clear();
         templateIDs.clear();
+        sightingIDs.clear();
         subjectIDLUT.clear();
         tracks.clear();
     }
@@ -208,6 +208,7 @@ struct TemplateIterator : public TemplateData
         getline(attributeNames, attributeName, ','); // TEMPLATE_ID
         getline(attributeNames, attributeName, ','); // SUBJECT_ID
         getline(attributeNames, attributeName, ','); // FILE_NAME
+        getline(attributeNames, attributeName, ','); // SIGHTING_ID
         vector<string> header;
         while (getline(attributeNames, attributeName, ','))
             header.push_back(attributeName);
@@ -215,13 +216,15 @@ struct TemplateIterator : public TemplateData
         // Parse rows
         while (getline(file, line)) {
             istringstream attributeValues(line);
-            string templateID, subjectID, filename, attributeValue;
+            string templateID, subjectID, filename, sightingID, attributeValue;
             getline(attributeValues, templateID, ',');
             getline(attributeValues, subjectID, ',');
             getline(attributeValues, filename, ',');
+            getline(attributeValues,  sightingID, ',');
             templateIDs.push_back(atoi(templateID.c_str()));
             subjectIDLUT.insert(make_pair(atoi(templateID.c_str()), atoi(subjectID.c_str())));
             filenames.push_back(filename);
+            sightingIDs.push_back(atoi(sightingID.c_str()));
 
             // Construct a track from the metadata
             janus_track track;
@@ -230,8 +233,6 @@ struct TemplateIterator : public TemplateData
                 double value = attributeValue.empty() ? NAN : atof(attributeValue.c_str());
                 if (header[j] == "FRAME_NUM")
                     attributes.frame_number = value;
-                else if (header[j] == "SIGHTING_ID")
-                    mediaIds.push_back(value);
                 else if (header[j] == "FACE_X")
                     attributes.face_x = value;
                 else if (header[j] == "FACE_Y")
@@ -286,7 +287,7 @@ struct TemplateIterator : public TemplateData
             while ((i < tracks.size()) && (templateIDs[i] == templateID)) {
                 templateData.templateIDs.push_back(templateIDs[i]);
                 templateData.filenames.push_back(filenames[i]);
-                templateData.mediaIds.push_back(mediaIds[i]);
+                templateData.sightingIDs.push_back(sightingIDs[i]);
                 templateData.tracks.push_back(tracks[i]);
                 i++;
             }
@@ -311,7 +312,7 @@ struct TemplateIterator : public TemplateData
             JANUS_ASSERT(janus_load_media(data_path + templateData.filenames[i], media))
             _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
-            media.id = templateData.mediaIds[i];
+            media.id = templateData.sightingIDs[i];
 
             janus_association association;
             association.media = media;
