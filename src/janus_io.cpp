@@ -172,26 +172,55 @@ janus_error janus_harness_detect(const string &data_path, janus_metadata metadat
 
 #endif // JANUS_CUSTOM_DETECT
 
-struct TemplateData
+struct TemplateMetadata
 {
-    vector<string> filenames;
-    vector<janus_template_id> templateIDs;
-    vector<uint32_t> sightingIDs;
-    map<janus_template_id, int> subjectIDLUT;
-    vector<janus_track> tracks;
+    janus_template_id templateID; // Template id for a template
+    int subjectID;                // Subject id for a template
+    map<uint32_t,
+        pair<vector<string>, janus_track>
+       > metadata;                // A collection of media files and associated metadata
+                                  // organized by sightingID.
 
-    void release()
+    TemplateMetadata() : templateID(numeric_limits<janus_template_id>::max()), subjectID(-1) {}
+
+    void merge(const TemplateMetadata &other)
     {
-        filenames.clear();
-        templateIDs.clear();
-        sightingIDs.clear();
-        subjectIDLUT.clear();
-        tracks.clear();
+        // TODO: we should ensure these are the same
+        templateID = other.templateID;
+        subjectID = other.subjectID;
+
+        for (const auto &entry : other.metadata) {
+            uint32_t sightingID = entry.first;
+            pair<vector<string>, janus_track> data = entry.second;
+
+            if (metadata.find(sightingID) != metadata.end()) {
+                vector<string> &filenames = metadata[sightingID].first;
+                janus_track &track = metadata[sightingID].second;
+
+                filenames.insert(filenames.end(), data.first.begin(), data.first.end());
+
+                track.age = data.second.age;
+                track.gender = data.second.gender;
+                track.skin_tone = data.second.skin_tone;
+                track.track.insert(track.track.end(), data.second.track.begin(), data.second.track.end());
+            } else {
+                metadata.insert(entry);
+            }
+        }
+    }
+
+    void clear()
+    {
+        templateID = numeric_limits<size_t>::max();
+        subjectID = -1;
+        metadata.clear();
     }
 };
 
-struct TemplateIterator : public TemplateData
+struct TemplateIterator
 {
+    vector<TemplateMetadata> templates;
+
     size_t i;
     bool verbose;
 
@@ -215,16 +244,17 @@ struct TemplateIterator : public TemplateData
 
         // Parse rows
         while (getline(file, line)) {
+            TemplateMetadata tmpl;
+
             istringstream attributeValues(line);
             string templateID, subjectID, filename, sightingID, attributeValue;
             getline(attributeValues, templateID, ',');
             getline(attributeValues, subjectID, ',');
             getline(attributeValues, filename, ',');
             getline(attributeValues,  sightingID, ',');
-            templateIDs.push_back(atoi(templateID.c_str()));
-            subjectIDLUT.insert(make_pair(atoi(templateID.c_str()), atoi(subjectID.c_str())));
-            filenames.push_back(filename);
-            sightingIDs.push_back(atoi(sightingID.c_str()));
+
+            tmpl.templateID = atoi(templateID.c_str());
+            tmpl.subjectID = atoi(subjectID.c_str());
 
             // Construct a track from the metadata
             janus_track track;
@@ -271,33 +301,34 @@ struct TemplateIterator : public TemplateData
                     track.skin_tone = value;
             }
             track.track.push_back(attributes);
-            tracks.push_back(track);
+
+            tmpl.metadata.insert(make_pair(atoi(sightingID.c_str()), make_pair(vector<string>{filename}, track)));
+
+            if (!templates.empty() && templates.back().templateID == tmpl.templateID) {
+                templates.back().merge(tmpl);
+            } else {
+                templates.push_back(tmpl);
+            }
         }
+
         if (verbose)
-            fprintf(stderr, "\rEnrolling %zu/%zu", i, tracks.size());
+            fprintf(stderr, "\rEnrolling %zu/%zu", i, templates.size());
     }
 
-    TemplateData next()
+    TemplateMetadata next()
     {
-        TemplateData templateData;
-        if (i >= tracks.size()) {
+        TemplateMetadata templateMetadata;
+        if (i >= templates.size()) {
             fprintf(stderr, "\n");
         } else {
-            const janus_template_id templateID = templateIDs[i];
-            while ((i < tracks.size()) && (templateIDs[i] == templateID)) {
-                templateData.templateIDs.push_back(templateIDs[i]);
-                templateData.filenames.push_back(filenames[i]);
-                templateData.sightingIDs.push_back(sightingIDs[i]);
-                templateData.tracks.push_back(tracks[i]);
-                i++;
-            }
+            templateMetadata = templates[i++];
             if (verbose)
-                fprintf(stderr, "\rEnrolling %zu/%zu", i, tracks.size());
+                fprintf(stderr, "\rEnrolling %zu/%zu", i, templates.size());
         }
-        return templateData;
+        return templateMetadata;
     }
 
-    static janus_error create(const string &data_path, const TemplateData templateData, const janus_template_role role, janus_template *template_, janus_template_id *templateID, bool verbose)
+    static janus_error create(const string &data_path, const TemplateMetadata templateMetadata, const janus_template_role role, janus_template *template_)
     {
         clock_t start;
 
@@ -305,18 +336,29 @@ struct TemplateIterator : public TemplateData
         vector<janus_association> associations;
 
         // Create a set of all the media used for this template
-        for (size_t i = 0; i < templateData.templateIDs.size(); i++) {
+        for (const auto &entry : templateMetadata.metadata) {
+            pair<vector<string>, janus_track> metadata = entry.second;
+
             janus_media media;
+            for (size_t i = 0; i < metadata.first.size(); i++) {
+                if (i == 0) {
+                    start = clock();
+                    JANUS_ASSERT(janus_load_media(data_path + metadata.first[i], media))
+                    _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+                } else {
+                    janus_media temp;
 
-            start = clock();
-            JANUS_ASSERT(janus_load_media(data_path + templateData.filenames[i], media))
-            _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+                    start = clock();
+                    JANUS_ASSERT(janus_load_media(data_path + metadata.first[i], temp))
+                    _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
 
-            media.id = templateData.sightingIDs[i];
+                    media.data.push_back(temp.data.front());
+                }
+            }
 
             janus_association association;
             association.media = media;
-            association.metadata = templateData.tracks[i];
+            association.metadata = metadata.second;
             associations.push_back(association);
         }
 
@@ -326,18 +368,9 @@ struct TemplateIterator : public TemplateData
         _janus_add_sample(janus_create_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
 
         // Check the result for errors
-        if (error == JANUS_MISSING_ATTRIBUTES) {
-            janus_missing_attributes_count++;
-            if (verbose)
-                printf("Missing attributes for: %s\n", templateData.filenames[0].c_str());
-        } else if (error == JANUS_FAILURE_TO_ENROLL) {
-            janus_failure_to_enroll_count++;
-            if (verbose)
-                printf("Failure to enroll: %s\n", templateData.filenames[0].c_str());
-        } else if (error != JANUS_SUCCESS) {
-            janus_other_errors_count++;
-            printf("Warning: %s on: %s\n", janus_error_to_string(error),templateData.filenames[0].c_str());
-        }
+        if (error == JANUS_MISSING_ATTRIBUTES)     janus_missing_attributes_count++;
+        else if (error == JANUS_FAILURE_TO_ENROLL) janus_failure_to_enroll_count++;
+        else if (error != JANUS_SUCCESS)           janus_other_errors_count++;
 
         // Free the media
         for (size_t i = 0; i < associations.size(); i++) {
@@ -346,11 +379,8 @@ struct TemplateIterator : public TemplateData
             _janus_add_sample(janus_free_media_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
         }
 
-        *templateID = templateData.templateIDs[0];
         return JANUS_SUCCESS;
     }
-
-    ~TemplateIterator() { release(); }
 };
 
 #ifndef JANUS_CUSTOM_CREATE_TEMPLATES
@@ -359,44 +389,47 @@ janus_error janus_harness_create_templates(const string &data_path, janus_metada
 {
     clock_t start;
 
-    // Create an iterator to loop through the templates
+    // Create an iterator to loop through the metadata
     TemplateIterator ti(metadata, true);
 
-    // Preallocate some variables
+    // Preallocate the template
     janus_template template_;
-    janus_template_id templateID;
 
     // Set up file I/O
     ofstream templates_list_stream(templates_list_file.c_str(), ios::out | ios::ate);
 
-    TemplateData templateData = ti.next();
-    while (!templateData.templateIDs.empty()) {
-        JANUS_CHECK(TemplateIterator::create(data_path, templateData, role, &template_, &templateID, verbose))
+    TemplateMetadata templateMetadata = ti.next();
+    while (templateMetadata.subjectID != -1) {
+        JANUS_CHECK(TemplateIterator::create(data_path, templateMetadata, role, &template_))
 
         // Useful strings
         char templateIDBuffer[10], subjectIDBuffer[10];
-        sprintf(templateIDBuffer, "%zu", templateID);
+        sprintf(templateIDBuffer, "%zu", templateMetadata.templateID);
+        sprintf(subjectIDBuffer, "%d", templateMetadata.subjectID);
+
         const string templateIDString(templateIDBuffer);
-        sprintf(subjectIDBuffer, "%d", ti.subjectIDLUT[templateID]);
         const string subjectIDString(subjectIDBuffer);
         const string templateOutputFile = templates_path + templateIDString + ".template";
-        // Serialize the template to a file.
+
+        // Serialize the template to a file
         ofstream template_stream(templateOutputFile.c_str(), ios::out | ios::binary);
+        
         start = clock();
         JANUS_CHECK(janus_serialize_template(template_, template_stream));
         _janus_add_sample(janus_serialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        
         template_stream.close();
 
         // Write the template metadata to the list
         templates_list_stream << templateIDString << "," << subjectIDString << "," << templateOutputFile << "\n";
 
-        // Delete the actual template
+        // Delete the template
         start = clock();
         JANUS_CHECK(janus_delete_template(template_));
         _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
 
         // Move to the next template
-        templateData = ti.next();
+        templateMetadata = ti.next();
     }
     templates_list_stream.close();
 
