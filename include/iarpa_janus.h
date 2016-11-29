@@ -115,7 +115,7 @@
 
 #define JANUS_VERSION_MAJOR 0
 #define JANUS_VERSION_MINOR 4
-#define JANUS_VERSION_PATCH 0
+#define JANUS_VERSION_PATCH 1 
 
 /*!
  * \defgroup janus Janus
@@ -749,16 +749,17 @@ JANUS_EXPORT janus_error janus_search(const janus_template &probe,
  * \brief Cluster a collection of templates into unique identities.
  *
  * \section clusters Clusters
- * Clusters are represented as a list of lists of <int, double> pairs. Each
- * pairing consists of the cluster id and the cluster confidence and corresponds
- * to an instance of an identity in a single piece of \ref janus_media.
+ * Clusters are represented as a list of <int, double> pairs. Each
+ * pairing consists of the cluster id and the cluster confidence for an
+ * input template. In general, there should be as many unique cluster IDs
+ * as there are unique faces in the input.
  *
  * \section clustering_hint Clustering Hint
  * Clustering is generally considered to be an ill-defined problem, and most
  * algorithms require some help determining the appropriate number of clusters.
  * The \p hint parameter helps influence the number of clusters, though the
  * implementation is free to ignore it.
- * The goal of the hint is to provide an order of magnitude estimation for the
+ * The goal of the hint is to provide an order of magnitude upper bound for the
  * number of identities that appear in a set of media. As such it will be a
  * multiple of 10 (10, 100, 1000 etc.).
  *
@@ -767,7 +768,7 @@ JANUS_EXPORT janus_error janus_search(const janus_template &probe,
  *
  * \param[in] templates The collection of templates to cluster.
  * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
- * \param[out] clusters A list of lists of cluster pairs, see \ref clusters.
+ * \param[out] clusters A list of cluster pairs, see \ref clusters.
  * \remark This function is \ref thread_safe.
  */
 typedef std::pair<int, double> cluster_pair;
