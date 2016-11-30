@@ -263,6 +263,8 @@ struct TemplateIterator
                 double value = attributeValue.empty() ? NAN : atof(attributeValue.c_str());
                 if (header[j] == "FRAME_NUM")
                     attributes.frame_number = value;
+                else if (header[j] == "VIDEO_FILENAME")
+                    filename = attributeValue;
                 else if (header[j] == "FACE_X")
                     attributes.face_x = value;
                 else if (header[j] == "FACE_Y")
