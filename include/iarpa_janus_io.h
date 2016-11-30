@@ -81,7 +81,8 @@ JANUS_EXPORT janus_error janus_error_from_string(const char *error);
 /*!
  * \brief Read an image from disk.
  * \param[in] file_name Path to the image file.
- * \param[out] image Address to store the decoded image.
+ * \param[out] image Address to store the decoded image. This is allocated during
+ *                   the function call.
  * \remark This function is \ref reentrant.
  * \see janus_free_image
  */

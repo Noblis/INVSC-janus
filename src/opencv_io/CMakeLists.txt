@@ -1,3 +1,4 @@
+include_directories(.)
 add_library(opencv_io SHARED opencv_io.cpp)
 set_target_properties(opencv_io PROPERTIES
                       DEFINE_SYMBOL JANUS_LIBRARY
