@@ -114,7 +114,7 @@
 #endif
 
 #define JANUS_VERSION_MAJOR 0
-#define JANUS_VERSION_MINOR 4
+#define JANUS_VERSION_MINOR 5
 #define JANUS_VERSION_PATCH 1 
 
 /*!
@@ -196,53 +196,10 @@ typedef enum janus_error
 } janus_error;
 
 /*!
- * \brief Data buffer type.
+ * \brief An opaque pointer to a media object that can represent an image
+ * or a video.
  */
-typedef uint8_t janus_data;
-
-/*!
- * \brief Supported image formats.
- */
-typedef enum janus_color_space
-{
-    JANUS_GRAY8, /*!< \brief 1 channel grayscale, 8-bit depth. */
-    JANUS_BGR24  /*!< \brief 3 channel color (BGR order), 8-bit depth. */
-} janus_color_space;
-
-/*!
- * \brief Common representation for still images and videos.
- *
- * Pixels are stored in _row-major_ order.
- * In other words, pixel layout with respect to decreasing memory spatial
- * locality is \a channel, \a column, \a row \a frames.
- * Thus pixel intensity can be retrieved as follows:
- *
-\code
-janus_data get_intensity(janus_image image, size_t channel, size_t column,
-                                            size_t row, size_t frame)
-{
-    const size_t columnStep = (image.color_space == JANUS_BGR24 ? 3 : 1);
-    const size_t rowStep    = image.width * columnStep;
-    const size_t index      = frame * image.step + row * rowStep
-                                                 + column * columnStep
-                                                 + channel;
-    return image.data[index];
-}
-\endcode
- *
- * Coordinate (0, 0) corresponds to the top-left corner of the image.
- * Coordinate (width-1, height-1) corresponds to the bottom-right corner of the image.
- */
-typedef struct janus_media
-{
-    std::vector<janus_data*> data; /*! < \brief A collection of image data of size N,
-                                                where is the number of frames in a video
-                                                or 1 in the case of a still image. */
-    size_t width;     /*!< \brief Column count in pixels. */
-    size_t height;    /*!< \brief Row count in pixels. */
-    size_t step;      /*!< \brief Bytes per frame, including padding. */
-    janus_color_space color_space; /*!< \brief Arrangement of #data. */
-} janus_media;
+typedef struct janus_media_type *janus_media;
 
 /*!
  * \brief Attributes for a particular object in an image.
@@ -424,7 +381,7 @@ typedef struct janus_attributes
     bool eyes_visible; /*!< \brief Visibility of eyes
                                      \see \ref eyes_visible. */
     bool nose_mouth_visible; /*!< \brief Visibility of nose and mouth
-                                    \see nouse_mouth_visible. */
+                                    \see nose_mouth_visible. */
     bool indoor; /*!< \brief Image was captured indoors \see \ref indoor. */
 
     double frame_number; /*!< \brief Frame number or NAN for images. */
@@ -746,13 +703,29 @@ JANUS_EXPORT janus_error janus_search(const janus_template &probe,
                                       std::vector<double> &similarities);
 
 /*!
- * \brief Cluster a collection of templates into unique identities.
+ * \brief An object representing an item in a cluster.
+ */
+struct janus_cluster_item
+{
+    uint32_t cluster_id; /*!< The cluster this item belongs to. Items with the same cluster_id
+                              should reference the same subject */
+    double confidence;   /*!< A confidence value that this item belongs in it's specific cluster. */
+    uint32_t source_id;  /*!< A unique id corresponding to the source (either a media or template)
+                              object used in this item. */
+    janus_track track;   /*!< The track through the media object describing the location of the
+                              person this item references */
+};
+
+/*!
+ * \brief Cluster a collection of media into unique identities.
  *
  * \section clusters Clusters
- * Clusters are represented as a list of <int, double> pairs. Each
- * pairing consists of the cluster id and the cluster confidence for an
- * input template. In general, there should be as many unique cluster IDs
- * as there are unique faces in the input.
+ * Clusters are represented as a list of janice_cluster_items. Each item
+ * consists of a unique id identifying the cluster the item belongs to,
+ * a confidence value indicating the confidence that this item belongs in
+ * its assigned cluster, a unique media id identifying the media object the
+ * cluster item was extracted from and a janus_track object giving the location(s)
+ * of the extraction.
  *
  * \section clustering_hint Clustering Hint
  * Clustering is generally considered to be an ill-defined problem, and most
@@ -763,18 +736,51 @@ JANUS_EXPORT janus_error janus_search(const janus_template &probe,
  * number of identities that appear in a set of media. As such it will be a
  * multiple of 10 (10, 100, 1000 etc.).
  *
- * \note The implementation of this function is optional, and may return
- *       #JANUS_NOT_IMPLEMENTED.
+ * \section clustering_confidence Clustering Confidence
+ * A cluster confidence tries to quantify the affinity for an item to it's assigned
+ * cluster. A higher value indicates greater affinity while a lower value indicates
+ * less affinity. The motivation behind the confidence value is to give an end user
+ * some control over cluster purity after clustering is complete. An example use
+ * case would include running janus_cluster to get initial results and then applying
+ * a post-processing threshold operation to remove faces if the user notices clusters
+ * are too noisy for their use case. Items that are below the threshold would be placed
+ * into a garbage or "everything else" pile and be removed from the interface.
  *
- * \param[in] templates The collection of templates to cluster.
+ * \param[in] input The collection of media to cluster
+ * \param[in] input_ids A collection of unique ids to associate with the input media. This
+ *                      vector must be the same length as \ref input.
  * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
- * \param[out] clusters A list of cluster pairs, see \ref clusters.
- * \remark This function is \ref thread_safe.
+ * \param[out] clusters A list of cluster items, see \ref clusters.
+ * \remark This function is \ref reentrant.
  */
-typedef std::pair<int, double> cluster_pair;
-JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_template> &templates,
+JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_media> &input,
+                                       const std::vector<uint32_t> &input_ids,
                                        const size_t hint,
-                                       std::vector<cluster_pair> &clusters);
+                                       std::vector<janus_cluster_item> &clusters);
+
+/*!
+ * \brief Cluster a collection of templates into unique identities.
+ *
+ * \note This function differs from the previously defined \ref janus_cluster
+ * by accepting previously enrolled templates instead of raw media objects. During
+ * evaluation, templates might be created with ground truth bounding boxes and then
+ * clustered to measure clustering performance independent of face detection. All
+ * of the templates passed as input must be created with the CLUSTERING role.
+ *
+ * \param[in] input The collection of templates to cluster
+ * \param[in] input_ids A collection of unique ids to associate with the input templates.
+ *                      This vector must be the same length as \ref input.
+ * \param[in] hint A hint to the clustering algorithm, see \ref clustering_hint.
+ * \param[out] clusters A list of cluster items, see \ref clusters. This vector
+ *                      must be the same length as \ref input. In this overload, because
+ *                      the input is a set of templates that were created with groundtruth
+ *                      detections, it is not required that \ref janus_cluster_item::track
+ *                      be populated after this function.
+ */
+JANUS_EXPORT janus_error janus_cluster(const std::vector<janus_template> &input,
+                                       const std::vector<uint32_t> &input_ids,
+                                       const size_t hint,
+                                       std::vector<janus_cluster_item> &clusters);
 
 /*!
  * \brief Call once at the end of the application, after making all other calls
