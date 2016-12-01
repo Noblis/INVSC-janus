@@ -427,7 +427,8 @@ typedef struct janus_attributes
                                     \see nouse_mouth_visible. */
     bool indoor; /*!< \brief Image was captured indoors \see \ref indoor. */
 
-    double frame_number; /*!< \brief Frame number or NAN for images. */
+    double frame_number; /*!< \brief Frame number or NAN for images. In the case of videos
+                                     the frame number is a 0-based unsigned integer index. */
 } janus_attributes;
 
 /*!
@@ -549,7 +550,10 @@ typedef enum janus_template_role {
  *       done by the internal algorithm if they wish to extend the single frame
  *       annotation to subsequent frames. If tracking is done, the single frame
  *       ground truth track should be extended with any additional information
- *       so that the calling function can make use of it.
+ *       so that the calling function can make use of it. Note also that the returned
+ *       track may be sparsely populated (i.e it might skip frames). In all cases
+ *       the \ref janus_attributes::frame_number field should accurately represent
+ *       the frame the janus_attributes location information originated from.
  *
  * \param[in,out] associations A vector of associations between a piece of media
  *                             and relevant metadata. All of the associations provided
