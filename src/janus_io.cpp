@@ -234,10 +234,6 @@ struct TemplateIterator
         getline(file, line);
         istringstream attributeNames(line);
         string attributeName;
-        getline(attributeNames, attributeName, ','); // TEMPLATE_ID
-        getline(attributeNames, attributeName, ','); // SUBJECT_ID
-        getline(attributeNames, attributeName, ','); // FILE_NAME
-        getline(attributeNames, attributeName, ','); // SIGHTING_ID
         vector<string> header;
         while (getline(attributeNames, attributeName, ','))
             header.push_back(attributeName);
@@ -247,22 +243,23 @@ struct TemplateIterator
             TemplateMetadata tmpl;
 
             istringstream attributeValues(line);
-            string templateID, subjectID, filename, sightingID, attributeValue;
-            getline(attributeValues, templateID, ',');
-            getline(attributeValues, subjectID, ',');
-            getline(attributeValues, filename, ',');
-            getline(attributeValues,  sightingID, ',');
-
-            tmpl.templateID = atoi(templateID.c_str());
-            tmpl.subjectID = atoi(subjectID.c_str());
+            string filename, vfilename, sightingID, attributeValue;
 
             // Construct a track from the metadata
             janus_track track;
             janus_attributes attributes;
             for (int j = 0; getline(attributeValues, attributeValue, ','); j++) {
                 double value = attributeValue.empty() ? NAN : atof(attributeValue.c_str());
-                if (header[j] == "FRAME_NUM")
-                    attributes.frame_number = value;
+                if (header[j] == "TEMPLATE_ID")
+                    tmpl.templateID = atoi(attributeValue.c_str());
+                else if (header[j] == "SUBJECT_ID")
+                    tmpl.subjectID = atoi(attributeValue.c_str());
+                else if (header[j] == "FILENAME")
+                    filename = attributeValue;
+                else if (header[j] == "SIGHTING_ID")
+                    sightingID = attributeValue;
+                else if (header[j] == "VIDEO_FILENAME")
+                    vfilename = attributeValue;
                 else if (header[j] == "FACE_X")
                     attributes.face_x = value;
                 else if (header[j] == "FACE_Y")
@@ -299,9 +296,14 @@ struct TemplateIterator
                     track.age = value;
                 else if (header[j] == "SKIN_TONE")
                     track.skin_tone = value;
+                else if (header[j] == "FRAME_NUM")
+                    attributes.frame_number = value;
             }
             track.track.push_back(attributes);
 
+            // prefer video filename
+            if (!vfilename.empty()) 
+                filename = vfilename;
             tmpl.metadata.insert(make_pair(atoi(sightingID.c_str()), make_pair(vector<string>{filename}, track)));
 
             if (!templates.empty() && templates.back().templateID == tmpl.templateID) {

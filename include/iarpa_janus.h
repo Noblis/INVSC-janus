@@ -114,7 +114,7 @@
 #endif
 
 #define JANUS_VERSION_MAJOR 0
-#define JANUS_VERSION_MINOR 4
+#define JANUS_VERSION_MINOR 5
 #define JANUS_VERSION_PATCH 1 
 
 /*!
@@ -427,7 +427,8 @@ typedef struct janus_attributes
                                     \see nouse_mouth_visible. */
     bool indoor; /*!< \brief Image was captured indoors \see \ref indoor. */
 
-    double frame_number; /*!< \brief Frame number or NAN for images. */
+    double frame_number; /*!< \brief Frame number or NAN for images. In the case of videos
+                                     the frame number is a 0-based unsigned integer index. */
 } janus_attributes;
 
 /*!
@@ -542,16 +543,29 @@ typedef enum janus_template_role {
  * one time and the constructed template is expected to be suitable for
  * verification and search.
  *
- * \param[in] associations A vector of associations between a piece of media
- *                         and relevant metadata. All of the associations provided
- *                         are guaranteed to be of a single subject
+ * \note In the case of an input video it is often the case that a ground truth
+ *       location of a subject of interest is specified only in one frame. This
+ *       is represented in the API as a track with only one entry provided along
+ *       with a media object representing a video. In this case, tracking can be
+ *       done by the internal algorithm if they wish to extend the single frame
+ *       annotation to subsequent frames. If tracking is done, the single frame
+ *       ground truth track should be extended with any additional information
+ *       so that the calling function can make use of it. Note also that the returned
+ *       track may be sparsely populated (i.e it might skip frames). In all cases
+ *       the \ref janus_attributes::frame_number field should accurately represent
+ *       the frame the janus_attributes location information originated from.
+ *
+ * \param[in,out] associations A vector of associations between a piece of media
+ *                             and relevant metadata. All of the associations provided
+ *                             are guaranteed to be of a single subject. This is not const
+ *                             to allow additional tracking if the implementation supports it.
  * \param[in] role An enumeration describing the intended function for the created template.
  *                 Implementors are not required to have different types of templates for any/all
  *                 of the roles specified but can if they choose.
  * \param[out] template_ The template to contain the subject's recognition information.
  * \remark This function is \ref reentrant.
  */
-JANUS_EXPORT janus_error janus_create_template(const std::vector<janus_association> &associations,
+JANUS_EXPORT janus_error janus_create_template(std::vector<janus_association> &associations,
                                                const janus_template_role role,
                                                janus_template &template_);
 
