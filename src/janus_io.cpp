@@ -110,7 +110,7 @@ static void _janus_add_sample(vector<double> &samples, double sample)
 
 #ifndef JANUS_CUSTOM_DETECT
 
-janus_error janus_detect_helper(const string &data_path, janus_metadata metadata, const size_t min_face_size, const string &detection_list_file, bool verbose)
+janus_error janus_harness_detect(const string &data_path, janus_metadata metadata, const size_t min_face_size, const string &detection_list_file, bool verbose)
 {
     clock_t start;
 
@@ -347,7 +347,7 @@ struct TemplateIterator : public TemplateData
 
 #ifndef JANUS_CUSTOM_CREATE_TEMPLATES
 
-janus_error janus_create_templates_helper(const string &data_path, janus_metadata metadata, const string &templates_path, const string &templates_list_file, const janus_template_role role, bool verbose)
+janus_error janus_harness_create_templates(const string &data_path, janus_metadata metadata, const string &templates_path, const string &templates_list_file, const janus_template_role role, bool verbose)
 {
     clock_t start;
 
@@ -434,7 +434,7 @@ static janus_error janus_load_templates_from_file(const string &templates_list_f
 
 #ifndef JANUS_CUSTOM_CREATE_GALLERY
 
-janus_error janus_create_gallery_helper(const string &templates_list_file, const string &gallery_file, bool verbose)
+janus_error janus_harness_create_gallery(const string &templates_list_file, const string &gallery_file, bool verbose)
 {
     clock_t start;
 
@@ -479,38 +479,66 @@ janus_error janus_create_gallery_helper(const string &templates_list_file, const
 
 #ifndef JANUS_CUSTOM_VERIFY
 
-janus_error janus_verify_helper(const string &templates_list_file_a, const string &templates_list_file_b, const string &scores_file, bool verbose)
+janus_error janus_load_template(const string &data_path, janus_template_id template_id, janus_template &tmpl)
+{
+    string template_file = data_path + to_string(template_id) + ".template";
+    ifstream template_stream(template_file.c_str(), ios::in | ios::binary);
+    if (!template_stream)
+        printf("WARNING! Template %s does not exist on disk\n", template_file.c_str());
+
+    clock_t start = clock();
+    JANUS_CHECK(janus_deserialize_template(tmpl, template_stream));
+    _janus_add_sample(janus_deserialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+
+    template_stream.close();
+
+    return JANUS_SUCCESS;
+}
+
+janus_error janus_harness_verify(const string& probe_data_path, const string& reference_data_path, const string& templates_matches_file, const string& scores_file, bool verbose)
 {
     clock_t start;
+    
+    // Finally, compare the templates and write the results to the scores file
+    ofstream scores_stream(scores_file.c_str(), ios::out);
+    
+    ifstream matches_stream(templates_matches_file.c_str());
+    string line;
 
-    // Load the template sets
-    vector<janus_template> templates_a, templates_b;
-    vector<janus_template_id> template_ids_a, template_ids_b;
-    vector<int> subject_ids_a, subject_ids_b;
+    map<janus_template_id, janus_template> probe_template_lut;
+    map<janus_template_id, janus_template> reference_template_lut;
 
-    JANUS_CHECK(janus_load_templates_from_file(templates_list_file_a, templates_a, template_ids_a, subject_ids_a));
-    JANUS_CHECK(janus_load_templates_from_file(templates_list_file_b, templates_b, template_ids_b, subject_ids_b));
+    while (getline(matches_stream, line)) {
+        istringstream row(line);
+        string probe_id_str, reference_id_str;
+        getline(row, probe_id_str, ',');
+        getline(row, reference_id_str, ',');
 
-    assert(templates_a.size() == templates_b.size());
+        janus_template_id probe_id = atoi(probe_id_str.c_str());
+        janus_template_id reference_id = atoi(reference_id_str.c_str());
 
-    // Compare the templates and write the results to the scores file
-    ofstream scores_stream(scores_file.c_str(), ios::out | ios::ate);
-    for (size_t i = 0; i < templates_a.size(); i++) {
+        auto probe_template_it = probe_template_lut.find(probe_id);
+        if (probe_template_it == probe_template_lut.end()) {
+            janus_template probe_template = nullptr;
+            JANUS_CHECK(janus_load_template(probe_data_path, probe_id, probe_template))
+            probe_template_it = probe_template_lut.insert(make_pair(probe_id, probe_template)).first;
+        }
+        
+        auto reference_template_it = reference_template_lut.find(reference_id);
+        if (reference_template_it == reference_template_lut.end()) {
+            janus_template reference_template = nullptr;
+            JANUS_CHECK(janus_load_template(reference_data_path, reference_id, reference_template))
+            reference_template_it = reference_template_lut.insert(make_pair(reference_id, reference_template)).first;
+        }
+
         double similarity;
         start = clock();
-        janus_verify(templates_a[i], templates_b[i], similarity);
+        JANUS_CHECK(janus_verify(probe_template_it->second, reference_template_it->second, similarity));
         _janus_add_sample(janus_verify_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
 
-        scores_stream << template_ids_a[i] << "," << template_ids_b[i] << "," << similarity << ","
-                      << (subject_ids_a[i] == subject_ids_b[i] ? "true" : "false") << "\n";
+        scores_stream << probe_id << "," << reference_id << "," << similarity << "\n";
     }
     scores_stream.close();
-
-    for (size_t i = 0; i < templates_a.size(); i++)
-        janus_delete_template(templates_a[i]);
-
-    for (size_t i = 0; i < templates_b.size(); i++)
-        janus_delete_template(templates_b[i]);
 
     if (verbose)
         janus_print_metrics(janus_get_metrics());
@@ -538,7 +566,7 @@ janus_error janus_ensure_size(const vector<janus_template_id> &all_ids, vector<j
     return JANUS_SUCCESS;
 }
 
-janus_error janus_search_helper(const string &probes_list_file, const string &gallery_list_file, const string &gallery_file, int num_requested_returns, const string &candidate_list_file, bool verbose)
+janus_error janus_harness_search(const string &probes_list_file, const string &gallery_list_file, const string &gallery_file, int num_requested_returns, const string &candidate_list_file, bool verbose)
 {
     clock_t start;
 
@@ -597,7 +625,7 @@ janus_error janus_search_helper(const string &probes_list_file, const string &ga
 #endif // JANUS_CUSTOM_SEARCH
 
 #ifndef JANUS_CUSTOM_CLUSTER
-janus_error janus_cluster_helper(const string &templates_list_file, const size_t hint, const string &clusters_output_list, bool verbose)
+janus_error janus_harness_cluster(const string &templates_list_file, const size_t hint, const string &clusters_output_list, bool verbose)
 {
     clock_t start;
 

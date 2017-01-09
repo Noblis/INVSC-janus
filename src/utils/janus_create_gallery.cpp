@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     }
 
     JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
-    JANUS_ASSERT(janus_create_gallery_helper(argv[3], argv[4], verbose));
+    JANUS_ASSERT(janus_harness_create_gallery(argv[3], argv[4], verbose));
     JANUS_ASSERT(janus_finalize());
 
     return EXIT_SUCCESS;

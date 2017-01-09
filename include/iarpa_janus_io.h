@@ -135,7 +135,7 @@ typedef const char *janus_metadata;
  * \param [in] verbose Print information and warnings during detection
  * \remark This function is \ref thread_unsafe
  */
-JANUS_EXPORT janus_error janus_detect_helper(const std::string &data_path, janus_metadata metadata, const size_t min_face_size, const std::string &detection_list_file, bool verbose);
+JANUS_EXPORT janus_error janus_harness_detect(const std::string &data_path, janus_metadata metadata, const size_t min_face_size, const std::string &detection_list_file, bool verbose);
 
 /*!
  * \brief High-level helper function for enrolling templates from a metadata file and writing templates to disk.
@@ -148,7 +148,7 @@ JANUS_EXPORT janus_error janus_detect_helper(const std::string &data_path, janus
  * \param [in] verbose Print information and warnings during template enrollment.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_create_templates_helper(const std::string &data_path, janus_metadata metadata, const std::string &templates_path, const std::string &templates_list_file, const janus_template_role role, bool verbose);
+JANUS_EXPORT janus_error janus_harness_create_templates(const std::string &data_path, janus_metadata metadata, const std::string &templates_path, const std::string &templates_list_file, const janus_template_role role, bool verbose);
 
 /*!
  * \brief High-level helper function for enrolling a gallery from a metadata file.
@@ -157,17 +157,17 @@ JANUS_EXPORT janus_error janus_create_templates_helper(const std::string &data_p
  * \param [in] verbose Print information and warnings during gallery enrollment.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_create_gallery_helper(const std::string &templates_list_file, const std::string &gallery_file, bool verbose);
+JANUS_EXPORT janus_error janus_harness_create_gallery(const std::string &templates_list_file, const std::string &gallery_file, bool verbose);
 
 /*!
- * \brief High-level helper function for running verification on two equal sized lists of templates
- * \param [in] templates_list_file_a The first list of templates
- * \param [in] templates_list_file_b The second list of templates
+ * \brief High-level helper function for running verification on a predefined list of matches
+ * \param [in] data_path A prefix to where the templates are stored
+ * \param [in] templates_matches_file A list of the matches. The matches are comma separated and given as probe,reference
  * \param [in] scores_file The file to write scores to. Scores are written template_id_a,template_id_b,similarity,genuine_match\n
  * \param [in] verbose Print information and warnings during verification.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_verify_helper(const std::string &templates_list_file_a, const std::string &templates_list_file_b, const std::string &scores_file, bool verbose);
+JANUS_EXPORT janus_error janus_harness_verify(const std::string& probe_data_path, const std::string& reference_data_path, const std::string& templates_matches_file, const std::string& scores_file, bool verbose);
 
 /*!
  * \brief High-level helper function for running verification on two equal sized lists of templates
@@ -177,7 +177,7 @@ JANUS_EXPORT janus_error janus_verify_helper(const std::string &templates_list_f
  * \param [in] verbose Print information and warnings during search.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_search_helper(const std::string &probes_list_file, const std::string &gallery_list_file, const std::string &gallery_file, int num_requested_returns, const std::string &candidate_list, bool verbose);
+JANUS_EXPORT janus_error janus_harness_search(const std::string &probes_list_file, const std::string &gallery_list_file, const std::string &gallery_file, int num_requested_returns, const std::string &candidate_list, bool verbose);
 
 /*!
  * \brief High-level helper function for clustering templates
@@ -187,7 +187,7 @@ JANUS_EXPORT janus_error janus_search_helper(const std::string &probes_list_file
  * \param [in] verbose Print information and warnings during verification.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_cluster_helper(const std::string &templates_list_file, const size_t hint, const std::string &clusters_output_list, bool verbose);
+JANUS_EXPORT janus_error janus_harness_cluster(const std::string &templates_list_file, const size_t hint, const std::string &clusters_output_list, bool verbose);
 
 /*!
  * \brief A statistic.

@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     }
 
     JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
-    JANUS_ASSERT(janus_create_templates_helper(argv[3], argv[4], argv[5], argv[6], static_cast<janus_template_role>(atoi(argv[7])), verbose))
+    JANUS_ASSERT(janus_harness_create_templates(argv[3], argv[4], argv[5], argv[6], static_cast<janus_template_role>(atoi(argv[7])), verbose))
     JANUS_ASSERT(janus_finalize())
 
     return EXIT_SUCCESS;

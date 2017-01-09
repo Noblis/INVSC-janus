@@ -12,14 +12,14 @@ using namespace std;
 
 void printUsage()
 {
-    printf("Usage: janus_verify sdk_path temp_path templates_list_file_a templates_list_file_b scores_file [-algorithm <algorithm>] [-verbose]\n");
+    printf("Usage: janus_verify sdk_path temp_path probe_data_path reference_data_path templates_matches_file scores_file [-algorithm <algorithm>] [-verbose]\n");
 }
 
 int main(int argc, char *argv[])
 {
-    int requiredArgs = 6;
+    int requiredArgs = 7;
 
-    if ((argc < requiredArgs) || (argc > 9)) {
+    if ((argc < requiredArgs) || (argc > 10)) {
         printUsage();
         return 1;
     }
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     }
 
     JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
-    JANUS_ASSERT(janus_verify_helper(argv[3], argv[4], argv[5], verbose));
+    JANUS_ASSERT(janus_harness_verify(argv[3], argv[4], argv[5], argv[6], verbose));
     JANUS_ASSERT(janus_finalize())
 
     return EXIT_SUCCESS;

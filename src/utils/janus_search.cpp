@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     }
 
     JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
-    JANUS_ASSERT(janus_search_helper(argv[3], argv[4], argv[5], atoi(argv[6]), argv[7], verbose))
+    JANUS_ASSERT(janus_harness_search(argv[3], argv[4], argv[5], atoi(argv[6]), argv[7], verbose))
     JANUS_ASSERT(janus_finalize())
 
     return EXIT_SUCCESS;
