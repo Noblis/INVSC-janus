@@ -533,12 +533,20 @@ janus_error janus_harness_verify(const string& probe_data_path, const string& re
 
         double similarity;
         start = clock();
-        JANUS_CHECK(janus_verify(probe_template_it->second, reference_template_it->second, similarity));
+        if (janus_verify(probe_template_it->second, reference_template_it->second, similarity) != JANUS_SUCCESS)
+            similarity = numeric_limits<double>::lowest();
         _janus_add_sample(janus_verify_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
-
         scores_stream << probe_id << "," << reference_id << "," << similarity << "\n";
     }
     scores_stream.close();
+
+    // free probe templates
+    for (auto &temp : probe_template_lut)
+        janus_delete_template(temp.second);
+    
+    // free reference templates
+    for (auto &temp : reference_template_lut)
+        janus_delete_template(temp.second);
 
     if (verbose)
         janus_print_metrics(janus_get_metrics());
