@@ -9,16 +9,25 @@
 /*!
  * \brief A media object that loads images and videos in a lazy fashion
  */
-struct janus_media_type
+struct JANUS_EXPORT janus_media_type
 {
-    std::string filename; /*!< The filename of the image or video */
+    JANUS_EXPORT janus_media_type();
+    JANUS_EXPORT ~janus_media_type();
 
-    uint32_t channels; /*!< The number of channels in the media.
-                            Valid options are 1 (Grayscale) or 3 (Color) */
-    uint32_t rows; /*!< The number of rows in the media */
-    uint32_t cols; /*!< The number of cols in the media */
-    uint32_t frames; /*!< The number of frames in the media.
-                          If the media is an image this will return 1 */
+    /*!
+     * \brief Create a media reader object
+     * \param filename The filename of an image or video
+     * \remark This function is \ref thread_unsafe.
+     */
+    JANUS_EXPORT janus_media_type(const std::string &filename);
+
+    /*!
+     * \brief Determines if media is loadable and valid
+     * \return True if the media is valid (width > 0, height > 0, channels > 0)
+     *         False otherwise
+     * \remark This function is \ref thread_unsafe.
+     */
+    JANUS_EXPORT bool valid() const;
 
     /*!
      * \brief Retrieve the image if the media is an image or the next frame from
@@ -36,7 +45,7 @@ struct janus_media_type
      *         false otherwise.
      * \remark This function is \ref thread_unsafe.
      */
-    bool next(cv::Mat &img);
+    JANUS_EXPORT bool next(cv::Mat &img);
 
     /*!
      * \brief Seek through the video to a particular location. If the media is an
@@ -47,7 +56,36 @@ struct janus_media_type
      *         an image.
      * \remark This function is \ref thread_unsafe.
      */
-    bool seek(uint32_t frame);
+    JANUS_EXPORT bool seek(uint32_t frame);
+
+    /*!
+     * \brief Get a specific frame
+     * \param img An empty container to store the retrieved information. The data in
+     *            the image is unsigned 8 bit.
+     * \param frame The frame to extract
+     * \return True if the media is a video and the frame is valid (i.e within the
+     *         bounds of the video), false if the frame is invalid or the media is
+     *         an image.
+     * \remark This function is \ref thread_unsafe.
+     */
+    JANUS_EXPORT bool get_frame(cv::Mat &img, uint32_t frame);
+
+    /*!
+     * \brief Get the next frame number
+     * \return frame number
+     * \remark This function is \ref thread_unsafe.
+     */
+    JANUS_EXPORT uint32_t tell();
+
+    // data members below
+    std::string filename; /*!< The filename of the image or video */
+    uint32_t channels; /*!< The number of channels in the media.
+                            Valid options are 1 (Grayscale) or 3 (Color) */
+    uint32_t height; /*!< The number of rows in the media */
+    uint32_t width; /*!< The number of cols in the media */
+    bool image; /*!< True if media is an image */
+    uint32_t frames; /*!< The number of frames in the media.
+                          If the media is an image this will be set to 1 */
 
 private:
     cv::VideoCapture video;

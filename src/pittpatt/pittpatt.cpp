@@ -14,6 +14,8 @@
 
 #include <iarpa_janus.h>
 #include <iarpa_janus_io.h>
+#include <opencv_io.h>
+#include <opencv2/highgui/highgui.hpp>
 
 using namespace std;
 
@@ -78,6 +80,50 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context)
     return ppr_initialize_context(settings, context);
 }
 
+ppr_error_type make_ppr_image(ppr_image_type *ppr_image, uint8_t *data, const uint32_t channels, const uint32_t width, const uint32_t height)
+{
+    ppr_raw_image_type raw_image;
+    raw_image.bytes_per_line = channels * width;
+    raw_image.color_space = (channels == 3 ? PPR_RAW_IMAGE_BGR24 : PPR_RAW_IMAGE_GRAY8);
+    raw_image.data = data;
+    raw_image.height = height;
+    raw_image.width = width;
+
+    ppr_error_type error = ppr_create_image(raw_image, ppr_image);
+    if (error != PPR_SUCCESS)
+        return error;
+
+    return PPR_SUCCESS;
+}
+
+uint8_t *crop_frame(janus_media_type &media,
+                    uint32_t &x, uint32_t &y, uint32_t &w, uint32_t &h) // IN (requested ROI) /OUT (actual ROI)
+{
+    cv::Mat tmp;
+
+    int channels = media.channels; 
+
+    // determine ROI
+    x = x < 0 ? 0 : x;
+    y = y < 0 ? 0 : y;
+    w = (x + w > media.width ) ? media.width  - x : w;
+    h = (y + h > media.height) ? media.height - y : h;
+    cv::Rect roi(x, y, w, h);
+
+    // get full frame
+    media.next(tmp);
+
+    // crop the frame
+    tmp = tmp(roi).clone();
+
+    // copy into a buffer we control
+    uint8_t *data = new uint8_t[w * h * channels];
+    memcpy(data, tmp.data, w * h * channels);
+
+    return data;
+}
+
+
 janus_error janus_initialize(const string &sdk_path, const string &, const string &, const int)
 {
     janus_error error = to_janus_error(ppr_initialize_sdk((sdk_path + "/models/").c_str(), my_license_id, my_license_key));
@@ -94,28 +140,8 @@ janus_error janus_finalize()
     return error;
 }
 
-static ppr_error_type to_ppr_media(const janus_media media, vector<ppr_image_type> &ppr_media)
-{
-    for (size_t i = 0; i < media.data.size(); i++) {
-        ppr_raw_image_type raw_image;
-        raw_image.bytes_per_line = (media.color_space == JANUS_BGR24 ? 3 : 1) * media.width;
-        raw_image.color_space = (media.color_space == JANUS_BGR24 ? PPR_RAW_IMAGE_BGR24 : PPR_RAW_IMAGE_GRAY8);
-        raw_image.data = media.data[i];
-        raw_image.height = media.height;
-        raw_image.width = media.width;
-
-        ppr_image_type ppr_image;
-        ppr_error_type error = ppr_create_image(raw_image, &ppr_image);
-        if (error != PPR_SUCCESS)
-            return error;
-        ppr_media.push_back(ppr_image);
-    }
-
-    return PPR_SUCCESS;
-}
-
 struct sort_first_greater {
-    bool operator()(const std::pair<float,janus_template_id> &left, const std::pair<float,janus_template_id> &right) {
+    bool operator()(const std::pair<float,uint32_t> &left, const std::pair<float,uint32_t> &right) {
         return left.first > right.first;
     }
     bool operator()(const std::pair<float,ppr_face_attributes_type> &left, const std::pair<float,ppr_face_attributes_type> &right) {
@@ -125,14 +151,19 @@ struct sort_first_greater {
 
 janus_error janus_detect(const janus_media &media, const size_t min_face_size, std::vector<janus_track> &tracks)
 {
-    vector<ppr_image_type> ppr_media;
-    JANUS_TRY_PPR(to_ppr_media(media, ppr_media))
+    janus_media_type &m = *media;
 
     ppr_context_type *context = &ppr_context;
 
-    for (size_t i = 0; i < ppr_media.size(); i++) {
+    for (size_t i = 0; i < m.frames; i++) {
+        cv::Mat tmp;
+        ppr_image_type ppr_image;
         ppr_face_list_type face_list;
-        ppr_detect_faces(ppr_context, ppr_media[i], &face_list);
+
+        // get frame
+        m.next(tmp);
+        JANUS_TRY_PPR(make_ppr_image(&ppr_image, tmp.data, m.channels, m.width, m.height));
+        ppr_detect_faces(ppr_context, ppr_image, &face_list);
 
         vector<pair<float, ppr_face_attributes_type> > face_confidences;
         for (int j = 0; j < face_list.length; j++) {
@@ -162,53 +193,36 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
         }
 
         ppr_free_face_list(face_list);
+        ppr_free_image(ppr_image);
     }
-
-    for (size_t i = 0; i < ppr_media.size(); i++)
-        ppr_free_image(ppr_media[i]);
 
     return JANUS_SUCCESS;
 }
 
-janus_media janus_crop_media(const janus_association &association)
-{
-    const janus_media &src = association.media;
-    const janus_track &track = association.metadata;
-
-    janus_media dst; dst.data.reserve(src.data.size());
-    for (size_t i = 0; i < src.data.size(); i++) {
-        const janus_attributes &face_attributes = track.track[i];
-        const size_t x = face_attributes.face_x < 0 ? 0 : face_attributes.face_x;
-        const size_t y = face_attributes.face_y < 0 ? 0 : face_attributes.face_y;
-        dst.width = (x + face_attributes.face_width > src.width) ? src.width - x : face_attributes.face_width;
-        dst.height = (y + face_attributes.face_height > src.height) ? src.height - y : face_attributes.face_height;
-        dst.color_space = src.color_space;
-        int channels = src.color_space == JANUS_BGR24 ? 3 : 1;
-
-        janus_data *data = new janus_data[dst.width * dst.height * channels];
-        const unsigned long dst_elements_per_row = dst.width * channels;
-        const unsigned long src_elements_per_row = src.width * channels;
-
-        for (size_t j = 0; j < dst.height; j++)
-            memcpy(data + j*dst_elements_per_row, src.data[i] + src_elements_per_row * (y + j) + channels*x, dst_elements_per_row);
-        dst.data.push_back(data);
-    }
-    return dst;
-}
-
-janus_error janus_create_template(const std::vector<janus_association> &associations, const janus_template_role, janus_template &template_)
+janus_error janus_create_template(std::vector<janus_track> &tracks, const janus_template_role, janus_template &template_)
 {
     template_ = new janus_template_type();
 
-    for (size_t i = 0; i < associations.size(); i++) {
-        janus_media cropped = janus_crop_media(associations[i]);
+    for (size_t i = 0; i < tracks.size(); i++) {
+        janus_media_type &media = *(tracks[i].media);
+        vector<janus_attributes> &metadata_vec = tracks[i].track;
+        for (size_t j = 0; j < media.frames; j++) {
+            const janus_attributes &fa = metadata_vec[j];
+            uint32_t face_x, face_y, face_w, face_h;
+            uint8_t *data;
+            ppr_image_type ppr_image;
 
-        vector<ppr_image_type> ppr_media;
-        to_ppr_media(cropped, ppr_media);
+            // Get default dimensions
+            // crop_frame(m,x,y,w,h) may change these values if the 
+            // initial request is outside the bounds of the image
+            face_x = fa.face_x ;     face_y = fa.face_y;
+            face_w = fa.face_width ; face_h = fa.face_height;
 
-        for (size_t j = 0; j < ppr_media.size(); j++) {
+            data = crop_frame(media, face_x, face_y, face_w, face_h);
+            JANUS_TRY_PPR(make_ppr_image(&ppr_image, data, media.channels, face_w, face_h));
+
             ppr_face_list_type face_list;
-            JANUS_TRY_PPR(ppr_detect_faces(ppr_context, ppr_media[j], &face_list))
+            JANUS_TRY_PPR(ppr_detect_faces(ppr_context, ppr_image, &face_list))
 
             for (int k = 0; k < face_list.length; k++) {
                 ppr_face_type &face = face_list.faces[k];
@@ -216,19 +230,21 @@ janus_error janus_create_template(const std::vector<janus_association> &associat
                 int extractable;
                 JANUS_TRY_PPR(ppr_is_template_extractable(ppr_context, face, &extractable))
                 if (extractable) { // Only extract a single face template
-                    ppr_extract_face_template(ppr_context, ppr_media[j], &face);
+                    ppr_extract_face_template(ppr_context, ppr_image, &face);
                     break;
                 }
             }
 
             template_->ppr_face_lists.push_back(face_list);
+
+            // clean up
+            ppr_free_image(ppr_image);
+            delete[] data;
+
+            // only support images for now
+            break;
         }
-
-        for (size_t i = 0; i < ppr_media.size(); i++)
-            ppr_free_image(ppr_media[i]);
-        janus_free_media(cropped);
     }
-
     return JANUS_SUCCESS;
 }
 
@@ -306,7 +322,7 @@ janus_error janus_deserialize_template(janus_template &template_, std::istream &
     return JANUS_SUCCESS;
 }
 
-janus_error janus_delete_serialized_template(janus_data *&template_, const size_t)
+janus_error janus_delete_serialized_template(uint8_t *&template_, const size_t)
 {
     delete[] template_;
     return JANUS_SUCCESS;
@@ -379,7 +395,7 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
     return JANUS_SUCCESS;
 }
 
-janus_error janus_create_gallery(const vector<janus_template> &templates, const vector<janus_template_id> &ids, janus_gallery &gallery)
+janus_error janus_create_gallery(const vector<janus_template> &templates, const vector<uint32_t> &ids, janus_gallery &gallery)
 {
     gallery = new janus_gallery_type();
     JANUS_TRY_PPR(ppr_create_gallery(ppr_context, &gallery->ppr_gallery));
@@ -449,7 +465,7 @@ janus_error janus_prepare_gallery(janus_gallery &)
     return JANUS_SUCCESS;
 }
 
-janus_error janus_gallery_insert(janus_gallery &gallery, const janus_template &template_, const janus_template_id &id)
+janus_error janus_gallery_insert(janus_gallery &gallery, const janus_template &template_, const uint32_t &id)
 {
     int face_id = 0;
     for (size_t i = 0; i < template_->ppr_face_lists.size(); i++) {
@@ -469,13 +485,13 @@ janus_error janus_gallery_insert(janus_gallery &gallery, const janus_template &t
     return JANUS_SUCCESS;
 }
 
-janus_error janus_gallery_remove(janus_gallery &gallery, const janus_template_id &id)
+janus_error janus_gallery_remove(janus_gallery &gallery, const uint32_t &id)
 {
     JANUS_TRY_PPR(ppr_remove_subject(ppr_context, &gallery->ppr_gallery, id))
     return JANUS_SUCCESS;
 }
 
-janus_error janus_delete_serialized_gallery(janus_data *&gallery, const size_t)
+janus_error janus_delete_serialized_gallery(uint8_t *&gallery, const size_t)
 {
     delete[] gallery;
     return JANUS_SUCCESS;
@@ -488,7 +504,7 @@ janus_error janus_delete_gallery(janus_gallery &gallery)
     return JANUS_SUCCESS;
 }
 
-janus_error janus_search(const janus_template &probe, const janus_gallery &gallery, const size_t num_requested_returns, vector<janus_template_id> &template_ids, vector<double> &similarities)
+janus_error janus_search(const janus_template &probe, const janus_gallery &gallery, const size_t num_requested_returns, vector<uint32_t> &template_ids, vector<double> &similarities)
 {
     ppr_gallery_type probe_gallery;
     JANUS_TRY_PPR(ppr_create_gallery(ppr_context, &probe_gallery))
@@ -518,7 +534,7 @@ janus_error janus_search(const janus_template &probe, const janus_gallery &galle
     ppr_id_list_type id_list;
     JANUS_TRY_PPR(ppr_get_subject_id_list(ppr_context, gallery->ppr_gallery, &id_list))
 
-    vector<pair<float, janus_template_id> > scores;
+    vector<pair<float, uint32_t> > scores;
 
     for (int i = 0; i < id_list.length; i++) {
         int target_subject_id = id_list.ids[i];
@@ -543,9 +559,18 @@ janus_error janus_search(const janus_template &probe, const janus_gallery &galle
     return JANUS_SUCCESS;
 }
 
-janus_error janus_cluster(const vector<janus_template> &templates,
+janus_error janus_cluster(const vector<janus_media> &input,
+                          const vector<uint32_t> &input_ids,
                           const size_t hint,
-                          vector<cluster_pair> &clusters)
+                          vector<janus_cluster_item> &clusters)
+{
+    return JANUS_NOT_IMPLEMENTED;
+}
+
+janus_error janus_cluster(const vector<janus_template> &templates,
+                          const vector<uint32_t> &template_ids,
+                          const size_t hint,
+                          vector<janus_cluster_item> &clusters)
 {
     // PP5 arguments/data structures
     int clustering_aggressiveness = PPR_MAX_CLUSTERING_AGGRESSIVENESS;
@@ -555,18 +580,13 @@ janus_error janus_cluster(const vector<janus_template> &templates,
     // janus data structures
     janus_gallery cluster_gallery;
     janus_error error = JANUS_SUCCESS;
-    vector<janus_template_id> t_ids(templates.size());
+    vector<uint32_t> t_ids(templates.size());
 
-    // make template_ids and make room for cluster pairs
-    std::iota(std::begin(t_ids), std::end(t_ids), 0);
-    clusters.resize(templates.size());
-    std::fill(clusters.begin(), clusters.end(), cluster_pair(-1, -1.5));
-    
     // set the clustering aggressiveness
     if (clustering_aggressiveness > hint)
         clustering_aggressiveness = static_cast<int>(hint);
 
-    error = janus_create_gallery(templates, t_ids, cluster_gallery);
+    error = janus_create_gallery(templates, template_ids, cluster_gallery);
 
     if (error != JANUS_SUCCESS)
         return error;
@@ -582,8 +602,14 @@ janus_error janus_cluster(const vector<janus_template> &templates,
         ppr_id_list_type cluster = cluster_list.clusters[cluster_id];
 
         for (int j = 0; j < cluster.length; j++) {
+            janus_cluster_item item;
             int t_id = cluster.ids[j];
-            clusters[t_id].first  = cluster_id;
+
+            item.confidence = -1.5;
+            item.cluster_id = (uint32_t) cluster_id;
+            item.source_id = (uint32_t) t_id;
+
+            clusters.push_back(item);
         }
     }
 

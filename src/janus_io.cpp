@@ -174,14 +174,12 @@ janus_error janus_harness_detect(const string &data_path, janus_metadata metadat
 
 struct TemplateMetadata
 {
-    janus_template_id templateID; // Template id for a template
-    int subjectID;                // Subject id for a template
-    map<uint32_t,
-        pair<vector<string>, janus_track>
-       > metadata;                // A collection of media files and associated metadata
-                                  // organized by sightingID.
+    uint32_t templateID;                        // Template id for a template
+    int subjectID;                              // Subject id for a template
+    vector<pair<string, janus_track>> metadata; // A collection of filenames and metadata
+                                                // for a template
 
-    TemplateMetadata() : templateID(numeric_limits<janus_template_id>::max()), subjectID(-1) {}
+    TemplateMetadata() : templateID(numeric_limits<uint32_t>::max()), subjectID(-1) {}
 
     void merge(const TemplateMetadata &other)
     {
@@ -189,24 +187,8 @@ struct TemplateMetadata
         templateID = other.templateID;
         subjectID = other.subjectID;
 
-        for (const auto &entry : other.metadata) {
-            uint32_t sightingID = entry.first;
-            pair<vector<string>, janus_track> data = entry.second;
-
-            if (metadata.find(sightingID) != metadata.end()) {
-                vector<string> &filenames = metadata[sightingID].first;
-                janus_track &track = metadata[sightingID].second;
-
-                filenames.insert(filenames.end(), data.first.begin(), data.first.end());
-
-                track.age = data.second.age;
-                track.gender = data.second.gender;
-                track.skin_tone = data.second.skin_tone;
-                track.track.insert(track.track.end(), data.second.track.begin(), data.second.track.end());
-            } else {
-                metadata.insert(entry);
-            }
-        }
+        // merge
+        metadata.push_back(other.metadata.back());
     }
 
     void clear()
@@ -304,7 +286,8 @@ struct TemplateIterator
             // prefer video filename
             if (!vfilename.empty()) 
                 filename = vfilename;
-            tmpl.metadata.insert(make_pair(atoi(sightingID.c_str()), make_pair(vector<string>{filename}, track)));
+
+            tmpl.metadata.push_back(make_pair(filename, track));
 
             if (!templates.empty() && templates.back().templateID == tmpl.templateID) {
                 templates.back().merge(tmpl);
@@ -335,32 +318,18 @@ struct TemplateIterator
         clock_t start;
 
         // A set to hold all of the media and metadata required to make a full template
-        vector<janus_association> associations;
+        vector<janus_track> associations;
 
         // Create a set of all the media used for this template
-        for (const auto &entry : templateMetadata.metadata) {
-            pair<vector<string>, janus_track> metadata = entry.second;
+        for (const auto &name_track : templateMetadata.metadata) {
+            janus_media temp;
+            string filename = name_track.first;
+            janus_track association = name_track.second;
 
-            janus_media media;
-            for (size_t i = 0; i < metadata.first.size(); i++) {
-                if (i == 0) {
-                    start = clock();
-                    JANUS_ASSERT(janus_load_media(data_path + metadata.first[i], media))
-                    _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-                } else {
-                    janus_media temp;
-
-                    start = clock();
-                    JANUS_ASSERT(janus_load_media(data_path + metadata.first[i], temp))
-                    _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
-
-                    media.data.push_back(temp.data.front());
-                }
-            }
-
-            janus_association association;
-            association.media = media;
-            association.metadata = metadata.second;
+            start = clock();
+            JANUS_ASSERT(janus_load_media(data_path + filename, temp))
+            _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+            association.media = temp;
             associations.push_back(association);
         }
 
@@ -401,7 +370,7 @@ janus_error janus_harness_create_templates(const string &data_path, janus_metada
     ofstream templates_list_stream(templates_list_file.c_str(), ios::out | ios::ate);
 
     TemplateMetadata templateMetadata = ti.next();
-    while (templateMetadata.subjectID != -1) {
+    while (templateMetadata.templateID != -1) {
         JANUS_CHECK(TemplateIterator::create(data_path, templateMetadata, role, &template_))
 
         // Useful strings
@@ -423,7 +392,12 @@ janus_error janus_harness_create_templates(const string &data_path, janus_metada
         template_stream.close();
 
         // Write the template metadata to the list
-        templates_list_stream << templateIDString << "," << subjectIDString << "," << templateOutputFile << "\n";
+        templates_list_stream << templateIDString << "," << subjectIDString << "," << templateOutputFile;
+
+        if (role == janus_template_role::CLUSTERING) // add filename column if role == clustering
+            templates_list_stream << "," << templateMetadata.metadata[0].first; // will always be single image templates
+
+        templates_list_stream << endl;
 
         // Delete the template
         start = clock();
@@ -443,7 +417,7 @@ janus_error janus_harness_create_templates(const string &data_path, janus_metada
 
 #endif // JANUS_CUSTOM_CREATE_TEMPLATES
 
-static janus_error janus_load_templates_from_file(const string &templates_list_file, vector<janus_template> &templates, vector<janus_template_id> &template_ids, vector<int> &subject_ids)
+static janus_error janus_load_templates_from_file(const string &templates_list_file, vector<janus_template> &templates, vector<uint32_t> &template_ids, vector<uint32_t> &subject_ids, vector<string> &file_names)
 {
     clock_t start;
 
@@ -452,10 +426,12 @@ static janus_error janus_load_templates_from_file(const string &templates_list_f
 
     while (getline(templates_list_stream, line)) {
         istringstream row(line);
-        string template_id, subject_id, template_file;
+        string template_id, subject_id, template_file, media_file;
         getline(row, template_id, ',');
         getline(row, subject_id, ',');
         getline(row, template_file, ',');
+        getline(row, media_file, ',');
+        file_names.push_back(media_file);   
 
         template_ids.push_back(atoi(template_id.c_str()));
         subject_ids.push_back(atoi(subject_id.c_str()));
@@ -475,6 +451,31 @@ static janus_error janus_load_templates_from_file(const string &templates_list_f
     return JANUS_SUCCESS;
 }
 
+static janus_error janus_load_templates_from_file(const string &templates_list_file, vector<janus_template> &templates, vector<uint32_t> &template_ids, vector<uint32_t> &subject_ids)
+{
+    vector<string> tmp_filenames;
+    return janus_load_templates_from_file(templates_list_file, templates, template_ids, subject_ids, tmp_filenames);
+}
+
+static janus_error janus_load_media_from_file(const string &media_list_file, vector<janus_media> &media, vector<uint32_t> &template_ids, vector<string> &filenames)
+{
+    uint32_t id = 0;
+
+    ifstream media_list_stream(media_list_file.c_str());
+    string media_file;
+
+    while (getline(media_list_stream, media_file)) {
+        janus_media tmp;
+        janus_load_media(media_file, tmp);
+
+        media.push_back(tmp);
+        template_ids.push_back(id++);
+        filenames.push_back(media_file);
+    }
+    media_list_stream.close();
+    return JANUS_SUCCESS;
+}
+
 #ifndef JANUS_CUSTOM_CREATE_GALLERY
 
 janus_error janus_harness_create_gallery(const string &templates_list_file, const string &gallery_file, bool verbose)
@@ -482,8 +483,8 @@ janus_error janus_harness_create_gallery(const string &templates_list_file, cons
     clock_t start;
 
     vector<janus_template> templates;
-    vector<janus_template_id> template_ids;
-    vector<int> subject_ids;
+    vector<uint32_t> template_ids;
+    vector<uint32_t> subject_ids;
     JANUS_CHECK(janus_load_templates_from_file(templates_list_file, templates, template_ids, subject_ids));
 
     // Create the gallery
@@ -521,8 +522,7 @@ janus_error janus_harness_create_gallery(const string &templates_list_file, cons
 #endif // JANUS_CUSTOM_CREATE_GALLERY
 
 #ifndef JANUS_CUSTOM_VERIFY
-
-janus_error janus_load_template(const string &data_path, janus_template_id template_id, janus_template &tmpl)
+janus_error janus_load_template(const string &data_path, uint32_t template_id, janus_template &tmpl)
 {
     string template_file = data_path + to_string(template_id) + ".template";
     ifstream template_stream(template_file.c_str(), ios::in | ios::binary);
@@ -548,8 +548,8 @@ janus_error janus_harness_verify(const string& probe_data_path, const string& re
     ifstream matches_stream(templates_matches_file.c_str());
     string line;
 
-    map<janus_template_id, janus_template> probe_template_lut;
-    map<janus_template_id, janus_template> reference_template_lut;
+    map<uint32_t, janus_template> probe_template_lut;
+    map<uint32_t, janus_template> reference_template_lut;
 
     while (getline(matches_stream, line)) {
         istringstream row(line);
@@ -557,8 +557,8 @@ janus_error janus_harness_verify(const string& probe_data_path, const string& re
         getline(row, probe_id_str, ',');
         getline(row, reference_id_str, ',');
 
-        janus_template_id probe_id = atoi(probe_id_str.c_str());
-        janus_template_id reference_id = atoi(reference_id_str.c_str());
+        uint32_t probe_id = atoi(probe_id_str.c_str());
+        uint32_t reference_id = atoi(reference_id_str.c_str());
 
         auto probe_template_it = probe_template_lut.find(probe_id);
         if (probe_template_it == probe_template_lut.end()) {
@@ -601,13 +601,13 @@ janus_error janus_harness_verify(const string& probe_data_path, const string& re
 
 #ifndef JANUS_CUSTOM_SEARCH
 
-janus_error janus_ensure_size(const vector<janus_template_id> &all_ids, vector<janus_template_id> &return_ids, vector<double> &similarities)
+janus_error janus_ensure_size(const vector<uint32_t> &all_ids, vector<uint32_t> &return_ids, vector<double> &similarities)
 {
-    set<janus_template_id> return_lookup(return_ids.begin(), return_ids.end());
+    set<uint32_t> return_lookup(return_ids.begin(), return_ids.end());
 
     return_ids.reserve(all_ids.size()); similarities.reserve(all_ids.size());
     for (size_t i = 0; i < all_ids.size(); i++) {
-        janus_template_id id = all_ids[i];
+        uint32_t id = all_ids[i];
         if (return_lookup.find(id) == return_lookup.end()) {
             return_ids.push_back(id);
             similarities.push_back(0.0);
@@ -623,14 +623,14 @@ janus_error janus_harness_search(const string &probes_list_file, const string &g
 
     // Vectors to hold loaded data
     vector<janus_template> probe_templates, gallery_templates;
-    vector<janus_template_id> probe_template_ids, gallery_template_ids;
-    vector<int> probe_subject_ids, gallery_subject_ids;
+    vector<uint32_t> probe_template_ids, gallery_template_ids;
+    vector<uint32_t> probe_subject_ids, gallery_subject_ids;
 
     JANUS_CHECK(janus_load_templates_from_file(probes_list_file, probe_templates, probe_template_ids, probe_subject_ids));
     JANUS_CHECK(janus_load_templates_from_file(gallery_list_file, gallery_templates, gallery_template_ids, gallery_subject_ids))
 
     // Build template_id -> subject_id LUT for the gallery
-    map<janus_template_id, int> subjectIDLUT;
+    map<uint32_t, uint32_t> subjectIDLUT;
     for (size_t i = 0; i < gallery_template_ids.size(); i++) {
         subjectIDLUT.insert(make_pair(gallery_template_ids[i], gallery_subject_ids[i]));
 
@@ -648,7 +648,7 @@ janus_error janus_harness_search(const string &probes_list_file, const string &g
 
     ofstream candidate_stream(candidate_list_file.c_str(), ios::out | ios::ate);
     for (size_t i = 0; i < probe_templates.size(); i++) {
-        vector<janus_template_id> return_template_ids;
+        vector<uint32_t> return_template_ids;
         vector<double> similarities;
         start = clock();
         JANUS_CHECK(janus_search(probe_templates[i], gallery, num_requested_returns, return_template_ids, similarities));
@@ -676,40 +676,94 @@ janus_error janus_harness_search(const string &probes_list_file, const string &g
 #endif // JANUS_CUSTOM_SEARCH
 
 #ifndef JANUS_CUSTOM_CLUSTER
-janus_error janus_harness_cluster(const string &templates_list_file, const size_t hint, const string &clusters_output_list, bool verbose)
+janus_error janus_harness_cluster(const string &list_file, const bool is_template_list, const size_t hint, const string &clusters_output_list, bool verbose)
 {
+    // common variables
     clock_t start;
+    vector<uint32_t> cluster_template_ids;
+    vector<uint32_t> cluster_subject_ids;
+    vector<janus_cluster_item> cluster_items;
+    vector<string> filenames;
 
+    // test 7 variables
     vector<janus_template> cluster_templates;
-    vector<janus_template_id> cluster_template_ids;
-    vector<int> cluster_subject_ids;
+    map<uint32_t, string> filename_map;
 
-    vector<cluster_pair> cluster_pairs;
+    // test 8 variables
+    vector<janus_media> cluster_media;
 
-    // load templates
-    JANUS_CHECK(janus_load_templates_from_file(templates_list_file,
-                                               cluster_templates,
-                                               cluster_template_ids,
-                                               cluster_subject_ids));
-
-    // perform clustering
-    start = clock();
-    JANUS_CHECK(janus_cluster(cluster_templates, hint, cluster_pairs));
-    _janus_add_sample(janus_cluster_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
-
-    // write results and delete templates
     ofstream cluster_stream(clusters_output_list.c_str(), ios::out | ios::ate);
-    for (int i = 0; i < cluster_templates.size(); i++) {
-        // write a row
-        cluster_stream << cluster_template_ids[i] << ","
-                       << cluster_subject_ids[i]  << ","
-                       << cluster_pairs[i].first  << ","
-                       << cluster_pairs[i].second << std::endl;
+    if (is_template_list) { // TEST 7
+        // write header
+        cluster_stream << "TEMPLATE_ID,FILENAME,CLUSTER_INDEX,CONFIDENCE" << endl;
+
+        // load templates
+        JANUS_CHECK(janus_load_templates_from_file(list_file,
+                                                   cluster_templates,
+                                                   cluster_template_ids,
+                                                   cluster_subject_ids,
+                                                   filenames));
+
+        // create a template id <-> filename map
+        transform(cluster_template_ids.begin(), cluster_template_ids.end(),
+                  filenames.begin(), inserter(filename_map, filename_map.begin()),
+                  [] (uint32_t id, string fn) { return make_pair(id, fn); });
+
+        // perform clustering
+        start = clock();
+        JANUS_CHECK(janus_cluster(cluster_templates, cluster_template_ids, hint, cluster_items));
+        _janus_add_sample(janus_cluster_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+
+        // write results and delete templates
+        for (int i = 0; i < cluster_items.size(); i++) {
+            janus_cluster_item &item = cluster_items[i];
+
+            // write a row
+            cluster_stream << item.source_id               << ","    // TEMPLATE_ID
+                           << filename_map[item.source_id] << ","    // FILENAME
+                           << item.cluster_id              << ","    // CLUSTER_ID
+                           << item.confidence              << endl;  // CONFIDENCE
+        }
 
         // delete templates
+        for (janus_template &tmpl_ : cluster_templates) {
+            start = clock();
+            JANUS_CHECK(janus_delete_template(tmpl_))
+            _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        }
+        cluster_templates.clear();
+    } else { // TEST 8
+        // write header
+        cluster_stream << "TEMPLATE_ID,FILENAME,CLUSTER_INDEX,CONFIDENCE,FACE_X,FACE_Y,FACE_WIDTH,FACE_HEIGHT,FRAME_NUMBER" << endl;
+
+        // load media
+        JANUS_CHECK(janus_load_media_from_file(list_file, cluster_media, cluster_template_ids, filenames));
+
+        // create a template id <-> filename map
+        transform(cluster_template_ids.begin(), cluster_template_ids.end(),
+                  filenames.begin(), inserter(filename_map, filename_map.begin()),
+                  [] (uint32_t id, string fn) { return make_pair(id, fn); });
+
+        // perform clustering
         start = clock();
-        JANUS_CHECK(janus_delete_template(cluster_templates[i]))
-        _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_CHECK(janus_cluster(cluster_media, cluster_template_ids, hint, cluster_items));
+        _janus_add_sample(janus_cluster_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+
+        // write results and delete templates
+        for (auto &item : cluster_items) {
+            for (auto &attributes : item.track.track) {
+                cluster_stream << item.source_id               << ","     // TEMPLATE_ID
+                               << filename_map[item.source_id] << ","     // FILENAME
+                               << item.cluster_id              << ","     // CLUSTER_INDEX
+                               << item.confidence              << ","     // CONFIDENCE
+                               << attributes.face_x            << ","     // FACE_X
+                               << attributes.face_y            << ","     // FACE_Y
+                               << attributes.face_width        << ","     // FACE_WIDTH
+                               << attributes.face_height       << ","     // FACE_HEIGHT
+                               << attributes.frame_number      << endl;   // FRAME_NUMBER
+            }
+        }
+        janus_free_media(cluster_media);
     }
 
     cluster_stream.close();

@@ -92,9 +92,15 @@ JANUS_EXPORT janus_error janus_load_media(const std::string &filename, janus_med
  * \brief Frees the memory previously allocated for a #janus_image.
  * \param[in] image #janus_image to free.
  * \remark This function is \ref reentrant.
- * \see janus_allocate_image
  */
 JANUS_EXPORT janus_error janus_free_media(janus_media &media);
+
+/*!
+ * \brief Frees the memory previously allocated for a #janus_image.
+ * \param[in] media vector of media to free
+ * \remark This function is \ref reentrant.
+ */
+JANUS_EXPORT janus_error janus_free_media(std::vector<janus_media> &media);
 
 /*!
  * \brief File name for a Janus Metadata File
@@ -182,13 +188,14 @@ JANUS_EXPORT janus_error janus_harness_search(const std::string &probes_list_fil
 
 /*!
  * \brief High-level helper function for clustering templates
- * \param [in] templates_list_file The list of templates to be clustered
+ * \param [in] list_file The list of templates/media to be clustered
+ * \param [in] is_templates True if list_file is a list of templates.  False if list_file is a list of media
  * \param [in] hint Clustering hint
  * \param [in] clusters_output_list File to write cluster information to.
  * \param [in] verbose Print information and warnings during verification.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_harness_cluster(const std::string &templates_list_file, const size_t hint, const std::string &clusters_output_list, bool verbose);
+JANUS_EXPORT janus_error janus_harness_cluster(const std::string &list_file, const bool is_template_list, const size_t hint, const std::string &clusters_output_list, bool verbose);
 
 /*!
  * \brief A statistic.

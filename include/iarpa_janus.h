@@ -395,7 +395,10 @@ typedef struct janus_attributes
 typedef struct janus_track
 {
     std::vector<janus_attributes> track;
-
+    janus_media media; /*!< \brief Pointer to media which track describes
+                                   It's the responsibility of the calling 
+                                   application to not delete media until
+                                   track has been used. */
     double detection_confidence; /*!< \brief A higher value indicates greater
                                              detection confidence. */
     double gender; /*!< \brief Gender of subject of interest, 1 for male, 0 for
@@ -405,18 +408,6 @@ typedef struct janus_track
 
     double frame_rate; /*!< \brief Frames per second, or 0 for images. */
 } janus_track;
-
-/*!
- * \brief An association between a piece of media and metadata.
- *
- * All metadata in an association can be assumed to belong to a
- * single subject.
- */
-typedef struct janus_association
-{
-    janus_media media;
-    janus_track metadata;
-} janus_association;
 
 /*!
  * \brief Call once at the start of the application, before making any other
@@ -494,7 +485,7 @@ typedef enum janus_template_role {
 } janus_template_role;
 
 /*!
- * \brief Build a template from a list of janus_associations
+ * \brief Build a template from a list of janus_tracks
  *
  * All media necessary to build a complete template will be passed in at
  * one time and the constructed template is expected to be suitable for
@@ -512,17 +503,17 @@ typedef enum janus_template_role {
  *       the \ref janus_attributes::frame_number field should accurately represent
  *       the frame the janus_attributes location information originated from.
  *
- * \param[in,out] associations A vector of associations between a piece of media
- *                             and relevant metadata. All of the associations provided
- *                             are guaranteed to be of a single subject. This is not const
- *                             to allow additional tracking if the implementation supports it.
+ * \param[in,out] track A vector of tracks which contain relationships between a piece of 
+ *                      media and relevant metadata. All of the tracks provided
+ *                      are guaranteed to be of a single subject. This is not const
+ *                      to allow additional tracking if the implementation supports it.
  * \param[in] role An enumeration describing the intended function for the created template.
  *                 Implementors are not required to have different types of templates for any/all
  *                 of the roles specified but can if they choose.
  * \param[out] template_ The template to contain the subject's recognition information.
  * \remark This function is \ref reentrant.
  */
-JANUS_EXPORT janus_error janus_create_template(std::vector<janus_association> &associations,
+JANUS_EXPORT janus_error janus_create_template(std::vector<janus_track> &tracks,
                                                const janus_template_role role,
                                                janus_template &template_);
 
@@ -597,15 +588,6 @@ JANUS_EXPORT janus_error janus_verify(const janus_template &reference,
                                       double &similarity);
 
 /*!
- * \brief Unique identifier for a \ref janus_template.
- *
- * Associate a template with a unique identifier during
- * \ref janus_create_gallery.
- * Retrieve the unique identifier from \ref janus_search and \ref janus_cluster.
- */
-typedef size_t janus_template_id;
-
-/*!
  * \brief A collection of templates for search
  */
 typedef struct janus_gallery_type *janus_gallery;
@@ -622,7 +604,7 @@ typedef struct janus_gallery_type *janus_gallery;
  * \remark This function is \ref thread_safe
  */
 JANUS_EXPORT janus_error janus_create_gallery(const std::vector<janus_template> &templates,
-                                              const std::vector<janus_template_id> &ids,
+                                              const std::vector<uint32_t> &ids,
                                               janus_gallery &gallery);
 
 /*!
@@ -663,7 +645,7 @@ JANUS_EXPORT janus_error janus_prepare_gallery(janus_gallery &gallery);
  */
 JANUS_EXPORT janus_error janus_gallery_insert(janus_gallery &gallery,
                                               const janus_template &template_,
-                                              const janus_template_id id);
+                                              const uint32_t id);
 
 /*!
  * \brief Remove a template from a gallery. After removal the gallery does
@@ -674,7 +656,7 @@ JANUS_EXPORT janus_error janus_gallery_insert(janus_gallery &gallery,
  * \remark This function \ref reentrant
  */
 JANUS_EXPORT janus_error janus_gallery_remove(janus_gallery &gallery,
-                                              const janus_template_id id);
+                                              const uint32_t id);
 
 /*!
  * \brief Delete a gallery
@@ -703,7 +685,7 @@ JANUS_EXPORT janus_error janus_delete_gallery(janus_gallery &gallery);
  * \param[in] probe Probe to search for.
  * \param[in] gallery Gallery to search against.
  * \param[in] num_requested_returns The desired number of returned results.
- * \param[out] template_ids Empty vector to contain the \ref janus_template_id
+ * \param[out] template_ids Empty vector to contain the \ref uint32_t
  *                          of the top matching gallery templates.
  * \param[out] similarities Empty vector to contain the similarity scores of
  *                          the top matching templates.
@@ -713,7 +695,7 @@ JANUS_EXPORT janus_error janus_delete_gallery(janus_gallery &gallery);
 JANUS_EXPORT janus_error janus_search(const janus_template &probe,
                                       const janus_gallery &gallery,
                                       const size_t num_requested_returns,
-                                      std::vector<janus_template_id> &template_ids,
+                                      std::vector<uint32_t> &template_ids,
                                       std::vector<double> &similarities);
 
 /*!

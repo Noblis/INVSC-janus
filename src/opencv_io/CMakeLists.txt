@@ -4,7 +4,7 @@ set_target_properties(opencv_io PROPERTIES
                       DEFINE_SYMBOL JANUS_LIBRARY
                       VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH}
                       SOVERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR})
-target_link_libraries(opencv_io opencv_core opencv_highgui opencv_videoio opencv_imgcodecs)
+target_link_libraries(opencv_io opencv_core opencv_highgui opencv_videoio opencv_videostab opencv_imgcodecs)
 install(TARGETS opencv_io RUNTIME DESTINATION bin
                           LIBRARY DESTINATION lib
                           ARCHIVE DESTINATION lib)

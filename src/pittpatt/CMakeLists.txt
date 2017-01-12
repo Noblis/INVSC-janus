@@ -1,3 +1,4 @@
+include_directories(../opencv_io)
 add_library(pittpatt SHARED pittpatt.cpp ../janus_io.cpp)
 set_target_properties(pittpatt PROPERTIES
                       DEFINE_SYMBOL JANUS_LIBRARY

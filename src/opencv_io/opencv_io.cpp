@@ -1,3 +1,5 @@
+#include <iostream>
+#include <iarpa_janus_io.h>
 #include <opencv_io.h>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -6,7 +8,7 @@ using namespace cv;
 
 bool janus_media_type::next(Mat &img)
 {
-    if (!video.isOpened()) { // image
+    if (image) { // image
         img = imread(filename, IMREAD_ANYCOLOR);
         return true;
     }
@@ -16,7 +18,7 @@ bool janus_media_type::next(Mat &img)
     if (!got_frame) { // Something went unexpectedly wrong (maybe a corrupted video?). Print a warning, set img to empty and return true.
         fprintf(stderr, "Fatal - Unexpectedly unable to collect next frame from video.");
         img = Mat();
-        return true;
+        return false;
     }
 
     if (video.get(CV_CAP_PROP_POS_FRAMES) == frames) { // end of the video. Reset it and return true
@@ -24,15 +26,20 @@ bool janus_media_type::next(Mat &img)
         return true;
     }
 
-    return false;
+    return true;
+}
+
+uint32_t janus_media_type::tell()
+{
+    return video.get(CV_CAP_PROP_POS_FRAMES);
 }
 
 bool janus_media_type::seek(uint32_t frame)
 {
-    if (!video.isOpened()) // image
+    if (image)          // can't seek in an image
         return false;
 
-    if (frame > frames) // invalid index
+    if (frame > frames | frame < 0) // invalid index
         return false;
 
     // Set the video to the desired frame
@@ -40,39 +47,71 @@ bool janus_media_type::seek(uint32_t frame)
     return true;
 }
 
-janus_error janus_load_media(const string &filename, janus_media &media)
-{
-    media = new janus_media_type();
-    media->filename = filename;
-    media->frames = 1; // Initialize this to the image default to avoid an extra conditional later
+janus_media_type::janus_media_type()
+    : frames(0),
+      image(false),
+      channels(0),
+      height(0),
+      width(0) {}
 
+janus_media_type::janus_media_type(const string &filename) 
+    : filename(filename),
+      frames(0),
+      image(false),
+      channels(0),
+      height(0),
+      width(0)
+{
     // To get the media dimensions we temporalily load either the image or
     // first frame. This also checks if the filename is valid
     Mat img = imread(filename, IMREAD_ANYCOLOR); // We use ANYCOLOR to load either BGR or Grayscale images
     if (!img.data) { // Couldn't load as an image maybe it's a video
-        media->video = VideoCapture(filename);
-        if (!video.isOpened()) {
-            fprintf(stderr, "Fatal - Janus failed to read: %s\n", filename.c_str());
-            delete media; // Delete the media object before returning an error
-            return JANUS_INVALID_MEDIA;
-        }
+        video = VideoCapture(filename);
+        if (!video.isOpened())
+            return;
 
-        bool got_frame = media->video(img);
-        if (!got_frame) {
-            delete media; // Delete the media object before returning an error
-            return JANUS_INVALID_MEDIA;
-        }
-        media->frames = (uint32_t) media->video.get(CV_CAP_PROP_FRAME_COUNT);
+        bool got_frame = video.read(img);
+        if (got_frame) {
+            // get number of frames
+            frames = (uint32_t) video.get(CV_CAP_PROP_FRAME_COUNT);
 
-        // Reset the video to frame 0
-        media->video.set(CV_CAP_PROP_POS_FRAMES, 0);
+            // Reset the video to frame 0
+            video.set(CV_CAP_PROP_POS_FRAMES, 0);
+            image = false;
+        } else
+            return;
+    } else {
+        image = true;
+        frames = 1;
     }
 
     // Set the dimensions
-    media->channels = (uint32_t) img.channels();
-    media->rows     = (uint32_t) img.rows;
-    media->cols     = (uint32_t) img.cols;
+    channels = (uint32_t) img.channels();
+    height   = (uint32_t) img.rows;
+    width    = (uint32_t) img.cols;
+}
 
+janus_media_type::~janus_media_type()
+{
+    if (video.isOpened())
+        video.release();
+}
+
+bool janus_media_type::valid() const {
+    return (channels > 0) & (height > 0) & (width > 0); 
+}
+
+bool janus_media_type::get_frame(Mat &img, uint32_t frame)
+{
+    if (this->seek(frame))
+        if (this->next(img))
+            return true;
+
+    return false;
+}
+
+janus_error janus_load_media(const string &filename, janus_media &media) {
+    media = new janus_media_type(filename);
     return JANUS_SUCCESS;
 }
 
@@ -81,3 +120,12 @@ janus_error janus_free_media(janus_media &media)
     delete media;
     return JANUS_SUCCESS;
 }
+
+janus_error janus_free_media(vector<janus_media> &media)
+{
+    for (int i = 0; i < media.size(); i++)
+        delete media[i];
+    media.clear();
+    return JANUS_SUCCESS;
+}
+
