@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <map>
 
-#include <opencv_io/opencv_io.h>
+#include <opencv_io.h>
 
 #include <opencv2/opencv.hpp>
 

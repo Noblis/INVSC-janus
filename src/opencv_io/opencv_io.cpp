@@ -1,4 +1,3 @@
-#include <iostream>
 #include <iarpa_janus_io.h>
 #include <opencv_io.h>
 #include <opencv2/highgui/highgui.hpp>
