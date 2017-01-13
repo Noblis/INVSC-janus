@@ -196,10 +196,43 @@ typedef enum janus_error
 } janus_error;
 
 /*!
+ * \brief #janus_error to string.
+ * \param[in] error Error code to stringify.
+ * \note Memory for the return value is static and should not be freed.
+ * \remark This function is \ref thread_safe.
+ */
+JANUS_EXPORT const char *janus_error_to_string(janus_error error);
+
+/*!
+ * \brief #janus_error from string.
+ * \param[in] error String to decode.
+ * \remark This function is \ref thread_safe.
+ * \see janus_enum
+ */
+JANUS_EXPORT janus_error janus_error_from_string(const char *error);
+
+/*!
  * \brief An opaque pointer to a media object that can represent an image
  * or a video.
  */
 typedef struct janus_media_type *janus_media;
+
+/*!
+ * \brief Read an image from disk.
+ * \param[in] file_name Path to the image file.
+ * \param[out] image Address to store the decoded image. This is allocated during
+ *                   the function call.
+ * \remark This function is \ref reentrant.
+ * \see janus_free_image
+ */
+JANUS_EXPORT janus_error janus_load_media(const std::string &filename, janus_media &media);
+
+/*!
+ * \brief Frees the memory previously allocated for a #janus_media.
+ * \param[in] image #janus_media to free.
+ * \remark This function is \ref reentrant.
+ */
+JANUS_EXPORT janus_error janus_delete_media(janus_media &media);
 
 /*!
  * \brief Attributes for a particular object in an image.

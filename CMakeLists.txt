@@ -21,9 +21,11 @@ macro(janus_get_version VAR)
        REGEX "#define[ ]+${VAR}[ ]+[0-9]+")
   string(REGEX MATCH "[0-9]+" ${VAR} ${LINE})
 endmacro(janus_get_version)
+
 janus_get_version(JANUS_VERSION_MAJOR)
 janus_get_version(JANUS_VERSION_MINOR)
 janus_get_version(JANUS_VERSION_PATCH)
+
 configure_file(include/iarpa_janus.h ${CMAKE_CURRENT_BINARY_DIR}/refreshes_version_when_changed)
 set(JANUS_VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH})
 
@@ -34,6 +36,16 @@ endif()
 
 include(CTest)
 
-if(JANUS_IMPLEMENTATION AND JANUS_IO_IMPLEMENTATION)
-  add_subdirectory(src)
+# The harness includes an optional PittPatt5 implementation
+add_subdirectory(implementations)
+
+# If we have an implementation, build the test harness
+if(JANUS_IMPLEMENTATION)
+  add_subdirectory(harness)
+endif()
+
+# Optionally build the documentation
+option(BUILD_JANUS_DOCUMENTATION "Use doxygen to build the Janus documentation" OFF)
+if (${BUILD_JANUS_DOCUMENTATION})
+  add_subdirectory(docs)
 endif()

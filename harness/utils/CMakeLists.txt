@@ -1,0 +1,7 @@
+file(GLOB UTILS *.cpp)
+foreach(UTIL ${UTILS})
+  get_filename_component(UTIL_NAME ${UTIL} NAME_WE)
+  add_executable(${UTIL_NAME} ${UTIL} ${JANUS_HEADERS})
+  target_link_libraries(${UTIL_NAME} janus_harness)
+  install(TARGETS ${UTIL_NAME} RUNTIME DESTINATION bin)
+endforeach()

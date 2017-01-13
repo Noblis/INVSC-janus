@@ -1,0 +1,11 @@
+option(BUILD_JANUS_OPENCV_IO_IMPLEMENTATION "Build the included Janus OpenCV I/O example implementation" OFF)
+if (${BUILD_JANUS_OPENCV_IO_IMPLEMENTATION})
+  set(JANUS_IO_IMPLEMENTATION "opencv_io" CACHE STRING "Using the included OpenCV I/O example implementation" FORCE)
+  add_subdirectory(opencv_io)
+endif()
+
+option(BUILD_JANUS_PP5_IMPLEMENTATION "Build the included Janus PP5 example implementation" OFF)
+if (${BUILD_JANUS_PP5_IMPLEMENTATION})
+  set(JANUS_IMPLEMENTATION "pittpatt5" CACHE STRING "Using the included PP5 example implementation" FORCE)
+  add_subdirectory(pittpatt5)
+endif()
