@@ -300,11 +300,25 @@ janus_error janus_create_template(std::vector<janus_track> &tracks, const janus_
     return JANUS_SUCCESS;
 }
 
-janus_error janus_create_template(const janus_media &, const janus_template_role, vector<janus_template> &, vector<janus_track> &)
+janus_error janus_create_template(const janus_media &media, const janus_template_role role, vector<janus_template> &templates, vector<janus_track> &tracks)
 {
-    return JANUS_NOT_IMPLEMENTED;
-}
+    vector<janus_track> tmp_tracks;
+    janus_error error = janus_detect(media, 20, tmp_tracks);
 
+    if (error == JANUS_SUCCESS) {
+        for (janus_track &track : tmp_tracks) {
+            janus_template tmpl;
+            track.media = media;
+            vector<janus_track> tmp_track = {track};
+            error = janus_create_template(tmp_track, role, tmpl);
+            if (error == JANUS_SUCCESS) {
+                templates.push_back(tmpl);
+                tracks.push_back(track);
+            }
+        }
+    } else return JANUS_FAILURE_TO_DETECT;
+    return JANUS_SUCCESS;
+}
 
 janus_error janus_serialize_template(const janus_template &template_, std::ostream &stream) 
 {
@@ -616,7 +630,50 @@ janus_error janus_cluster(const vector<janus_media> &input,
                           const size_t hint,
                           vector<janus_cluster_item> &clusters)
 {
-    return JANUS_NOT_IMPLEMENTED;
+    vector<janus_template> templates;
+    vector<janus_track> tracks;
+    vector<uint32_t> template_ids;
+    janus_error error;
+
+    map<uint32_t, uint32_t> media_template_id_lut;
+
+    uint32_t cur_id = 0;
+    for (int i = 0; i < input.size(); i++) {
+        vector<janus_template> templates_tmp;
+        vector<janus_track> tracks_tmp;
+        janus_create_template(input[i], janus_template_role::CLUSTERING, templates_tmp, tracks_tmp);
+
+        // save templates and tracks
+        for (int j = 0; j < templates_tmp.size(); j++) {
+            templates.push_back(templates_tmp[j]);
+            tracks.push_back(tracks_tmp[j]);
+
+            // note current template id
+            // and create a mapping of template ids to media ids
+            template_ids.push_back(cur_id);
+            media_template_id_lut[cur_id] = i;
+            cur_id++;
+        }
+    }
+
+    // perform clustering
+    error = janus_cluster(templates,template_ids, hint, clusters);
+
+    // if clustering was successful, assign the appropriate track and set source id to media id
+    if (error == JANUS_SUCCESS) {
+        for (janus_cluster_item &item : clusters) {
+            item.track = tracks[item.source_id];
+            item.source_id = media_template_id_lut[item.source_id];
+        }
+    }
+
+    // cleanup
+    for (janus_template &tmpl : templates) {
+        janus_delete_template(tmpl);
+    }
+    templates.clear();
+
+    return error;
 }
 
 janus_error janus_cluster(const vector<janus_template> &templates,
