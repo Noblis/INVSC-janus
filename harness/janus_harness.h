@@ -150,12 +150,13 @@ JANUS_EXPORT janus_error janus_harness_search(const std::string &probes_list_fil
  * \brief High-level helper function for clustering templates
  * \param [in] list_file The list of templates/media to be clustered
  * \param [in] is_templates True if list_file is a list of templates.  False if list_file is a list of media
+ * \param [in] data_path data path for media contained in (media) list_file
  * \param [in] hint Clustering hint
  * \param [in] clusters_output_list File to write cluster information to.
  * \param [in] verbose Print information and warnings during verification.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_harness_cluster(const std::string &list_file, const bool is_template_list, const size_t hint, const std::string &clusters_output_list, bool verbose);
+JANUS_EXPORT janus_error janus_harness_cluster(const std::string &list_file, const bool is_template_list, const std::string &data_path, const size_t hint, const std::string &clusters_output_list, bool verbose);
 
 /*!
  * \brief A statistic.

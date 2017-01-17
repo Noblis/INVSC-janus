@@ -404,7 +404,7 @@ static janus_error janus_load_templates_from_file(const string &templates_list_f
     return janus_load_templates_from_file(templates_list_file, templates, template_ids, subject_ids, tmp_filenames);
 }
 
-static janus_error janus_load_media_from_file(const string &media_list_file, vector<janus_media> &media, vector<uint32_t> &template_ids, vector<string> &filenames)
+static janus_error janus_load_media_from_file(const string &data_path, const string &media_list_file, vector<janus_media> &media, vector<uint32_t> &template_ids, vector<string> &filenames)
 {
     uint32_t id = 0;
 
@@ -413,7 +413,7 @@ static janus_error janus_load_media_from_file(const string &media_list_file, vec
 
     while (getline(media_list_stream, media_file)) {
         janus_media tmp;
-        janus_load_media(media_file, tmp);
+        janus_load_media(data_path + media_file, tmp);
 
         media.push_back(tmp);
         template_ids.push_back(id++);
@@ -623,7 +623,7 @@ janus_error janus_harness_search(const string &probes_list_file, const string &g
 #endif // JANUS_CUSTOM_SEARCH
 
 #ifndef JANUS_CUSTOM_CLUSTER
-janus_error janus_harness_cluster(const string &list_file, const bool is_template_list, const size_t hint, const string &clusters_output_list, bool verbose)
+janus_error janus_harness_cluster(const string &list_file, const bool is_template_list, const string &data_path, const size_t hint, const string &clusters_output_list, bool verbose)
 {
     // common variables
     clock_t start;
@@ -684,7 +684,7 @@ janus_error janus_harness_cluster(const string &list_file, const bool is_templat
         cluster_stream << "TEMPLATE_ID,FILENAME,CLUSTER_INDEX,CONFIDENCE,FACE_X,FACE_Y,FACE_WIDTH,FACE_HEIGHT,FRAME_NUMBER" << endl;
 
         // load media
-        JANUS_CHECK(janus_load_media_from_file(list_file, cluster_media, cluster_template_ids, filenames));
+        JANUS_CHECK(janus_load_media_from_file(data_path, list_file, cluster_media, cluster_template_ids, filenames));
 
         // create a template id <-> filename map
         transform(cluster_template_ids.begin(), cluster_template_ids.end(),

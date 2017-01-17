@@ -14,7 +14,8 @@ const char *get_ext(const char *filename) {
 
 void printUsage()
 {
-    printf("Usage: janus_cluster sdk_path temp_path templates_list_file list_type(T|M) hint clusters_output_list -algorithm <algorithm>] [-verbose]\n");
+    printf("Usage: janus_cluster sdk_path temp_path templates_list_file list_type(T) hint clusters_output_list -algorithm <algorithm>] [-verbose]\n");
+    printf("Usage: janus_cluster sdk_path temp_path templates_list_file list_type(M) data_path hint clusters_output_list -algorithm <algorithm>] [-verbose]\n");
 }
 
 int main(int argc, char *argv[])
@@ -26,28 +27,29 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    const char *ext1 = get_ext(argv[3]);
-    if (strcmp(ext1, "csv") != 0) {
-        printf("list_file must be \".csv\" format.\n");
-        return 1;
-    }
-
-    ext1 = get_ext(argv[6]);
-    if (strcmp(ext1, "csv") != 0) {
-        printf("clusters_output_list must be \".csv\" format.\n");
-        return 1;
-    }
-
+    char *sdk_path = argv[1];
+    char *temp_path = argv[2];
+    char *data_path = "";
+    char *templates_list_file = argv[3];
+    char *output_list = ""; argv[7];
     char *algorithm = "";
+
     bool verbose = false;
     bool is_template_list;
+    size_t hint = 0;
 
     if (strlen(argv[4]) == 1) {
         switch (argv[4][0]) {
             case 'T':
-            case 't': is_template_list = true;  break;
+            case 't': is_template_list = true;
+                      hint = static_cast<size_t>(atoi(argv[5]));
+                      output_list = argv[6]; break;
             case 'M':
-            case 'm': is_template_list = false; break;
+            case 'm': is_template_list = false;
+                      data_path = argv[5];
+		      hint = static_cast<size_t>(atoi(argv[6]));
+                      output_list = argv[7];
+                      requiredArgs++; break;
             default:
                 printf("Invalid list type.  Must be T for template list or M for media list.\n");
                 return 1;
@@ -68,8 +70,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
-    JANUS_ASSERT(janus_harness_cluster(argv[3], is_template_list, static_cast<size_t>(atoi(argv[5])), argv[6], verbose))
+    JANUS_ASSERT(janus_initialize(sdk_path, temp_path, algorithm, 0))
+    JANUS_ASSERT(janus_harness_cluster(templates_list_file, is_template_list, data_path, hint, output_list, verbose))
     JANUS_ASSERT(janus_finalize())
 
     return EXIT_SUCCESS;
