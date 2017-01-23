@@ -94,7 +94,7 @@ bool mmse_frame(janus_media_type &media, const vector<string> &args, const strin
         double mse;
 
         if (!media.get_frame(tmp, i))
-            return false;
+            break;
         absdiff(compare, tmp, tmp2); // |x1 - x2|
         pow(tmp2, 2.0, tmp2);        // |x1 - x2| .^ 2
         mse = mean(tmp2)[0];         // mean square error

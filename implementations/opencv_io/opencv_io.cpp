@@ -5,6 +5,7 @@
 using namespace std;
 using namespace cv;
 
+
 bool janus_media_type::next(Mat &img)
 {
     if (image) { // image
@@ -13,6 +14,12 @@ bool janus_media_type::next(Mat &img)
     }
 
     // video - a little bit more complicated
+    // workaround for 1 frame video bug
+    if (frames == 1 && video.isOpened()) {
+        video.release();
+        video = VideoCapture(filename);
+    }
+
     bool got_frame = video.read(img);
     if (!got_frame) { // Something went unexpectedly wrong (maybe a corrupted video?). Print a warning, set img to empty and return true.
         fprintf(stderr, "Fatal - Unexpectedly unable to collect next frame from video.");
