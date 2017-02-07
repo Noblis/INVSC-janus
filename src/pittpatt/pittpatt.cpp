@@ -196,7 +196,7 @@ janus_media janus_crop_media(const janus_association &association)
     return dst;
 }
 
-janus_error janus_create_template(const std::vector<janus_association> &associations, const janus_template_role, janus_template &template_)
+janus_error janus_create_template(std::vector<janus_association> &associations, const janus_template_role, janus_template &template_)
 {
     template_ = new janus_template_type();
 
