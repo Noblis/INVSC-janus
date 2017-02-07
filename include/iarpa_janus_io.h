@@ -127,6 +127,31 @@ TEMPLATE_ID        , SUBJECT_ID, FILE_NAME, MEDIA_ID, FRAME, <janus_attribute>, 
 typedef const char *janus_metadata;
 
 /*!
+ * \brief Helper function that provides timing information for janus_initialize.
+ *
+ * \param[in] sdk_path Path to the \em read-only directory containing the
+ *                     janus-compliant SDK as provided by the implementer.
+ * \param[in] temp_path Path to an existing empty \em read-write directory for
+ *                      use as temporary file storage by the implementation.
+ *                      This path is guaranteed until \ref janus_finalize.
+ * \param[in] algorithm An empty string indicating the default algorithm, or an
+ *                      implementation-defined string indicating an alternative
+ *                      configuration.
+ * \param[in] gpu_dev The GPU device number to be used by all subsequent
+ * 			          implementation function calls
+ * \remark This function is \ref thread_unsafe and should only be called once.
+ * \see janus_finalize_helper
+ */
+JANUS_EXPORT janus_error janus_initialize_helper(const std::string &sdk_path, const std::string &temp_path, const std::string &algorithm, const int gpu_dev);
+
+/*!
+ * \brief Helper function that provides timing information for janus_finalize.
+ * \remark This function is \ref thread_unsafe and should only be called once.
+ * \see janus_initialize_helper
+ */
+JANUS_EXPORT janus_error janus_finalize_helper();
+
+/*!
  * \brief High-level helper function for running face detection on a list of images
  * \param [in] data_path Prefix path to files in metadata.
  * \param [in] metadata #janus_metadata to detect faces in
@@ -190,68 +215,11 @@ JANUS_EXPORT janus_error janus_search_helper(const std::string &probes_list_file
 JANUS_EXPORT janus_error janus_cluster_helper(const std::string &templates_list_file, const size_t hint, const std::string &clusters_output_list, bool verbose);
 
 /*!
- * \brief A statistic.
- * \see janus_metrics
- */
-struct janus_metric
-{
-    size_t count;  /*!< \brief Number of samples. */
-    double mean;   /*!< \brief Sample average. */
-    double stddev; /*!< \brief Sample standard deviation. */
-};
-
-/*!
- * \brief All statistics.
- * \see janus_get_metrics
- */
-struct janus_metrics
-{
-    struct janus_metric janus_load_media_speed; /*!< \brief ms */
-    struct janus_metric janus_free_media_speed; /*!< \brief ms */
-    struct janus_metric janus_detection_speed; /*!< \brief ms */
-    struct janus_metric janus_create_template_speed; /*!< \brief ms */
-    struct janus_metric janus_serialize_template_speed; /*!< \brief ms */
-    struct janus_metric janus_deserialize_template_speed; /*!< \brief ms */
-    struct janus_metric janus_delete_serialized_template_speed; /*!< \brief ms */
-    struct janus_metric janus_delete_template_speed; /*!< \brief ms */
-    struct janus_metric janus_verify_speed; /*!< \brief ms */
-    struct janus_metric janus_create_gallery_speed; /*!< \brief ms */
-    struct janus_metric janus_prepare_gallery_speed; /*!< \brief ms */
-    struct janus_metric janus_gallery_insert_speed; /*!< \brief ms */
-    struct janus_metric janus_gallery_remove_speed; /*!< \brief ms */
-    struct janus_metric janus_serialize_gallery_speed; /*!< \brief ms */
-    struct janus_metric janus_deserialize_gallery_speed; /*!< \brief ms */
-    struct janus_metric janus_delete_serialized_gallery_speed; /*!< \brief ms */
-    struct janus_metric janus_delete_gallery_speed; /*!< \brief ms */
-    struct janus_metric janus_search_speed; /*!< \brief ms */
-    struct janus_metric janus_cluster_speed; /*!< \brief ms */
-
-    struct janus_metric janus_gallery_size; /*!< \brief KB */
-    struct janus_metric janus_template_size; /*!< \brief KB */
-    int                 janus_missing_attributes_count; /*!< \brief Count of
-                                                             \ref JANUS_MISSING_ATTRIBUTES */
-    int                 janus_failure_to_detect_count; /*!< \brief Count of
-                                                            \ref JANUS_FAILURE_TO_DETECT */
-    int                 janus_failure_to_enroll_count; /*!< \brief Count of
-                                                            \ref JANUS_FAILURE_TO_ENROLL */
-    int                 janus_other_errors_count; /*!< \brief Count of \ref janus_error excluding
-                                                       \ref JANUS_MISSING_ATTRIBUTES,
-                                                       \ref JANUS_FAILURE_TO_ENROLL, and
-                                                       \ref JANUS_SUCCESS */
-};
-
-/*!
- * \brief Retrieve and reset performance metrics.
- * \remark This function is \ref thread_unsafe.
- */
-JANUS_EXPORT struct janus_metrics janus_get_metrics();
-
-/*!
- * \brief Print metrics to stdout.
+ * \brief Print metrics to stderr
  * \note Will only print metrics with count > 0 occurrences.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT void janus_print_metrics(struct janus_metrics metrics);
+JANUS_EXPORT void janus_print_metrics();
 
 /*! @}*/
 

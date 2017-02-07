@@ -55,9 +55,12 @@ int main(int argc, char *argv[])
         }
     }
 
-    JANUS_ASSERT(janus_initialize(argv[1], argv[2], algorithm, 0))
+    JANUS_ASSERT(janus_initialize_helper(argv[1], argv[2], algorithm, 0))
     JANUS_ASSERT(janus_cluster_helper(argv[3], static_cast<size_t>(atoi(argv[4])), argv[5], verbose))
-    JANUS_ASSERT(janus_finalize())
+    JANUS_ASSERT(janus_finalize_helper())
+
+    if (verbose)
+        janus_print_metrics();
 
     return EXIT_SUCCESS;
 }

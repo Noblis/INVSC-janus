@@ -11,6 +11,9 @@
 #include <sstream>
 #include <vector>
 #include <set>
+#include <stack>
+#include <chrono>
+#include <iomanip>
 #include <assert.h>
 
 #include <iarpa_janus_io.h>
@@ -19,6 +22,139 @@ using namespace std;
 
 #define ENUM_CASE(X) case JANUS_##X: return #X;
 #define ENUM_COMPARE(X,Y) if (!strcmp(#X, Y)) return JANUS_##X;
+
+// For computing timing metrics
+// Adapted from: http://stackoverflow.com/questions/13485266/how-to-have-matlab-tic-toc-in-c
+using namespace std::chrono;
+static stack<steady_clock::time_point> tictoc_stack;
+#define JANUS_HARNESS_TIC    tictoc_stack.push(steady_clock::now());
+#define JANUS_HARNESS_TOC(x) metrics.x.samples.push_back(static_cast<double>(duration_cast<nanoseconds>(steady_clock::now() - tictoc_stack.top()).count()) / 1.0e6); tictoc_stack.pop()
+
+/*!
+ * \brief A statistic.
+ * \see janus_metrics
+ */
+struct janus_metric
+{
+    vector<double> samples;  /*!< \brief Samples. */
+
+    /*!
+     * \brief Sample Average
+     */
+    inline double mean() {
+        double accumulator = 0.0;
+        if (samples.size() == 0) return numeric_limits<double>::quiet_NaN();
+
+        for (auto &s : samples) accumulator += s;
+        return accumulator / ((double) samples.size());
+    }
+
+    /*!
+     * \brief Sample Standard Deviation
+     */
+    inline double stddev() {
+        double stddev = 0.0;
+        double mean = this->mean();
+        if (samples.size() == 0) return numeric_limits<double>::quiet_NaN();
+
+        for (auto &s : samples)
+            stddev += pow((double) s - mean, 2.0);
+        stddev = sqrt(stddev / ((double) samples.size()));
+        return stddev;
+    }
+};
+
+/*!
+ * \brief All statistics.
+ */
+struct janus_metrics
+{
+    struct janus_metric janus_initialize; /*!< \brief ms */
+    struct janus_metric janus_load_media; /*!< \brief ms */
+    struct janus_metric janus_free_media; /*!< \brief ms */
+    struct janus_metric janus_detect; /*!< \brief ms */
+    struct janus_metric janus_create_template; /*!< \brief ms */
+    struct janus_metric janus_serialize_template; /*!< \brief ms */
+    struct janus_metric janus_deserialize_template; /*!< \brief ms */
+    struct janus_metric janus_delete_serialized_template; /*!< \brief ms */
+    struct janus_metric janus_delete_template; /*!< \brief ms */
+    struct janus_metric janus_verify; /*!< \brief ms */
+    struct janus_metric janus_create_gallery; /*!< \brief ms */
+    struct janus_metric janus_prepare_gallery; /*!< \brief ms */
+    struct janus_metric janus_gallery_insert; /*!< \brief ms */
+    struct janus_metric janus_gallery_remove; /*!< \brief ms */
+    struct janus_metric janus_serialize_gallery; /*!< \brief ms */
+    struct janus_metric janus_deserialize_gallery; /*!< \brief ms */
+    struct janus_metric janus_delete_serialized_gallery; /*!< \brief ms */
+    struct janus_metric janus_delete_gallery; /*!< \brief ms */
+    struct janus_metric janus_search; /*!< \brief ms */
+    struct janus_metric janus_cluster; /*!< \brief ms */
+    struct janus_metric janus_finalize; /*!< \brief ms */
+
+    struct janus_metric janus_gallery; /*!< \brief KB */
+    struct janus_metric janus_template; /*!< \brief KB */
+    int                 janus_missing_attributes_count; /*!< \brief Count of
+                                                             \ref JANUS_MISSING_ATTRIBUTES */
+    int                 janus_failure_to_detect_count; /*!< \brief Count of
+                                                            \ref JANUS_FAILURE_TO_DETECT */
+    int                 janus_failure_to_enroll_count; /*!< \brief Count of
+                                                            \ref JANUS_FAILURE_TO_ENROLL */
+    int                 janus_other_errors_count; /*!< \brief Count of \ref janus_error excluding
+                                                       \ref JANUS_MISSING_ATTRIBUTES,
+                                                       \ref JANUS_FAILURE_TO_ENROLL, and
+                                                       \ref JANUS_SUCCESS */
+
+    #define PRINT_METRIC_ROW(x, unit) if (x.samples.size() > 0 ) { \
+                                          cerr <<                              setw(35) << left << setprecision(4) \
+                                               << string(#x)                << setw(12) << left << setprecision(4) \
+                                               << x.mean()                  << setw(12) << left << setprecision(4) \
+                                               << x.stddev()                << setw(12) << left                    \
+                                               << unit                      << setw(12) << left                    \
+                                               << (double) x.samples.size() << endl;                               \
+                                      }
+    /*!
+     * \brief Print metrics table
+     */
+    inline void print_metrics() {
+        cerr <<                 setw(35) << left
+             << "API Symbol" << setw(12) << left
+             << "Mean"       << setw(12) << left
+             << "StDev"      << setw(12) << left
+             << "Units"      << setw(12) << left
+             << "Count"      << endl;
+
+        PRINT_METRIC_ROW(janus_initialize,                 "ms");
+        PRINT_METRIC_ROW(janus_load_media,                 "ms");
+        PRINT_METRIC_ROW(janus_free_media,                 "ms");
+        PRINT_METRIC_ROW(janus_detect,                     "ms");
+        PRINT_METRIC_ROW(janus_create_template,            "ms");
+        PRINT_METRIC_ROW(janus_serialize_template,         "ms");
+        PRINT_METRIC_ROW(janus_deserialize_template,       "ms");
+        PRINT_METRIC_ROW(janus_delete_serialized_template, "ms");
+        PRINT_METRIC_ROW(janus_delete_template,            "ms");
+        PRINT_METRIC_ROW(janus_verify,                     "ms");
+        PRINT_METRIC_ROW(janus_create_gallery,             "ms");
+        PRINT_METRIC_ROW(janus_prepare_gallery,            "ms");
+        PRINT_METRIC_ROW(janus_gallery_insert,             "ms");
+        PRINT_METRIC_ROW(janus_gallery_remove,             "ms");
+        PRINT_METRIC_ROW(janus_serialize_gallery,          "ms");
+        PRINT_METRIC_ROW(janus_deserialize_gallery,        "ms");
+        PRINT_METRIC_ROW(janus_delete_serialized_gallery,  "ms");
+        PRINT_METRIC_ROW(janus_delete_gallery,             "ms");
+        PRINT_METRIC_ROW(janus_search,                     "ms");
+        PRINT_METRIC_ROW(janus_cluster,                    "ms");
+        PRINT_METRIC_ROW(janus_finalize,                   "ms");
+        PRINT_METRIC_ROW(janus_gallery,                    "KB");
+        PRINT_METRIC_ROW(janus_template,                   "KB");
+
+        cerr << endl << endl
+             << "janus_error                     \tCount"                              << endl
+             << "JANUS_MISSING_ATTRIBUTES        \t" << janus_missing_attributes_count << endl
+             << "JANUS_FAILURE_TO_ENROLL         \t" << janus_failure_to_enroll_count  << endl
+             << "All other errors                \t" << janus_other_errors_count       << endl;
+    }
+    #undef PRINT_METRIC_ROW
+};
 
 const char *janus_error_to_string(janus_error error)
 {
@@ -70,50 +206,38 @@ janus_error janus_error_from_string(const char *error)
     return JANUS_UNKNOWN_ERROR;
 }
 
-// For computing metrics
-static vector<double> janus_load_media_samples;
-static vector<double> janus_free_media_samples;
-static vector<double> janus_detection_samples;
-static vector<double> janus_create_template_samples;
-static vector<double> janus_template_size_samples;
-static vector<double> janus_serialize_template_samples;
-static vector<double> janus_deserialize_template_samples;
-static vector<double> janus_delete_serialized_template_samples;
-static vector<double> janus_delete_template_samples;
-static vector<double> janus_verify_samples;
-static vector<double> janus_create_gallery_samples;
-static vector<double> janus_prepare_gallery_samples;
-static vector<double> janus_gallery_size_samples;
-static vector<double> janus_gallery_insert_samples;
-static vector<double> janus_gallery_remove_samples;
-static vector<double> janus_serialize_gallery_samples;
-static vector<double> janus_deserialize_gallery_samples;
-static vector<double> janus_delete_serialized_gallery_samples;
-static vector<double> janus_delete_gallery_samples;
-static vector<double> janus_search_samples;
-static vector<double> janus_cluster_samples;
-static int janus_missing_attributes_count = 0;
-static int janus_failure_to_detect_count = 0;
-static int janus_failure_to_enroll_count = 0;
-static int janus_other_errors_count = 0;
+static janus_metrics metrics;
 
-static void _janus_add_sample(vector<double> &samples, double sample);
+#ifndef JANUS_CUSTOM_INITIALIZE
+janus_error janus_initialize_helper(const std::string &sdk_path,
+                                    const std::string &temp_path,
+                                    const std::string &algorithm,
+                                    const int gpu_dev) {
+    janus_error error;
 
-#ifndef JANUS_CUSTOM_ADD_SAMPLE
+    JANUS_HARNESS_TIC;
+    error = janus_initialize(sdk_path, temp_path, algorithm, gpu_dev);
+    JANUS_HARNESS_TOC(janus_initialize);   
 
-static void _janus_add_sample(vector<double> &samples, double sample)
-{
-    samples.push_back(sample);
+    return error;
 }
+#endif // JANUS_CUSTOM_INITIALIZE
 
-#endif // JANUS_CUSTOM_ADD_SAMPLE
+#ifndef JANUS_CUSTOM_FINALIZE
+janus_error janus_finalize_helper() {
+    janus_error error;
+    JANUS_HARNESS_TIC;
+    error = janus_finalize();
+    JANUS_HARNESS_TOC(janus_finalize);   
+
+    return error;
+}
+#endif // JANUS_CUSTOM_FINALIZE
 
 #ifndef JANUS_CUSTOM_DETECT
 
 janus_error janus_detect_helper(const string &data_path, janus_metadata metadata, const size_t min_face_size, const string &detection_list_file, bool verbose)
 {
-    clock_t start;
-
     ifstream file(metadata);
     ofstream output(detection_list_file);
 
@@ -128,21 +252,21 @@ janus_error janus_detect_helper(const string &data_path, janus_metadata metadata
 
         janus_media media;
 
-        start = clock();
+        JANUS_HARNESS_TIC;
         JANUS_ASSERT(janus_load_media(data_path + filename, media))
-        _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_load_media);
 
         vector<janus_track> tracks;
 
-        start = clock();
+        JANUS_HARNESS_TIC;
         janus_error error = janus_detect(media, min_face_size, tracks);
-        _janus_add_sample(janus_detection_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_detect);
 
         if (error == JANUS_FAILURE_TO_DETECT) {
-            janus_failure_to_detect_count++;
+            metrics.janus_failure_to_detect_count++;
             continue;
         } else if (error != JANUS_SUCCESS) {
-            janus_other_errors_count++;
+            metrics.janus_other_errors_count++;
             continue;
         }
 
@@ -163,9 +287,6 @@ janus_error janus_detect_helper(const string &data_path, janus_metadata metadata
 
     file.close();
     output.close();
-
-    if (verbose)
-        janus_print_metrics(janus_get_metrics());
 
     return JANUS_SUCCESS;
 }
@@ -332,8 +453,6 @@ struct TemplateIterator
 
     static janus_error create(const string &data_path, const TemplateMetadata templateMetadata, const janus_template_role role, janus_template *template_)
     {
-        clock_t start;
-
         // A set to hold all of the media and metadata required to make a full template
         vector<janus_association> associations;
 
@@ -344,15 +463,15 @@ struct TemplateIterator
             janus_media media;
             for (size_t i = 0; i < metadata.first.size(); i++) {
                 if (i == 0) {
-                    start = clock();
+                    JANUS_HARNESS_TIC;
                     JANUS_ASSERT(janus_load_media(data_path + metadata.first[i], media))
-                    _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+                    JANUS_HARNESS_TOC(janus_load_media);
                 } else {
                     janus_media temp;
 
-                    start = clock();
+                    JANUS_HARNESS_TIC;
                     JANUS_ASSERT(janus_load_media(data_path + metadata.first[i], temp))
-                    _janus_add_sample(janus_load_media_samples, 1000.0 * (clock() - start) / CLOCKS_PER_SEC);
+                    JANUS_HARNESS_TOC(janus_load_media);
 
                     media.data.push_back(temp.data.front());
                 }
@@ -365,20 +484,20 @@ struct TemplateIterator
         }
 
         // Create the template
-        start = clock();
+        JANUS_HARNESS_TIC;
         janus_error error = janus_create_template(associations, role, *template_);
-        _janus_add_sample(janus_create_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_create_template);
 
         // Check the result for errors
-        if (error == JANUS_MISSING_ATTRIBUTES)     janus_missing_attributes_count++;
-        else if (error == JANUS_FAILURE_TO_ENROLL) janus_failure_to_enroll_count++;
-        else if (error != JANUS_SUCCESS)           janus_other_errors_count++;
+        if (error == JANUS_MISSING_ATTRIBUTES)     metrics.janus_missing_attributes_count++;
+        else if (error == JANUS_FAILURE_TO_ENROLL) metrics.janus_failure_to_enroll_count++;
+        else if (error != JANUS_SUCCESS)           metrics.janus_other_errors_count++;
 
         // Free the media
         for (size_t i = 0; i < associations.size(); i++) {
-            start = clock();
+            JANUS_HARNESS_TIC;
             JANUS_ASSERT(janus_free_media(associations[i].media));
-            _janus_add_sample(janus_free_media_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+            JANUS_HARNESS_TOC(janus_free_media);
         }
 
         return JANUS_SUCCESS;
@@ -389,8 +508,6 @@ struct TemplateIterator
 
 janus_error janus_create_templates_helper(const string &data_path, janus_metadata metadata, const string &templates_path, const string &templates_list_file, const janus_template_role role, bool verbose)
 {
-    clock_t start;
-
     // Create an iterator to loop through the metadata
     TemplateIterator ti(metadata, true);
 
@@ -416,9 +533,9 @@ janus_error janus_create_templates_helper(const string &data_path, janus_metadat
         // Serialize the template to a file
         ofstream template_stream(templateOutputFile.c_str(), ios::out | ios::binary);
         
-        start = clock();
+        JANUS_HARNESS_TIC;
         JANUS_CHECK(janus_serialize_template(template_, template_stream));
-        _janus_add_sample(janus_serialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_serialize_template);
         
         template_stream.close();
 
@@ -426,17 +543,14 @@ janus_error janus_create_templates_helper(const string &data_path, janus_metadat
         templates_list_stream << templateIDString << "," << subjectIDString << "," << templateOutputFile << "\n";
 
         // Delete the template
-        start = clock();
+        JANUS_HARNESS_TIC;
         JANUS_CHECK(janus_delete_template(template_));
-        _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_delete_template);
 
         // Move to the next template
         templateMetadata = ti.next();
     }
     templates_list_stream.close();
-
-    if (verbose)
-        janus_print_metrics(janus_get_metrics());
 
     return JANUS_SUCCESS;
 }
@@ -445,8 +559,6 @@ janus_error janus_create_templates_helper(const string &data_path, janus_metadat
 
 static janus_error janus_load_templates_from_file(const string &templates_list_file, vector<janus_template> &templates, vector<janus_template_id> &template_ids, vector<int> &subject_ids)
 {
-    clock_t start;
-
     ifstream templates_list_stream(templates_list_file.c_str());
     string line;
 
@@ -463,9 +575,9 @@ static janus_error janus_load_templates_from_file(const string &templates_list_f
         // Load the serialized template from disk
         ifstream template_stream(template_file.c_str(), ios::in | ios::binary);
         janus_template template_ = NULL;
-        start = clock();
+        JANUS_HARNESS_TIC;
         JANUS_CHECK(janus_deserialize_template(template_, template_stream));
-        _janus_add_sample(janus_deserialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_deserialize_template);
         template_stream.close();
 
         templates.push_back(template_);
@@ -479,8 +591,6 @@ static janus_error janus_load_templates_from_file(const string &templates_list_f
 
 janus_error janus_create_gallery_helper(const string &templates_list_file, const string &gallery_file, bool verbose)
 {
-    clock_t start;
-
     vector<janus_template> templates;
     vector<janus_template_id> template_ids;
     vector<int> subject_ids;
@@ -488,32 +598,32 @@ janus_error janus_create_gallery_helper(const string &templates_list_file, const
 
     // Create the gallery
     janus_gallery gallery = NULL;
-    start = clock();
-    janus_create_gallery(templates, template_ids, gallery);
-    _janus_add_sample(janus_create_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    JANUS_HARNESS_TIC;
+    JANUS_CHECK(janus_create_gallery(templates, template_ids, gallery));
+    JANUS_HARNESS_TOC(janus_create_gallery);
 
     // Prepare the gallery for searching
-    start = clock();
+    JANUS_HARNESS_TIC;
     janus_prepare_gallery(gallery);
-    _janus_add_sample(janus_prepare_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    JANUS_HARNESS_TOC(janus_prepare_gallery);
 
     // Serialize the gallery to a file.
     ofstream gallery_stream(gallery_file.c_str(), ios::out | ios::binary);
-    start = clock();
+    JANUS_HARNESS_TIC;
     JANUS_CHECK(janus_serialize_gallery(gallery, gallery_stream));
-    _janus_add_sample(janus_serialize_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    JANUS_HARNESS_TOC(janus_serialize_gallery);
     gallery_stream.close();
 
     // Delete the actual gallery
-    start = clock();
+    JANUS_HARNESS_TIC;
     JANUS_CHECK(janus_delete_gallery(gallery));
-    _janus_add_sample(janus_delete_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    JANUS_HARNESS_TOC(janus_delete_gallery);
 
-    if (verbose)
-        janus_print_metrics(janus_get_metrics());
-
-    for (size_t i = 0; i < templates.size() ; i++)
+    for (size_t i = 0; i < templates.size() ; i++) {
+        JANUS_HARNESS_TIC;
         janus_delete_template(templates[i]);
+        JANUS_HARNESS_TOC(janus_delete_template);
+    }
 
     return JANUS_SUCCESS;
 }
@@ -524,8 +634,6 @@ janus_error janus_create_gallery_helper(const string &templates_list_file, const
 
 janus_error janus_verify_helper(const string &templates_list_file_a, const string &templates_list_file_b, const string &scores_file, bool verbose)
 {
-    clock_t start;
-
     // Load the template sets
     vector<janus_template> templates_a, templates_b;
     vector<janus_template_id> template_ids_a, template_ids_b;
@@ -540,23 +648,26 @@ janus_error janus_verify_helper(const string &templates_list_file_a, const strin
     ofstream scores_stream(scores_file.c_str(), ios::out | ios::ate);
     for (size_t i = 0; i < templates_a.size(); i++) {
         double similarity;
-        start = clock();
+        JANUS_HARNESS_TIC;
         janus_verify(templates_a[i], templates_b[i], similarity);
-        _janus_add_sample(janus_verify_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_verify);
 
         scores_stream << template_ids_a[i] << "," << template_ids_b[i] << "," << similarity << ","
                       << (subject_ids_a[i] == subject_ids_b[i] ? "true" : "false") << "\n";
     }
     scores_stream.close();
 
-    for (size_t i = 0; i < templates_a.size(); i++)
+    for (size_t i = 0; i < templates_a.size(); i++){
+        JANUS_HARNESS_TIC;
         janus_delete_template(templates_a[i]);
+        JANUS_HARNESS_TOC(janus_delete_template);
+    }
 
-    for (size_t i = 0; i < templates_b.size(); i++)
+    for (size_t i = 0; i < templates_b.size(); i++) {
+        JANUS_HARNESS_TIC;
         janus_delete_template(templates_b[i]);
-
-    if (verbose)
-        janus_print_metrics(janus_get_metrics());
+        JANUS_HARNESS_TOC(janus_delete_template);
+    }
 
     return JANUS_SUCCESS;
 }
@@ -583,8 +694,6 @@ janus_error janus_ensure_size(const vector<janus_template_id> &all_ids, vector<j
 
 janus_error janus_search_helper(const string &probes_list_file, const string &gallery_list_file, const string &gallery_file, int num_requested_returns, const string &candidate_list_file, bool verbose)
 {
-    clock_t start;
-
     // Vectors to hold loaded data
     vector<janus_template> probe_templates, gallery_templates;
     vector<janus_template_id> probe_template_ids, gallery_template_ids;
@@ -598,25 +707,25 @@ janus_error janus_search_helper(const string &probes_list_file, const string &ga
     for (size_t i = 0; i < gallery_template_ids.size(); i++) {
         subjectIDLUT.insert(make_pair(gallery_template_ids[i], gallery_subject_ids[i]));
 
-        start = clock();
+        JANUS_HARNESS_TIC;
         JANUS_CHECK(janus_delete_template(gallery_templates[i]))
-        _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_delete_template);
     }
 
     // Load the serialized gallery from disk
     ifstream gallery_stream(gallery_file.c_str(), ios::in | ios::binary);
     janus_gallery gallery = NULL;
-    start = clock();
+    JANUS_HARNESS_TIC;
     JANUS_CHECK(janus_deserialize_gallery(gallery, gallery_stream));
-    _janus_add_sample(janus_deserialize_gallery_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    JANUS_HARNESS_TOC(janus_deserialize_gallery);
 
     ofstream candidate_stream(candidate_list_file.c_str(), ios::out | ios::ate);
     for (size_t i = 0; i < probe_templates.size(); i++) {
         vector<janus_template_id> return_template_ids;
         vector<double> similarities;
-        start = clock();
+        JANUS_HARNESS_TIC;
         JANUS_CHECK(janus_search(probe_templates[i], gallery, num_requested_returns, return_template_ids, similarities));
-        _janus_add_sample(janus_search_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_search);
 
         janus_ensure_size(gallery_template_ids, return_template_ids, similarities);
 
@@ -624,15 +733,14 @@ janus_error janus_search_helper(const string &probes_list_file, const string &ga
             candidate_stream << probe_template_ids[i] << "," << j << "," << return_template_ids[j] << "," << similarities[j]
                              << "," << (probe_subject_ids[i] == subjectIDLUT[return_template_ids[j]] ? "true" : "false") << "\n";
 
-        start = clock();
+        JANUS_HARNESS_TIC;
         JANUS_CHECK(janus_delete_template(probe_templates[i]))
-        _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_delete_template);
     }
-    janus_delete_gallery(gallery);
+    JANUS_HARNESS_TIC;
+    JANUS_CHECK(janus_delete_gallery(gallery));
+    JANUS_HARNESS_TOC(janus_delete_gallery);
     candidate_stream.close();
-
-    if (verbose)
-        janus_print_metrics(janus_get_metrics());
 
     return JANUS_SUCCESS;
 }
@@ -642,8 +750,6 @@ janus_error janus_search_helper(const string &probes_list_file, const string &ga
 #ifndef JANUS_CUSTOM_CLUSTER
 janus_error janus_cluster_helper(const string &templates_list_file, const size_t hint, const string &clusters_output_list, bool verbose)
 {
-    clock_t start;
-
     vector<janus_template> cluster_templates;
     vector<janus_template_id> cluster_template_ids;
     vector<int> cluster_subject_ids;
@@ -657,13 +763,13 @@ janus_error janus_cluster_helper(const string &templates_list_file, const size_t
                                                cluster_subject_ids));
 
     // perform clustering
-    start = clock();
+    JANUS_HARNESS_TIC;
     JANUS_CHECK(janus_cluster(cluster_templates, hint, cluster_pairs));
-    _janus_add_sample(janus_cluster_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    JANUS_HARNESS_TOC(janus_cluster);
 
     // write results and delete templates
     ofstream cluster_stream(clusters_output_list.c_str(), ios::out | ios::ate);
-    for (int i = 0; i < cluster_templates.size(); i++) {
+    for (size_t i = 0; i < cluster_templates.size(); i++) {
         // write a row
         cluster_stream << cluster_template_ids[i] << ","
                        << cluster_subject_ids[i]  << ","
@@ -671,106 +777,18 @@ janus_error janus_cluster_helper(const string &templates_list_file, const size_t
                        << cluster_pairs[i].second << std::endl;
 
         // delete templates
-        start = clock();
+        JANUS_HARNESS_TIC;
         JANUS_CHECK(janus_delete_template(cluster_templates[i]))
-        _janus_add_sample(janus_delete_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+        JANUS_HARNESS_TOC(janus_delete_template);
     }
 
     cluster_stream.close();
-
-    if (verbose)
-        janus_print_metrics(janus_get_metrics());
 
     return JANUS_SUCCESS;
 }
 #endif // JANUS_CUSTOM_SEARCH
 
-static janus_metric calculateMetric(const vector<double> &samples)
+void janus_print_metrics()
 {
-    janus_metric metric;
-    metric.count = samples.size();
-
-    if (metric.count > 0) {
-        metric.mean = 0;
-        for (size_t i = 0; i < samples.size(); i++)
-            metric.mean += samples[i];
-        metric.mean /= samples.size();
-
-        metric.stddev = 0;
-        for (size_t i = 0; i < samples.size(); i++)
-            metric.stddev += pow(samples[i] - metric.mean, 2.0);
-        metric.stddev = sqrt(metric.stddev / samples.size());
-    } else {
-        metric.mean = numeric_limits<double>::quiet_NaN();
-        metric.stddev = numeric_limits<double>::quiet_NaN();
-    }
-
-    return metric;
-}
-
-janus_metrics janus_get_metrics()
-{
-    janus_metrics metrics;
-    metrics.janus_load_media_speed                 = calculateMetric(janus_load_media_samples);
-    metrics.janus_free_media_speed                 = calculateMetric(janus_free_media_samples);
-    metrics.janus_detection_speed                  = calculateMetric(janus_detection_samples);
-    metrics.janus_create_template_speed            = calculateMetric(janus_create_template_samples);
-    metrics.janus_template_size                    = calculateMetric(janus_template_size_samples);
-    metrics.janus_serialize_template_speed         = calculateMetric(janus_serialize_template_samples);
-    metrics.janus_deserialize_template_speed       = calculateMetric(janus_deserialize_template_samples);
-    metrics.janus_delete_serialized_template_speed = calculateMetric(janus_delete_serialized_template_samples);
-    metrics.janus_delete_template_speed            = calculateMetric(janus_delete_template_samples);
-    metrics.janus_verify_speed                     = calculateMetric(janus_verify_samples);
-    metrics.janus_create_gallery_speed             = calculateMetric(janus_create_gallery_samples);
-    metrics.janus_prepare_gallery_speed            = calculateMetric(janus_prepare_gallery_samples);
-    metrics.janus_gallery_size                     = calculateMetric(janus_gallery_size_samples);
-    metrics.janus_gallery_insert_speed             = calculateMetric(janus_gallery_insert_samples);
-    metrics.janus_gallery_remove_speed             = calculateMetric(janus_gallery_remove_samples);
-    metrics.janus_serialize_gallery_speed          = calculateMetric(janus_serialize_gallery_samples);
-    metrics.janus_deserialize_gallery_speed        = calculateMetric(janus_deserialize_gallery_samples);
-    metrics.janus_delete_serialized_gallery_speed  = calculateMetric(janus_delete_serialized_gallery_samples);
-    metrics.janus_delete_gallery_speed             = calculateMetric(janus_delete_gallery_samples);
-    metrics.janus_search_speed                     = calculateMetric(janus_search_samples);
-    metrics.janus_cluster_speed                    = calculateMetric(janus_cluster_samples);
-    metrics.janus_missing_attributes_count         = janus_missing_attributes_count;
-    metrics.janus_failure_to_enroll_count          = janus_failure_to_enroll_count;
-    metrics.janus_other_errors_count               = janus_other_errors_count;
-    return metrics;
-}
-
-static void printMetric(FILE *file, const char *name, janus_metric metric, bool speed = true)
-{
-    if (metric.count > 0)
-        fprintf(file, "%s\t%.2g\t%.2g\t%s\t%.2g\n", name, metric.mean, metric.stddev, speed ? "ms" : "KB", double(metric.count));
-}
-
-void janus_print_metrics(janus_metrics metrics)
-{
-    fprintf(stderr,     "API Symbol                      \tMean\tStdDev\tUnits\tCount\n");
-    printMetric(stderr, "janus_load_media                ", metrics.janus_load_media_speed);
-    printMetric(stderr, "janus_free_media                ", metrics.janus_free_media_speed);
-    printMetric(stderr, "janus_detection                 ", metrics.janus_detection_speed);
-    printMetric(stderr, "janus_create_template           ", metrics.janus_create_template_speed);
-    printMetric(stderr, "janus_template_size             ", metrics.janus_template_size, false);
-    printMetric(stderr, "janus_serialize_template        ", metrics.janus_serialize_template_speed);
-    printMetric(stderr, "janus_deserialize_template      ", metrics.janus_deserialize_template_speed);
-    printMetric(stderr, "janus_delete_serialized_template", metrics.janus_delete_serialized_template_speed);
-    printMetric(stderr, "janus_delete_template           ", metrics.janus_delete_template_speed);
-    printMetric(stderr, "janus_verify                    ", metrics.janus_verify_speed);
-    printMetric(stderr, "janus_create_gallery            ", metrics.janus_create_gallery_speed);
-    printMetric(stderr, "janus_prepare_gallery           ", metrics.janus_prepare_gallery_speed);
-    printMetric(stderr, "janus_gallery_size              ", metrics.janus_gallery_size, false);
-    printMetric(stderr, "janus_gallery_insert            ", metrics.janus_gallery_insert_speed);
-    printMetric(stderr, "janus_gallery_remove            ", metrics.janus_gallery_remove_speed);
-    printMetric(stderr, "janus_serialize_gallery         ", metrics.janus_serialize_gallery_speed);
-    printMetric(stderr, "janus_deserialize_gallery       ", metrics.janus_deserialize_gallery_speed);
-    printMetric(stderr, "janus_delete_serialized_gallery ", metrics.janus_delete_serialized_gallery_speed);
-    printMetric(stderr, "janus_delete_gallery            ", metrics.janus_delete_gallery_speed);
-    printMetric(stderr, "janus_search                    ", metrics.janus_search_speed);
-    printMetric(stderr, "janus_cluster                   ", metrics.janus_cluster_speed);
-    fprintf(stderr,     "\n\n");
-    fprintf(stderr,     "janus_error                     \tCount\n");
-    fprintf(stderr,     "JANUS_MISSING_ATTRIBUTES        \t%d\n", metrics.janus_missing_attributes_count);
-    fprintf(stderr,     "JANUS_FAILURE_TO_ENROLL         \t%d\n", metrics.janus_failure_to_enroll_count);
-    fprintf(stderr,     "All other errors                \t%d\n", metrics.janus_other_errors_count);
+    metrics.print_metrics();
 }
