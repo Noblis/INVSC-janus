@@ -232,9 +232,27 @@ janus_error janus_create_template(std::vector<janus_association> &associations, 
     return JANUS_SUCCESS;
 }
 
-janus_error janus_create_template(const janus_media &, const janus_template_role, vector<janus_template> &, vector<janus_track> &)
+janus_error janus_create_template(const janus_media &media, const janus_template_role role, vector<janus_template> &templates, vector<janus_track> &tracks)
 {
-    return JANUS_NOT_IMPLEMENTED;
+    vector<janus_track> tmp_tracks;
+    janus_error error = janus_detect(media, 20, tmp_tracks);
+    
+    if (error == JANUS_SUCCESS) {
+        for (janus_track &track : tmp_tracks) {
+            janus_template tmpl;
+            janus_association association;
+            association.media = media;
+                association.metadata = track;
+                
+                vector<janus_association> tmp_association = {association};
+                error = janus_create_template(tmp_association, role, tmpl);
+                if (error == JANUS_SUCCESS) {
+                    templates.push_back(tmpl);
+                    tracks.push_back(track);
+                }
+        }
+    } else return JANUS_FAILURE_TO_DETECT;
+    return JANUS_SUCCESS;
 }
 
 
@@ -283,7 +301,6 @@ janus_error janus_deserialize_template(janus_template &template_, std::istream &
 
     // total bytes
     stream.read(reinterpret_cast<char *>(&total_bytes), sizeof(size_t));
-
     while (total_bytes > 0) {
         // read size of template
         stream.read(reinterpret_cast<char *>(&template_size), sizeof(size_t));
@@ -509,8 +526,10 @@ janus_error janus_search(const janus_template &probe, const janus_gallery &galle
     }
 
     // No faces found in the probe template
-    if (face_id == 0)
+    if (face_id == 0) {
+        ppr_free_gallery(probe_gallery);
         return JANUS_SUCCESS;
+    }
 
     ppr_similarity_matrix_type simmat;
     JANUS_TRY_PPR(ppr_compare_galleries(ppr_context, probe_gallery, gallery->ppr_gallery, &simmat))
@@ -535,6 +554,7 @@ janus_error janus_search(const janus_template &probe, const janus_gallery &galle
 
     const size_t keep = std::min(scores.size(), num_requested_returns);
     template_ids.reserve(keep); similarities.reserve(keep);
+
     for (size_t i = 0; i < keep; i++) {
         template_ids.push_back(scores[i].second);
         similarities.push_back((double)scores[i].first);
