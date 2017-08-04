@@ -3,7 +3,7 @@ file(GLOB JANUS_HEADERS ../include/*.h)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(${JANUS_IMPLEMENTATION} STREQUAL pittpatt)
-  find_package(PP5 REQUIRED)
+  find_package(PP4 REQUIRED)
   add_subdirectory(pittpatt)
 endif()
 

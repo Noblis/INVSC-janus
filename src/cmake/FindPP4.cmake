@@ -1,5 +1,5 @@
 # ==================================================== #
-# The PittPatt 5.x.x CMake configuration file          #
+# The PittPatt 4.x.x CMake configuration file          #
 #                                                      #
 # Usage from an external project:                      #
 #   In your CMakeLists.txt, add these lines:           #
@@ -9,14 +9,15 @@
 # ==================================================== #
 
 include(FindPackageHandleStandardArgs)
-find_path(PP5_DIR include/pittpatt_sdk.h)
-find_package_handle_standard_args(PP5 DEFAULT_MSG PP5_DIR)
-set(PP5_FOUND ${PP5_FOUND})
-if(PP5_FOUND)
-  include_directories(${PP5_DIR}/include)
-  link_directories(${PP5_DIR}/lib)
-  set(PP5_LIBS pittpatt_raw_image
+find_path(PP4_DIR include/pittpatt_nc_sdk.h)
+find_package_handle_standard_args(PP4 DEFAULT_MSG PP4_DIR)
+set(PP4_FOUND ${PP4_FOUND})
+if(PP4_FOUND)
+  include_directories(${PP4_DIR}/include)
+  link_directories(${PP4_DIR}/lib)
+  set(PP4_LIBS pittpatt_raw_image
                pittpatt_raw_image_io
-               pittpatt_sdk
+               pittpatt_nc_sdk
+               pittpatt_recognition_core
                pittpatt_video_io)
 endif()
