@@ -20,7 +20,7 @@ struct janus_template_type
 
 struct janus_gallery_type
 {
-	std:unordered_map<janus_template_id,ppr_gallery_type> ppr_galleries;
+	vector<pair<janus_template_id,ppr_gallery_type>> ppr_galleries;
 };
 
 static janus_error to_janus_error(ppr_error_type error)
@@ -377,11 +377,11 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
 
 janus_error janus_create_gallery(const vector<janus_template> &templates, const vector<janus_template_id> &ids, janus_gallery &gallery)
 {
-    janus_gallery_type *gallery_ = new janus_gallery_type();
+    janus_gallery_type *gallery = new janus_gallery_type();
 
     for (size_t i = 0; i < templates.size(); i++)
     {
-    		gallery_->ppr_galleries[ids[i]]=templates[i];
+    		gallery->ppr_galleries.append(make_pair(ids[i],templates[i]->ppr_gallery));
     }
     return JANUS_SUCCESS;
 }
@@ -389,57 +389,70 @@ janus_error janus_create_gallery(const vector<janus_template> &templates, const 
 janus_error janus_serialize_gallery(const janus_gallery &gallery, std::ostream &stream)
 {
 	int total_bytes=0;
-    size_t gallery_bytes = 0;
-    ppr_flat_gallery_group_type flat_data;
-    JANUS_TRY_PPR(ppr_flatten_gallery_group(ppr_context, gallery->ppr_gallery_group, &flat_data));
+    vector<pair<janus_template_id,ppr_flat_gallery_type>> data_list;
+    for (size_t i=0;i<gallery->ppr_galleries.size();i++)
+    {
+    		ppr_flat_gallery_type flat_data;
+    		JANUS_TRY_PPR(ppr_flatten_gallery_group(ppr_context, gallery->ppr_galleries[i].second, &flat_data));
+    		total_bytes+=flat_data->num_bytes;
+    		total_bytes+=sizeof(size_t); //template ID
+    		total_bytes+=sizeof(size_t); //gallery (template) size
 
-    gallery_bytes = flat_data.num_bytes;
-    total_bytes+=gallery_bytes;
-
-    //Maps
-    int map_bytes=(gallery->janus_ids.size())*(sizeof(size_t)+sizeof(int));
-    total_bytes+=map_bytes;
+    		data_list.append(make_pair(gallery->ppr_galleries[i].first,flat_data));
+    }
 
     //total bytes
     stream.write(reinterpret_cast<const char *>(&total_bytes), sizeof(int));
 
-    // gallery_size
-    stream.write(reinterpret_cast<const char *>(&gallery_bytes), sizeof(size_t));
-
-    // gallery
-    stream.write(static_cast<const char *>(flat_data.data), gallery_bytes);
-
-    //Maps
-    //Total size
-    stream.write(reinterpret_cast<const char *>(&map_bytes), sizeof(int));
-    for(auto &i : gallery->janus_ids)
+    for(size_t i=0;i<data_list.size();i++)
     {
-    		stream.write(reinterpret_cast<const char *>(i.first),sizeof(size_t));
-    		stream.write(reinterpret_cast<const char *>(i.second),sizeof(int));
+    		const ppr_flat_gallery_type &flat_data = data_list[i].second;
+    		const janus_template_id &id = data_list[i].first;
+    		const size_t template_size = flat_data.num_bytes+sizeof(size_t);
+
+    		//size of the gallery (template) and ID
+    		stream.write(reinterpret_cast<const char *>(&template_size), sizeof(size_t));
+
+    		//gallery (template) id and data
+    		stream.write(reinterpret_cast<const char *>(id), sizeof(size_t));
+    		stream.write(reinterpret_cast<const char *>(flat_data.data), template_size);
+
+    		//Free the data
+    		ppr_free_flat_gallery(flat_data);
+
     }
-
-    //Release pittpatt resource
-    ppr_free_flat_gallery_group(flat_data);
-
     return JANUS_SUCCESS;
 }
 
 janus_error janus_deserialize_gallery(janus_gallery &gallery, std::istream &stream)
 {
     int total_bytes=0;
-    int map_bytes=0;
-	size_t gallery_bytes = 0;
     gallery = new janus_gallery_type();
 
     //get total size
     stream.read(reinterpret_cast<char *>(&total_bytes), sizeof(int));
 
-    // get the size of the gallery
-    stream.read(reinterpret_cast<char *>(&gallery_bytes), sizeof(size_t));
-    total_bytes-=gallery_bytes;
 
     if(total_bytes == 0) return JANUS_FAILURE_TO_DESERIALIZE;
 
+    while(total_bytes>0)
+    {
+    		ppr_flat_gallery_type flat_data;
+    		size_t gallery_bytes;
+    		janus_template_id id;
+
+    		stream.read(static_cast<char *>(&gallery_bytes),sizeof(size_t));
+    	    total_bytes-=sizeof(size_t);
+
+    	    stream.read(static_cast<char *>(&id),sizeof(size_t));
+    	    gallery_bytes-=sizeof(size_t);
+    	    total_bytes-=sizeof(size_t);
+
+    	    flat_data.data =
+    	    stream.read(static_cast<char *>(&id),gallery_bytes);
+
+
+    }
     // read the gallery
     ppr_flat_gallery_group_type flat_data;
     flat_data.num_bytes = gallery_bytes;
