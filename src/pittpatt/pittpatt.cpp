@@ -83,7 +83,6 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context, const st
 
 janus_error janus_initialize(const string &sdk_path, const string &, const string &, const int)
 {
-	cout << "Made it to the PittPatt Wrapper\n";
     ppr_context = ppr_get_context();
     return to_janus_error(initialize_ppr_context(&ppr_context,&sdk_path));
 }
@@ -116,7 +115,7 @@ static ppr_error_type to_ppr_media(const janus_media &media, vector<ppr_image_ty
 }
 
 struct sort_first_greater {
-    bool operator()(const std::pair<float,janus_template_id> &left, const std::pair<float,janus_template_id> &right) {
+    bool operator()(const std::pair<double,janus_template_id> &left, const std::pair<double,janus_template_id> &right) {
         return left.first > right.first;
     }
     bool operator()(const std::pair<float,ppr_object_type> &left, const std::pair<float,ppr_object_type> &right) {
@@ -199,11 +198,9 @@ janus_media janus_crop_media(const janus_association &association)
 
 janus_error janus_create_template(std::vector<janus_association> &associations, const janus_template_role, janus_template &template_)
 {
-	cout << "Creating single template in wrapper.\n";
 	int gallery_size=0;
     template_ = new janus_template_type();
     JANUS_TRY_PPR(ppr_create_gallery(ppr_context,&(template_->ppr_gallery)));
-    cout << associations.size() << endl;
     for (size_t i = 0; i < associations.size(); i++) {
         janus_media cropped = janus_crop_media(associations[i]);
 
@@ -230,9 +227,7 @@ janus_error janus_create_template(std::vector<janus_association> &associations, 
             }
             else{
 				int id; //not needed.
-				cout << "Copying template to gallery\n";
 				JANUS_TRY_PPR(ppr_copy_template_to_gallery(ppr_context,&(template_->ppr_gallery),_template,&id));
-				cout << "Successfully copied template to gallery\n";
 				ppr_free_object_list(object_list);
 				gallery_size++;
             }
@@ -243,15 +238,18 @@ janus_error janus_create_template(std::vector<janus_association> &associations, 
         janus_free_media(cropped);
     }
     if(gallery_size == 0){
-    		cout << "Failed to enroll.\n";
     		return JANUS_FAILURE_TO_ENROLL;
     }
+    for(int i=1;i<gallery_size;i++)
+    {
+    		JANUS_TRY_PPR(ppr_set_template_relationship(ppr_context,&(template_->ppr_gallery),i-1,i,PPR_RELATIONSHIP_SAME_SUBJECT));
+    }
+
     return JANUS_SUCCESS;
 }
 
 janus_error janus_create_template(const janus_media &media, const janus_template_role role, vector<janus_template> &templates, vector<janus_track> &tracks)
 {
-	cout << "Creating multiple templates in Wrapper.\n";
     vector<janus_track> tmp_tracks;
     janus_error error = janus_detect(media, 20, tmp_tracks);
     
@@ -279,7 +277,6 @@ janus_error janus_serialize_template(const janus_template &template_, std::ostre
 
     ppr_flat_gallery_type flat_data;
     JANUS_TRY_PPR(ppr_flatten_gallery(ppr_context,template_->ppr_gallery,&flat_data));
-    cout << "Template size: " << flat_data.num_bytes << endl;
     bytes+=sizeof(size_t);
     bytes+=flat_data.num_bytes;
 
@@ -297,17 +294,14 @@ janus_error janus_serialize_template(const janus_template &template_, std::ostre
 
 janus_error janus_deserialize_template(janus_template &template_, std::istream &stream)
 {
-	cout << "Deserializing template \n";
 	size_t total_bytes = 0;
 	template_ = new janus_template_type();
 	JANUS_TRY_PPR(ppr_create_gallery(ppr_context,&(template_->ppr_gallery)));
-	// total bytes
 
+	// total bytes
 	stream.read(reinterpret_cast<char *>(&total_bytes), sizeof(size_t));
-	cout << "Total bytes: " << total_bytes << endl;
 	total_bytes-=sizeof(size_t);
 
-	cout << "Template bytes: " << total_bytes << endl;
 	if (total_bytes == 0) return JANUS_FAILURE_TO_DESERIALIZE;
 	// read template
 	ppr_flat_gallery_type *flat_data = new ppr_flat_gallery_type;
@@ -351,17 +345,15 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
 
     int total=0;
     float average=0;
-    for(int i=0;i<rows.capacity;i++)
+    for(int i=0;i<rows.num_template_ids;i++)
     {
-    		for(int j=0;j<columns.capacity;j++)
+    		for(int j=0;j<columns.num_template_ids;j++)
     		{
     			float score;
-    			JANUS_TRY_PPR(ppr_get_similarity_matrix_element(ppr_context,simmat,*(rows.template_ids),*(columns.template_ids),&score));
+    			JANUS_TRY_PPR(ppr_get_similarity_matrix_element(ppr_context,simmat,*(rows.template_ids+i),*(columns.template_ids+j),&score));
     			average+=score;
     			total++;
-    			columns.template_ids++;
     		}
-    		rows.template_ids++;
     }
 
     average /= total;
@@ -377,28 +369,29 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
 
 janus_error janus_create_gallery(const vector<janus_template> &templates, const vector<janus_template_id> &ids, janus_gallery &gallery)
 {
-    janus_gallery_type *gallery = new janus_gallery_type();
+    gallery = new janus_gallery_type();
 
     for (size_t i = 0; i < templates.size(); i++)
     {
-    		gallery->ppr_galleries.append(make_pair(ids[i],templates[i]->ppr_gallery));
+    		gallery->ppr_galleries.push_back(make_pair(ids[i],templates[i]->ppr_gallery));
     }
     return JANUS_SUCCESS;
 }
 
 janus_error janus_serialize_gallery(const janus_gallery &gallery, std::ostream &stream)
 {
+
 	int total_bytes=0;
     vector<pair<janus_template_id,ppr_flat_gallery_type>> data_list;
     for (size_t i=0;i<gallery->ppr_galleries.size();i++)
     {
     		ppr_flat_gallery_type flat_data;
-    		JANUS_TRY_PPR(ppr_flatten_gallery_group(ppr_context, gallery->ppr_galleries[i].second, &flat_data));
-    		total_bytes+=flat_data->num_bytes;
+    		janus_template_id &id=gallery->ppr_galleries[i].first;
+    		JANUS_TRY_PPR(ppr_flatten_gallery(ppr_context, gallery->ppr_galleries[i].second, &flat_data));
+    		total_bytes+=flat_data.num_bytes;
     		total_bytes+=sizeof(size_t); //template ID
     		total_bytes+=sizeof(size_t); //gallery (template) size
-
-    		data_list.append(make_pair(gallery->ppr_galleries[i].first,flat_data));
+    		data_list.push_back(make_pair(id,flat_data));
     }
 
     //total bytes
@@ -412,10 +405,9 @@ janus_error janus_serialize_gallery(const janus_gallery &gallery, std::ostream &
 
     		//size of the gallery (template) and ID
     		stream.write(reinterpret_cast<const char *>(&template_size), sizeof(size_t));
-
     		//gallery (template) id and data
-    		stream.write(reinterpret_cast<const char *>(id), sizeof(size_t));
-    		stream.write(reinterpret_cast<const char *>(flat_data.data), template_size);
+    		stream.write(reinterpret_cast<const char *>(&id), sizeof(size_t));
+    		stream.write(reinterpret_cast<const char *>(flat_data.data),flat_data.num_bytes);
 
     		//Free the data
     		ppr_free_flat_gallery(flat_data);
@@ -437,44 +429,28 @@ janus_error janus_deserialize_gallery(janus_gallery &gallery, std::istream &stre
 
     while(total_bytes>0)
     {
-    		ppr_flat_gallery_type flat_data;
+    		ppr_flat_gallery_type *flat_data = new ppr_flat_gallery_type;
     		size_t gallery_bytes;
     		janus_template_id id;
 
-    		stream.read(static_cast<char *>(&gallery_bytes),sizeof(size_t));
+    		stream.read(reinterpret_cast<char *>(&gallery_bytes),sizeof(size_t));
     	    total_bytes-=sizeof(size_t);
 
-    	    stream.read(static_cast<char *>(&id),sizeof(size_t));
+    	    stream.read(reinterpret_cast<char *>(&id),sizeof(size_t));
     	    gallery_bytes-=sizeof(size_t);
     	    total_bytes-=sizeof(size_t);
 
-    	    flat_data.data =
-    	    stream.read(static_cast<char *>(&id),gallery_bytes);
+    	    flat_data->data = malloc(gallery_bytes);
+    	    flat_data->num_bytes=gallery_bytes;
+    	    stream.read(static_cast<char *>(flat_data->data),gallery_bytes);
+    	    total_bytes-=gallery_bytes;
 
+    	    ppr_gallery_type newgallery;
+    	    JANUS_TRY_PPR(ppr_unflatten_gallery(ppr_context,*flat_data,&newgallery));
 
+    	    gallery->ppr_galleries.push_back(make_pair(id,newgallery));
+    	    ppr_free_flat_gallery(*flat_data);
     }
-    // read the gallery
-    ppr_flat_gallery_group_type flat_data;
-    flat_data.num_bytes = gallery_bytes;
-    stream.read(static_cast<char *>(flat_data.data), gallery_bytes);
-
-    //get map size
-	stream.read(reinterpret_cast<char *>(&map_bytes), sizeof(int));
-    while(map_bytes>0)
-    {
-    		janus_template_id jid;
-    		int ppid;
-
-    		stream.read(reinterpret_cast<char *>(&jid), sizeof(size_t));
-    		stream.read(reinterpret_cast<char *>(&ppid), sizeof(int));
-    		map_bytes-=sizeof(size_t) + sizeof(int);
-
-    		gallery->janus_ids[jid]=ppid;
-    		gallery->pp_ids[ppid]=jid;
-    }
-
-    JANUS_TRY_PPR(ppr_unflatten_gallery_group(ppr_context, flat_data, (&gallery->ppr_gallery_group)));
-    ppr_free_flat_gallery_group(flat_data);
 
     return JANUS_SUCCESS;
 }
@@ -486,17 +462,21 @@ janus_error janus_prepare_gallery(janus_gallery &)
 
 janus_error janus_gallery_insert(janus_gallery &gallery, const janus_template &template_, const janus_template_id &id)
 {
-	int tempid;
-	JANUS_TRY_PPR(ppr_move_gallery_to_gallery_group(ppr_context,(&gallery->ppr_gallery_group),(&template_->ppr_gallery),&tempid));
-	gallery->janus_ids[id]=tempid;
-	gallery->pp_ids[tempid]=id;
+	gallery->ppr_galleries.push_back(make_pair(id,template_->ppr_gallery));
 	return JANUS_SUCCESS;
 }
 
 janus_error janus_gallery_remove(janus_gallery &gallery, const janus_template_id &id)
 {
-
-    JANUS_TRY_PPR(ppr_remove_gallery_from_gallery_group(ppr_context, (&gallery->ppr_gallery_group),*(&gallery->janus_ids[id])));
+    for(vector<pair<janus_template_id,ppr_gallery_type>>::iterator it = gallery->ppr_galleries.begin(); it != gallery->ppr_galleries.end();it++)
+    {
+    		if(it->first==id)
+    		{
+    			ppr_free_gallery(it->second);
+    			gallery->ppr_galleries.erase(it);
+    			break;
+    		}
+    }
     return JANUS_SUCCESS;
 }
 janus_error janus_delete_serialized_gallery(janus_data *&gallery, const size_t)
@@ -507,40 +487,35 @@ janus_error janus_delete_serialized_gallery(janus_data *&gallery, const size_t)
 
 janus_error janus_delete_gallery(janus_gallery &gallery)
 {
-    ppr_free_gallery_group(gallery->ppr_gallery_group);
-    delete gallery;
+    for(auto &n : gallery->ppr_galleries)
+    {
+		ppr_free_gallery(n.second);
+    }
     return JANUS_SUCCESS;
 }
 
 janus_error janus_search(const janus_template &probe, const janus_gallery &gallery, const size_t num_requested_returns, vector<janus_template_id> &template_ids, vector<double> &similarities)
 {
-    ppr_similarity_matrix_type simmat;
-
-
     vector<pair<double, janus_template_id> > scores;
 
     janus_template_type *temp = new janus_template_type();
 
-    for(auto &n : gallery->janus_ids)
+    for(auto &n : gallery->ppr_galleries)
     {
     		double similarity;
-    		JANUS_TRY_PPR(ppr_get_gallery_reference_by_id(ppr_context,gallery->ppr_gallery_group,n.second,&temp->ppr_gallery));
+    		temp->ppr_gallery=n.second;
     		janus_verify(probe,temp,similarity);
     		scores.push_back(make_pair(similarity,n.first));
     }
-
     sort(scores.begin(), scores.end(), sort_first_greater());
-
-    const size_t keep = std::min(scores.size(), num_requested_returns);
+    const size_t keep = min(scores.size(), num_requested_returns);
     template_ids.reserve(keep); similarities.reserve(keep);
-
     for (size_t i = 0; i < keep; i++)
     {
         template_ids.push_back(scores[i].second);
         similarities.push_back(scores[i].first);
     }
 
-    ppr_free_similarity_matrix(simmat);
     return JANUS_SUCCESS;
 }
 
@@ -548,14 +523,14 @@ janus_error janus_cluster(const vector<janus_template> &templates,
                           const size_t hint,
                           vector<cluster_pair> &clusters)
 {
-    // PP5 arguments/data structures
+
+    // PP4 arguments/data structures
     int clustering_aggressiveness = PPR_MAX_CLUSTERING_AGGRESSIVENESS;
     ppr_inter_gallery_subject_list_type cluster_list;
-
+    ppr_gallery_group_type cluster_group;
+    JANUS_TRY_PPR(ppr_create_gallery_group(ppr_context,&cluster_group));
 
     // janus data structures
-    janus_gallery cluster_gallery = nullptr;
-    janus_error error = JANUS_SUCCESS;
     vector<janus_template_id> t_ids(templates.size());
 
     // make template_ids and make room for cluster pairs
@@ -563,17 +538,14 @@ janus_error janus_cluster(const vector<janus_template> &templates,
     clusters.resize(templates.size());
     std::fill(clusters.begin(), clusters.end(), cluster_pair(-1, -1.5));
 
-    // set the clustering aggressiveness
-    if (clustering_aggressiveness > hint)
-        clustering_aggressiveness = static_cast<int>(hint);
-
-    error = janus_create_gallery(templates, t_ids, cluster_gallery);
-
-    if (error != JANUS_SUCCESS)
-        return error;
+    for(size_t i=0; i<templates.size();i++)
+    {
+    		int galleryid;
+    		JANUS_TRY_PPR(ppr_move_gallery_to_gallery_group(ppr_context,&cluster_group,&(templates[i]->ppr_gallery),&galleryid));
+    }
 
     JANUS_TRY_PPR(ppr_cluster_gallery_group(ppr_context,
-                                      reinterpret_cast<ppr_gallery_group_type>(cluster_gallery),
+                                      cluster_group,
                                       clustering_aggressiveness,
                                       &cluster_list));
 
@@ -586,10 +558,10 @@ janus_error janus_cluster(const vector<janus_template> &templates,
     			clusters[t_id].first = cluster_id;
     		}
     }
-    // free PP5 structure
-    ppr_free_inter_gallery_subject_list(cluster_list);
 
-    // free janus structures
-    error = janus_delete_gallery(cluster_gallery);
-    return error;
+    // free PP4 structures
+    ppr_free_inter_gallery_subject_list(cluster_list);
+    ppr_free_gallery_group(cluster_group);
+
+    return JANUS_SUCCESS;
 }
