@@ -1,8 +1,14 @@
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
+#include <cstring>
+#include <map>
+#include <algorithm>
 #include <numeric>
+#include <utility>
 #include <unordered_map>
+#include <assert.h>
 #include <pittpatt_nc_sdk.h>
 #include <pittpatt_errors.h>
 #include <pittpatt_license.h>
