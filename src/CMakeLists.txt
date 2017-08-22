@@ -3,8 +3,13 @@ file(GLOB JANUS_HEADERS ../include/*.h)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(${JANUS_IMPLEMENTATION} STREQUAL pittpatt)
-  find_package(PP4 REQUIRED)
+  find_package(PP5 REQUIRED)
   add_subdirectory(pittpatt)
+endif()
+
+if(${JANUS_IMPLEMENTATION} STREQUAL pittpatt4)
+  find_package(PP4 REQUIRED)
+  add_subdirectory(pittpatt4)
 endif()
 
 if(${JANUS_IO_IMPLEMENTATION} STREQUAL opencv_io)
