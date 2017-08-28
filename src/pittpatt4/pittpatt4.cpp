@@ -493,10 +493,8 @@ janus_error janus_delete_serialized_gallery(janus_data *&gallery, const size_t)
 
 janus_error janus_delete_gallery(janus_gallery &gallery)
 {
-    for(auto &n : gallery->ppr_galleries)
-    {
-		ppr_free_gallery(n.second);
-    }
+
+	delete gallery;
     return JANUS_SUCCESS;
 }
 
