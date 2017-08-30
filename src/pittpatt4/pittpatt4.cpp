@@ -357,15 +357,19 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
     		{
     			float score;
     			JANUS_TRY_PPR(ppr_get_similarity_matrix_element(ppr_context,simmat,*(rows.template_ids+i),*(columns.template_ids+j),&score));
+    			cout << score << endl;
     			average+=score;
     			total++;
     		}
     }
 
     average /= total;
+    cout << "Total average: " << average << endl;
     similarity = average + 1.5;
 
     ppr_free_similarity_matrix(simmat);
+    ppr_free_template_id_list(rows);
+    ppr_free_template_id_list(columns);
 
     if (similarity != similarity) // True for NaN
         return JANUS_UNKNOWN_ERROR;
@@ -511,7 +515,9 @@ janus_error janus_search(const janus_template &probe, const janus_gallery &galle
     		janus_verify(probe,temp,similarity);
     		scores.push_back(make_pair(similarity,n.first));
     }
+
     sort(scores.begin(), scores.end(), sort_first_greater());
+
     const size_t keep = min(scores.size(), num_requested_returns);
     template_ids.reserve(keep); similarities.reserve(keep);
     for (size_t i = 0; i < keep; i++)
