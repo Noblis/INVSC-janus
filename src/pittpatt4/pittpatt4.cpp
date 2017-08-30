@@ -357,7 +357,6 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
     		{
     			float score;
     			JANUS_TRY_PPR(ppr_get_similarity_matrix_element(ppr_context,simmat,*(rows.template_ids+i),*(columns.template_ids+j),&score));
-    			cout << score << endl;
     			average+=score;
     			total++;
     		}
@@ -371,7 +370,7 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
     {
     		average /= total;
     }
-    cout << "Total average: " << average << endl;
+
     similarity = average + 1.5;
 
     ppr_free_similarity_matrix(simmat);
