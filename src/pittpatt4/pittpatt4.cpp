@@ -363,7 +363,14 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
     		}
     }
 
-    average /= total;
+    if(total==0)
+    {
+    		average=-1.5;
+    }
+    else
+    {
+    		average /= total;
+    }
     cout << "Total average: " << average << endl;
     similarity = average + 1.5;
 
