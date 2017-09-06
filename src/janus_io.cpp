@@ -729,7 +729,7 @@ janus_error janus_search_helper(const string &probes_list_file, const string &ga
 
         janus_ensure_size(gallery_template_ids, return_template_ids, similarities);
 
-        for (size_t j = 0; j < return_template_ids.size(); j++)
+        for (size_t j = 0; j < num_requested_returns; j++)
             candidate_stream << probe_template_ids[i] << "," << j << "," << return_template_ids[j] << "," << similarities[j]
                              << "," << (probe_subject_ids[i] == subjectIDLUT[return_template_ids[j]] ? "true" : "false") << "\n";
 
