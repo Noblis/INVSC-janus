@@ -17,7 +17,6 @@ if(PP5_FOUND)
   link_directories(${PP5_DIR}/lib)
   set(PP5_LIBS pittpatt_raw_image
                pittpatt_raw_image_io
-               pittpatt_nc_sdk
-               pittpatt_recognition_core
+               pittpatt_sdk
                pittpatt_video_io)
 endif()
