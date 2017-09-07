@@ -75,8 +75,9 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context, const st
 	TRY(ppr_set_detection_precision(*context,PPR_FINE_PRECISION));
     TRY(ppr_set_landmark_detector_type(*context,PPR_DUAL_MULTI_POSE_LANDMARK_DETECTOR,PPR_AUTOMATIC_LANDMARKS));
     TRY(ppr_set_num_detection_threads(*context,1));
+    TRY(ppr_set_frontal_yaw_constraint(*context,PPR_FRONTAL_YAW_CONSTRAINT_PERMISSIVE));
     TRY(ppr_set_search_pruning_aggressiveness(*context,0));
-    TRY(ppr_set_min_size(*context,4));
+    TRY(ppr_set_min_size(*context,PPR_MIN_MIN_SIZE));
     TRY(ppr_set_max_size(*context,PPR_MAX_MAX_SIZE));
     TRY(ppr_set_adaptive_min_size(*context,.01f));
     TRY(ppr_set_adaptive_max_size(*context,1.f));
