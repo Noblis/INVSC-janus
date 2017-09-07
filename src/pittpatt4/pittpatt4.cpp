@@ -71,6 +71,7 @@ static ppr_error_type initialize_ppr_context(ppr_context_type *context, const st
     TRY(ppr_set_models_path(*context,(*path).c_str()));
 
     //Detection parameters
+    //Calibrate detection threshold?
 	TRY(ppr_set_detection_precision(*context,PPR_FINE_PRECISION));
     TRY(ppr_set_landmark_detector_type(*context,PPR_DUAL_MULTI_POSE_LANDMARK_DETECTOR,PPR_AUTOMATIC_LANDMARKS));
     TRY(ppr_set_num_detection_threads(*context,1));

@@ -3,7 +3,7 @@ set_target_properties(pittpatt PROPERTIES
                       DEFINE_SYMBOL JANUS_LIBRARY
                       VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH}
                       SOVERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR})
-target_link_libraries(pittpatt ${PP4_LIBS} ${JANUS_IO_IMPLEMENTATION})
+target_link_libraries(pittpatt ${PP5_LIBS} ${JANUS_IO_IMPLEMENTATION})
 install(TARGETS pittpatt RUNTIME DESTINATION bin
                          LIBRARY DESTINATION lib
                          ARCHIVE DESTINATION lib)

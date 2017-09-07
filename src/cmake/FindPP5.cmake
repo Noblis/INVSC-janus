@@ -1,5 +1,5 @@
 # ==================================================== #
-# The PittPatt 4.x.x CMake configuration file          #
+# The PittPatt 5.x.x CMake configuration file          #
 #                                                      #
 # Usage from an external project:                      #
 #   In your CMakeLists.txt, add these lines:           #
