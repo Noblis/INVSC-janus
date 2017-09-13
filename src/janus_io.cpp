@@ -639,9 +639,9 @@ janus_error janus_load_template(const string &data_path, janus_template_id templ
     if (!template_stream)
         printf("WARNING! Template %s does not exist on disk\n", template_file.c_str());
 
-    clock_t start = clock();
+    JANUS_HARNESS_TIC;
     JANUS_CHECK(janus_deserialize_template(tmpl, template_stream));
-    _janus_add_sample(janus_deserialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+    JANUS_HARNESS_TOC(janus_deserialize_template);
 
     template_stream.close();
 
