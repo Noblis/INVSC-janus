@@ -192,7 +192,7 @@ JANUS_EXPORT janus_error janus_create_gallery_helper(const std::string &template
  * \param [in] verbose Print information and warnings during verification.
  * \remark This function is \ref thread_unsafe.
  */
-JANUS_EXPORT janus_error janus_verify_helper(const std::string &templates_list_file_a, const std::string &templates_list_file_b, const std::string &scores_file, bool verbose);
+JANUS_EXPORT janus_error janus_verify_helper(const std::string& probe_data_path, const std::string& reference_data_path, const std::string& templates_matches_file, const std::string& scores_file, bool verbose);
 
 /*!
  * \brief High-level helper function for running verification on two equal sized lists of templates
