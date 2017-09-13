@@ -632,6 +632,22 @@ janus_error janus_create_gallery_helper(const string &templates_list_file, const
 
 #ifndef JANUS_CUSTOM_VERIFY
 
+janus_error janus_load_template(const string &data_path, janus_template_id template_id, janus_template &tmpl)
+{
+    string template_file = data_path + to_string(template_id) + ".template";
+    ifstream template_stream(template_file.c_str(), ios::in | ios::binary);
+    if (!template_stream)
+        printf("WARNING! Template %s does not exist on disk\n", template_file.c_str());
+
+    clock_t start = clock();
+    JANUS_CHECK(janus_deserialize_template(tmpl, template_stream));
+    _janus_add_sample(janus_deserialize_template_samples, 1000 * (clock() - start) / CLOCKS_PER_SEC);
+
+    template_stream.close();
+
+    return JANUS_SUCCESS;
+}
+
 janus_error janus_verify_helper(const string& probe_data_path, const string& reference_data_path, const string& templates_matches_file, const string& scores_file, bool verbose)
 {
     ofstream scores_stream(scores_file.c_str(), ios::out);
@@ -680,9 +696,6 @@ janus_error janus_verify_helper(const string& probe_data_path, const string& ref
     // free reference templates
     for (auto &temp : reference_template_lut)
         janus_delete_template(temp.second);
-
-    if (verbose)
-        janus_print_metrics(janus_get_metrics());
 
     return JANUS_SUCCESS;
 }
