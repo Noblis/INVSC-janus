@@ -632,42 +632,57 @@ janus_error janus_create_gallery_helper(const string &templates_list_file, const
 
 #ifndef JANUS_CUSTOM_VERIFY
 
-janus_error janus_verify_helper(const string &templates_list_file_a, const string &templates_list_file_b, const string &scores_file, bool verbose)
+janus_error janus_verify_helper(const string& probe_data_path, const string& reference_data_path, const string& templates_matches_file, const string& scores_file, bool verbose)
 {
-    // Load the template sets
-    vector<janus_template> templates_a, templates_b;
-    vector<janus_template_id> template_ids_a, template_ids_b;
-    vector<int> subject_ids_a, subject_ids_b;
+    ofstream scores_stream(scores_file.c_str(), ios::out);
 
-    JANUS_CHECK(janus_load_templates_from_file(templates_list_file_a, templates_a, template_ids_a, subject_ids_a));
-    JANUS_CHECK(janus_load_templates_from_file(templates_list_file_b, templates_b, template_ids_b, subject_ids_b));
+    ifstream matches_stream(templates_matches_file.c_str());
+    string line;
 
-    assert(templates_a.size() == templates_b.size());
+    map<janus_template_id, janus_template> probe_template_lut;
+    map<janus_template_id, janus_template> reference_template_lut;
 
-    // Compare the templates and write the results to the scores file
-    ofstream scores_stream(scores_file.c_str(), ios::out | ios::ate);
-    for (size_t i = 0; i < templates_a.size(); i++) {
+    while (getline(matches_stream, line)) {
+        istringstream row(line);
+        string probe_id_str, reference_id_str;
+        getline(row, probe_id_str, ',');
+        getline(row, reference_id_str, ',');
+
+        janus_template_id probe_id = atoi(probe_id_str.c_str());
+        janus_template_id reference_id = atoi(reference_id_str.c_str());
+
+        auto probe_template_it = probe_template_lut.find(probe_id);
+        if (probe_template_it == probe_template_lut.end()) {
+            janus_template probe_template = nullptr;
+            JANUS_CHECK(janus_load_template(probe_data_path, probe_id, probe_template))
+            probe_template_it = probe_template_lut.insert(make_pair(probe_id, probe_template)).first;
+        }
+        auto reference_template_it = reference_template_lut.find(reference_id);
+        if (reference_template_it == reference_template_lut.end()) {
+            janus_template reference_template = nullptr;
+            JANUS_CHECK(janus_load_template(reference_data_path, reference_id, reference_template))
+            reference_template_it = reference_template_lut.insert(make_pair(reference_id, reference_template)).first;
+        }
+
         double similarity;
         JANUS_HARNESS_TIC;
-        janus_verify(templates_a[i], templates_b[i], similarity);
+        if (janus_verify(probe_template_it->second, reference_template_it->second, similarity) != JANUS_SUCCESS)
+            similarity = numeric_limits<double>::lowest();
         JANUS_HARNESS_TOC(janus_verify);
-
-        scores_stream << template_ids_a[i] << "," << template_ids_b[i] << "," << similarity << ","
-                      << (subject_ids_a[i] == subject_ids_b[i] ? "true" : "false") << "\n";
+        scores_stream << probe_id << "," << reference_id << "," << similarity << "\n";
     }
     scores_stream.close();
 
-    for (size_t i = 0; i < templates_a.size(); i++){
-        JANUS_HARNESS_TIC;
-        janus_delete_template(templates_a[i]);
-        JANUS_HARNESS_TOC(janus_delete_template);
-    }
+    // free probe templates
+    for (auto &temp : probe_template_lut)
+        janus_delete_template(temp.second);
 
-    for (size_t i = 0; i < templates_b.size(); i++) {
-        JANUS_HARNESS_TIC;
-        janus_delete_template(templates_b[i]);
-        JANUS_HARNESS_TOC(janus_delete_template);
-    }
+    // free reference templates
+    for (auto &temp : reference_template_lut)
+        janus_delete_template(temp.second);
+
+    if (verbose)
+        janus_print_metrics(janus_get_metrics());
 
     return JANUS_SUCCESS;
 }
