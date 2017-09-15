@@ -352,32 +352,28 @@ janus_error janus_verify(const janus_template &reference, const janus_template &
     JANUS_TRY_PPR(ppr_get_target_template_id_list_from_similarity_matrix(ppr_context,simmat,&columns));
 
     int total=0;
-    //float average=0;
-    float max=0;
+    float average=0;
     for(int i=0;i<rows.num_template_ids;i++)
     {
     		for(int j=0;j<columns.num_template_ids;j++)
     		{
     			float score;
     			JANUS_TRY_PPR(ppr_get_similarity_matrix_element(ppr_context,simmat,*(rows.template_ids+i),*(columns.template_ids+j),&score));
-    			//average+=score;
-    			if(score > max) max=score;
+    			average+=score;
     			total++;
     		}
     }
 
     if(total==0)
     {
-    		//average=-1.5;
-    		max=-1.5;
+    		average=-1.5;
     }
-//    else
-//    {
-//    		average /= total;
-//    }
+    else
+    {
+    		average /= total;
+    }
 
-    //similarity = average + 1.5;
-    similarity=max+1.5;
+    similarity = average + 1.5;
 
     ppr_free_similarity_matrix(simmat);
     ppr_free_template_id_list(rows);
