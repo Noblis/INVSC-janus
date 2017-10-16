@@ -170,13 +170,28 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
     return JANUS_SUCCESS;
 }
 
-janus_media janus_crop_media(const janus_association &association)
+static ppr_error_type to_ppr_media(const std::vector<janus_media> media, vector<ppr_image_type> &ppr_media)
+{
+    for (size_t i=0; i < media.size();i++) {
+        std::vector<ppr_image_type> sub_media;
+        ppr_error_type rc = to_ppr_media(media[i], sub_media);
+        if (rc != PPR_SUCCESS)
+            return rc;
+
+        for (size_t j=0; j < sub_media.size();j++) {
+            ppr_media.push_back(sub_media[j]);
+        }
+    }
+}
+
+std::vector<janus_media> janus_crop_media(const janus_association &association)
 {
     const janus_media &src = association.media;
     const janus_track &track = association.metadata;
 
-    janus_media dst; dst.data.reserve(src.data.size());
+    std::vector<janus_media> output;
     for (size_t i = 0; i < src.data.size(); i++) {
+        janus_media dst;
         const janus_attributes &face_attributes = track.track[i];
         const size_t x = face_attributes.face_x < 0 ? 0 : face_attributes.face_x;
         const size_t y = face_attributes.face_y < 0 ? 0 : face_attributes.face_y;
@@ -189,11 +204,13 @@ janus_media janus_crop_media(const janus_association &association)
         const unsigned long dst_elements_per_row = dst.width * channels;
         const unsigned long src_elements_per_row = src.width * channels;
 
-        for (size_t j = 0; j < dst.height; j++)
+        for (size_t j = 0; j < dst.height; j++) {
             memcpy(data + j*dst_elements_per_row, src.data[i] + src_elements_per_row * (y + j) + channels*x, dst_elements_per_row);
+        }
         dst.data.push_back(data);
+        output.push_back(dst);
     }
-    return dst;
+    return output;
 }
 
 janus_error janus_create_template(std::vector<janus_association> &associations, const janus_template_role, janus_template &template_)
@@ -201,7 +218,7 @@ janus_error janus_create_template(std::vector<janus_association> &associations, 
     template_ = new janus_template_type();
 
     for (size_t i = 0; i < associations.size(); i++) {
-        janus_media cropped = janus_crop_media(associations[i]);
+        std::vector<janus_media> cropped = janus_crop_media(associations[i]);
 
         vector<ppr_image_type> ppr_media;
         to_ppr_media(cropped, ppr_media);
@@ -220,13 +237,16 @@ janus_error janus_create_template(std::vector<janus_association> &associations, 
                     break;
                 }
             }
-
             template_->ppr_face_lists.push_back(face_list);
         }
 
-        for (size_t i = 0; i < ppr_media.size(); i++)
-            ppr_free_image(ppr_media[i]);
-        janus_free_media(cropped);
+        for (size_t j = 0; j < ppr_media.size(); j++)
+            ppr_free_image(ppr_media[j]);
+
+        for (size_t j=0;j < cropped.size();j++) {
+            janus_free_media(cropped[j]);
+        }
+
     }
 
     return JANUS_SUCCESS;
