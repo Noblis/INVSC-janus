@@ -486,7 +486,7 @@ janus_error janus_prepare_gallery(janus_gallery &)
     return JANUS_SUCCESS;
 }
 
-janus_error janus_gallery_insert(janus_gallery &gallery, const janus_template &template_, const janus_template_id &id)
+janus_error janus_gallery_insert(janus_gallery &gallery, const janus_template &template_, const janus_template_id id)
 {
     int face_id = 0;
     for (size_t i = 0; i < template_->ppr_face_lists.size(); i++) {
