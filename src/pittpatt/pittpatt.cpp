@@ -488,7 +488,9 @@ janus_error janus_prepare_gallery(janus_gallery &)
 
 janus_error janus_gallery_insert(janus_gallery &gallery, const janus_template &template_, const janus_template_id id)
 {
-    int face_id = 0;
+    int face_id = -1;
+    JANUS_TRY_PPR(ppr_get_num_faces(ppr_context, gallery->ppr_gallery, &face_id));
+
     for (size_t i = 0; i < template_->ppr_face_lists.size(); i++) {
         const ppr_face_list_type &face_list = template_->ppr_face_lists[i];
         for (int j = 0; j < face_list.length; j++) {
@@ -498,6 +500,7 @@ janus_error janus_gallery_insert(janus_gallery &gallery, const janus_template &t
             JANUS_TRY_PPR(ppr_face_has_template(ppr_context, face, &has_template))
             if (!has_template)
                 continue;
+
 
             JANUS_TRY_PPR(ppr_add_face(ppr_context, &gallery->ppr_gallery, face, id, face_id++))
         }
