@@ -1,0 +1,13 @@
+add_library(COGNITEC SHARED cognitec.cpp ../janus_io.cpp)
+set_target_properties(COGNITEC PROPERTIES
+                      DEFINE_SYMBOL JANUS_LIBRARY
+                      VERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR}.${JANUS_VERSION_PATCH}
+                      SOVERSION ${JANUS_VERSION_MAJOR}.${JANUS_VERSION_MINOR})
+target_link_libraries(COGNITEC ${COG_LIBS} ${JANUS_IO_IMPLEMENTATION})
+install(TARGETS COGNITEC RUNTIME DESTINATION bin
+                         LIBRARY DESTINATION lib
+                         ARCHIVE DESTINATION lib)
+
+# Add this to the list of implementations to test
+set(JANUS_TEST_IMPLEMENTATION ${JANUS_TEST_IMPLEMENTATIONS} "COGNITEC" PARENT_SCOPE)
+set(JANUS_TEST_SDK_PATH ${JANUS_TEST_SDK_PATHS} ${COG_DIR} PARENT_SCOPE)
