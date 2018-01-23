@@ -12,6 +12,11 @@ if(${JANUS_IMPLEMENTATION} STREQUAL pittpatt4)
   add_subdirectory(pittpatt4)
 endif()
 
+if(${JANUS_IMPLEMENTATION} STREQUAL cognitec)
+  find_package(COG REQUIRED)
+  add_subdirectory(cognitec)
+endif()
+
 if(${JANUS_IO_IMPLEMENTATION} STREQUAL opencv_io)
   find_package(OpenCV 3.1)
   if(OpenCV_FOUND)
