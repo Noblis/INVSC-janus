@@ -54,6 +54,8 @@ public:
 
   unsigned int stride() {return str;}
 
+  std::string name() {return "";}
+
 private:
   bool c;
   unsigned int w;
@@ -75,7 +77,7 @@ struct sort_first_greater {
 Configuration *config;
 Face::Finder *face_detector;
 Eyes::Finder *eye_detector;
-Potrait::Analyzer *portrait_analyzer;
+Portrait::Analyzer *portrait_analyzer;
 
 void to_cognitec_image(janus_media media, vector<CountedPtr<JanusBody>> &image_bodies)
 {
@@ -107,7 +109,7 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 		Face::LocationSet locations = face_detector.find(image_bodies[i]);
         Face::LocationSet::const_iterator faceIter = locations.begin();
 
-        vector<pair<float,FRsdk::Portrait::Characteristic>> face_confidences;
+        vector<pair<float,FRsdk::Portrait::Characteristics> > face_confidences;
         while( faceIter != locations.end())
         {
         		// Detect the eyes in the face locations
@@ -120,7 +122,7 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 			AnnotatedImage annotated (image_bodies[i],eye_location);
 
 			//Get the face characteristics from the annotated image
-			FRsdk::Portrait::Characteristics face_metadata = FRsdk::Portrait_analyzer->analyze(annotated);
+			FRsdk::Portrait::Characteristics face_metadata = portrait_analyzer->analyze(annotated);
 
 			face_confidences.push_back(make_pair(faceIter->confidence,face_metadata));
         		faceIter++;
