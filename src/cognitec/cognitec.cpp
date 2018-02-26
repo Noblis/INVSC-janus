@@ -15,6 +15,8 @@
 //Cognitec Libraries
 #include <FRsdk/config.h>
 #include <FRsdk/face.h>
+#include <FRsdk/portrait.h>
+#include <FRsdk/eyes.h>
 
 using namespace std;
 using namespace FRsdk;
@@ -30,12 +32,12 @@ public:
 
 	  if(color_space == JANUS_BGR24)
 	  {
-		  cR = Rgb(data);
+		  cR = (Rgb*)data;
 		  c = true;
 	  }
 	  else
 	  {
-		  gR = Byte(data);
+		  gR = (Byte*)data;
 		  c = false;
 	  }
   }
@@ -102,7 +104,7 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 	for (size_t i = 0; i< image_bodies.size();i++)
 	{
 		//Find interpupillary markers in the image
-		Face:LocationSet locations = face_detector.find(image_bodies[i]);
+		Face::LocationSet locations = face_detector.find(image_bodies[i]);
         Face::LocationSet::const_iterator faceIter = locations.begin();
 
         vector<pair<float,FRsdk::Portrait::Characteristic>> face_confidences;
