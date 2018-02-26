@@ -22,7 +22,7 @@ using namespace FRsdk;
 class JanusBody: ImageBody
 {
 public:
-  virtual JanusBody(janus_data* data, size_t width, size_t height, size_t step, janus_color_space color_space)
+  JanusBody(janus_data* data, size_t width, size_t height, size_t step, janus_color_space color_space)
   {
 	  h = static_cast<unsigned int>(height);
 	  str = static_cast<unsigned int>(step);
@@ -30,12 +30,12 @@ public:
 
 	  if(color_space == JANUS_BGR24)
 	  {
-		  cR = Rgb*(data);
+		  cR = Rgb(data);
 		  c = true;
 	  }
 	  else
 	  {
-		  gR = Byte*(data);
+		  gR = Byte(data);
 		  c = false;
 	  }
   }
@@ -65,7 +65,7 @@ struct sort_first_greater {
     bool operator()(const std::pair<float,janus_template_id> &left, const std::pair<float,janus_template_id> &right) {
         return left.first > right.first;
     }
-    bool operator()(const std::pair<float,Portait::Characteristic> &left, const std::pair<float,Portrait::Characteristic> &right) {
+    bool operator()(const std::pair<float,FRsdk::Portrait::Characteristic> &left, const std::pair<float,FRsdk::Portrait::Characteristic> &right) {
         return left.first > right.first;
     }
 };
@@ -91,10 +91,12 @@ janus_error janus_initialize(const string &sdk_path, const string &, const strin
 	face_detector = new Face::Finder(*config);
 	eye_detector = new Eyes::Finder(*config);
 	portrait_analyzer = new Potrait::Analyzer(*config);
+
+	return JANUS_SUCCESS;
 }
 janus_error janus_detect(const janus_media &media, const size_t min_face_size, std::vector<janus_track> &tracks)
 {
-	vector<JanusBody> image_bodies;
+	vector<FRsdk::CountedPtr<JanusBody>> image_bodies;
 	to_cognitec_image(media,image_bodies);
 
 	for (size_t i = 0; i< image_bodies.size();i++)
@@ -103,7 +105,7 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 		Face:LocationSet locations = face_detector.find(image_bodies[i]);
         Face::LocationSet::const_iterator faceIter = locations.begin();
 
-        vector<pair<float,Portrait::Characteristic>> face_confidences;
+        vector<pair<float,FRsdk::Portrait::Characteristic>> face_confidences;
         while( faceIter != locations.end())
         {
         		// Detect the eyes in the face locations
@@ -116,7 +118,7 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 			AnnotatedImage annotated (image_bodies[i],eye_location);
 
 			//Get the face characteristics from the annotated image
-			Portrait::Characteristics face_metadata = portrait_analyzer->analyze(annotated);
+			FRsdk::Portrait::Characteristics face_metadata = FRsdk::Portrait_analyzer->analyze(annotated);
 
 			face_confidences.push_back(make_pair(faceIter->confidence,face_metadata));
         		faceIter++;
