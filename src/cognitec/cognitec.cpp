@@ -44,17 +44,17 @@ public:
 
   bool isColor() {return c;}
 
-  unsigned int width() {return w;}
+  unsigned int width() const {return w;}
 
-  unsigned int height() {return h;}
+  unsigned int height() const {return h;}
 
-  const Byte* grayScaleRepresentation() {if (!c) {return gR;} else return NULL;}
+  const Byte* grayScaleRepresentation() const {if (!c) {return gR;} else return NULL;}
 
-  const Rgb* colorRepresentation() {if(c){return cR;} else return NULL;}
+  const Rgb* colorRepresentation() const {if(c){return cR;} else return NULL;}
 
-  unsigned int stride() {return str;}
+  unsigned int stride() const {return str;}
 
-  std::string name() {return "";}
+  std::string name() const {return "";}
 
 private:
   bool c;
@@ -69,7 +69,7 @@ struct sort_first_greater {
     bool operator()(const std::pair<float,janus_template_id> &left, const std::pair<float,janus_template_id> &right) {
         return left.first > right.first;
     }
-    bool operator()(const std::pair<float,FRsdk::Portrait::Characteristic> &left, const std::pair<float,FRsdk::Portrait::Characteristic> &right) {
+    bool operator()(const std::pair<float,FRsdk::Portrait::Characteristics> &left, const std::pair<float,FRsdk::Portrait::Characteristics> &right) {
         return left.first > right.first;
     }
 };
@@ -94,7 +94,7 @@ janus_error janus_initialize(const string &sdk_path, const string &, const strin
 
 	face_detector = new Face::Finder(*config);
 	eye_detector = new Eyes::Finder(*config);
-	portrait_analyzer = new Potrait::Analyzer(*config);
+	portrait_analyzer = new Portrait::Analyzer(*config);
 
 	return JANUS_SUCCESS;
 }
@@ -106,14 +106,14 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 	for (size_t i = 0; i< image_bodies.size();i++)
 	{
 		//Find interpupillary markers in the image
-		Face::LocationSet locations = face_detector.find(image_bodies[i]);
+		Face::LocationSet locations = face_detector->find(image_bodies[i]);
         Face::LocationSet::const_iterator faceIter = locations.begin();
 
         vector<pair<float,FRsdk::Portrait::Characteristics> > face_confidences;
         while( faceIter != locations.end())
         {
         		// Detect the eyes in the face locations
-        		Eyes::LocationSet eye_locations = eye_finder.find(image_bodies[i],*faceIter);
+        		Eyes::LocationSet eye_locations = eye_detector->find(image_bodies[i],*faceIter);
 
         		//Choose the eyes with the highest confidence
         		Eyes::Location &eye_location = eye_locations.front();
@@ -130,7 +130,7 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 
         sort(face_confidences.begin(), face_confidences.end(), sort_first_greater());
 
-        for (size_t j=0; j< face_confidence.size();j++)
+        for (size_t j=0; j< face_confidences.size();j++)
         {
         		janus_track track;
         		janus_attributes attributes;
@@ -141,8 +141,8 @@ janus_error janus_detect(const janus_media &media, const size_t min_face_size, s
 			if (attributes.face_width < (int)min_face_size)
 				continue;
 
-        		attributes.face_x = face_confidences[j].second.faceCenter() - (attributes.face_width/2);
-        		attributes.face_y = face_confidences[j].second.faceCenter() - (attributes.face_height/2);
+        		attributes.face_x = face_confidences[j].second.faceCenter().x() - (attributes.face_width/2);
+        		attributes.face_y = face_confidences[j].second.faceCenter().y() - (attributes.face_height/2);
 
         		track.track.push_back(attributes);
         		track.detection_confidence = face_confidences[j].first;
