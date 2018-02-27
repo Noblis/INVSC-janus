@@ -22,7 +22,7 @@
 using namespace std;
 using namespace FRsdk;
 
-class JanusBody: ImageBody
+class JanusBody: public ImageBody
 {
 public:
   JanusBody(janus_data* data, size_t width, size_t height, size_t step, janus_color_space color_space)
@@ -84,8 +84,8 @@ void to_cognitec_image(janus_media media, vector<Image> &cognitec_images)
 {
 	for (size_t i = 0; i< media.data.size();i++)
 	{
-		JanusBody body = new JanusBody(media.data[0],media.width,media.height,media.step,media.color_space);
-		cognitec_images.push_back(Image(CountedPtr<JanusBody>(&body)));
+		JanusBody *body = new JanusBody(media.data[0],media.width,media.height,media.step,media.color_space);
+		cognitec_images.push_back(Image(CountedPtr<JanusBody>(body)));
 	}
 }
 
